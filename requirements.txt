@@ -10,4 +10,6 @@ passlib[bcrypt]
 python-jose[cryptography]
 psycopg2-binary
 pydantic[email]
+jinja2
+xhtml2pdf
 
