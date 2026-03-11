@@ -1,19 +1,30 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime
 
 class UserBase(BaseModel):
+    id: str # Firebase UID
     email: EmailStr
-    full_name: Optional[str] = None
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    device_info: Optional[str] = None
+    fcm_token: Optional[str] = None
 
 class UserCreate(UserBase):
-    password: str
+    pass
 
-class UserUpdate(UserBase):
-    password: Optional[str] = None
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    device_info: Optional[str] = None
+    fcm_token: Optional[str] = None
 
 class UserInDB(UserBase):
-    id: str
-    is_active: bool = True
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+
+    class Config:
+        orm_mode = True
 
 class Token(BaseModel):
     access_token: str
@@ -21,6 +32,7 @@ class Token(BaseModel):
 
 class TokenData(BaseModel):
     email: Optional[str] = None
+    user_id: Optional[str] = None
 
 class OTPRequest(BaseModel):
     email: EmailStr
