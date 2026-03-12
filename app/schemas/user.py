@@ -24,7 +24,7 @@ class UserInDB(UserBase):
     updated_at: Optional[datetime] = None
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 class Token(BaseModel):
     access_token: str
@@ -34,8 +34,11 @@ class TokenData(BaseModel):
     email: Optional[str] = None
     user_id: Optional[str] = None
 
-class OTPRequest(BaseModel):
+class RegisterRequest(BaseModel):
+    name: str
     email: EmailStr
+    phone: str
+    password: str
 
 class OTPVerify(BaseModel):
     email: EmailStr
