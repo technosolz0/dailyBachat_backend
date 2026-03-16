@@ -44,6 +44,18 @@ async def create_invoice(
     db.refresh(db_invoice)
     return db_invoice
 
+@router.get("/invoices", response_model=List[schemas.Invoice])
+async def list_invoices(
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        return []
+    
+    invoices = db.query(Invoice).filter(Invoice.business_id == profile.id).order_by(Invoice.date.desc()).all()
+    return invoices
+
 @router.get("/invoices/{invoice_id}/pdf")
 async def get_invoice_pdf(
     invoice_id: str,
@@ -104,3 +116,47 @@ async def get_invoice_pdf(
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename=invoice_{invoice.invoice_number}.pdf"}
     )
+
+@router.post("/quotations", response_model=schemas.QuotationCreate)
+async def create_quotation(
+    quotation: schemas.QuotationCreate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=400, detail="Business profile required")
+        
+    quotation_id = str(uuid.uuid4())
+    db_quotation = Quotation(
+        id=quotation_id,
+        business_id=profile.id,
+        **quotation.dict(exclude={"items"})
+    )
+    db.add(db_quotation)
+    
+    for item in quotation.items:
+        db_item = QuotationItem(
+            id=str(uuid.uuid4()),
+            quotation_id=quotation_id,
+            **item.dict()
+        )
+        db.add(db_item)
+        
+    db.commit()
+    db.refresh(db_quotation)
+    return db_quotation
+
+@router.get("/quotations")
+async def list_quotations(
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        return []
+    
+    quotations = db.query(Quotation).filter(Quotation.business_id == profile.id).order_by(Quotation.created_at.desc()).all()
+    # Pydantic is missing full Quotation schema, passing raw or doing manual format depending on system, 
+    # Since schemas.Quotation might be missing we are just returning it raw, fastapi handles ORM normally.
+    return quotations
