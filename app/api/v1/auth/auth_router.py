@@ -32,7 +32,7 @@ async def register_request(user_data: RegisterRequest):
 @router.post("/register/verify")
 async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)):
     """
-    Step 2: Verify OTP and create user in DB.
+    Step 2: Verify OTP. User creation will happen via /sync after Firebase registration.
     """
     stored_otp_data = otp_store.get(verification.email)
     if not stored_otp_data:
@@ -45,33 +45,13 @@ async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)
         del otp_store[verification.email]
         raise HTTPException(status_code=400, detail="OTP expired")
 
-    user_data = pending_users.get(verification.email)
-    if not user_data:
-        raise HTTPException(status_code=400, detail="User data lost. Please register again.")
-
-    # Check if user already exists
-    existing_user = db.query(User).filter(User.email == verification.email).first()
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-
-    # Create user (Use a temporary ID for now as Firebase UID is normally provided)
-    # In your logic, users are created in Firebase first or via sync.
-    # Here we simulate creation.
-    new_user = User(
-        id=f"user_{random.randint(1000, 9999)}",
-        email=user_data["email"],
-        name=user_data["name"],
-        phone_number=user_data["phone"]
-    )
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-
-    # Cleanup
-    del otp_store[verification.email]
-    del pending_users[verification.email]
-
-    return {"message": "Registration successful", "user": new_user.id}
+    # Cleanup stores
+    if verification.email in otp_store:
+        del otp_store[verification.email]
+    
+    # We keep pending_users for a bit longer or just rely on Flutter to send data to /sync
+    # For now, let's just return success.
+    return {"message": "OTP verified successfully", "success": True}
 
 @router.post("/sync", response_model=UserInDB)
 async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
