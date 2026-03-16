@@ -16,6 +16,25 @@ router = APIRouter()
 def get_current_user_id(x_user_id: str = Header(...)):
     return x_user_id
 
+@router.get("/banks", response_model=List[str])
+async def get_banks():
+    return [
+        "State Bank of India (SBI)",
+        "HDFC Bank",
+        "ICICI Bank",
+        "Punjab National Bank (PNB)",
+        "Axis Bank",
+        "Kotak Mahindra Bank",
+        "Bank of Baroda (BoB)",
+        "Canara Bank",
+        "Union Bank of India",
+        "Bank of India (BOI)",
+        "IndusInd Bank",
+        "Yes Bank",
+        "IDFC FIRST Bank",
+        "Other"
+    ]
+
 @router.post("/profile", response_model=schemas.BusinessProfile)
 async def create_business_profile(
     profile: schemas.BusinessProfileCreate, 
