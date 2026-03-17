@@ -82,6 +82,21 @@
             <p>1. This quotation is valid until {{ data.expiry_date }}.<br>
             2. Prices are subject to change after the validity period.<br>
             3. Payment terms as discussed.</p>
+            
+            <h3 style="color: #20e5bc; margin-top: 20px;">BANK DETAILS:</h3>
+            {% if data.payment.upi_id %}
+            <p><strong>UPI ID:</strong> {{ data.payment.upi_id }}</p>
+            {% endif %}
+            {% if data.payment.bank_name %}
+            <p><strong>Bank:</strong> {{ data.payment.bank_name }}<br>
+            <strong>A/C No:</strong> {{ data.payment.account_number }}<br>
+            <strong>IFSC:</strong> {{ data.payment.ifsc }}</p>
+            {% endif %}
+            {% if data.payment.qr_code_url %}
+            <div style="margin-top: 10px;">
+                <img src="{{ data.payment.qr_code_url }}" style="width: 80px; height: 80px;" alt="QR">
+            </div>
+            {% endif %}
         </div>
         <div class="totals">
             <p>Subtotal: {{ data.subtotal }}</p>
