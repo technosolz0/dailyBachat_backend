@@ -7,50 +7,62 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import Token, RegisterRequest, OTPVerify, UserCreate, UserInDB
 
+from app.models.otp import OTP
+
 router = APIRouter()
 
-# Temporary stores (In production, use Redis/DB)
-otp_store = {}
-pending_users = {} # Store user details until OTP verified
-
 @router.post("/register/request")
-async def register_request(user_data: RegisterRequest):
+async def register_request(user_data: RegisterRequest, db: Session = Depends(get_db)):
     """
     Step 1: Receive user details and send OTP (mocked for now).
     """
-    # In a real app, send actual Email/SMS OTP
-    otp = str(random.randint(100000, 999999))
-    otp_store[user_data.email] = {
-        "otp": otp,
-        "expires": datetime.now() + timedelta(minutes=10)
-    }
-    pending_users[user_data.email] = user_data.dict()
+    # Normalize email
+    email = user_data.email.lower().strip()
     
-    # print(f"DEBUG: OTP for {user_data.email} is {otp}")
-    return {"message": "OTP sent successfully", "otp": otp} # Returning OTP for easy testing
+    # In a real app, send actual Email/SMS OTP
+    otp_code = str(random.randint(100000, 999999))
+    
+    # Store in DB
+    db_otp = db.query(OTP).filter(OTP.email == email).first()
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+    
+    if db_otp:
+        db_otp.otp = otp_code
+        db_otp.expires_at = expires_at
+        db_otp.created_at = datetime.utcnow()
+    else:
+        db_otp = OTP(email=email, otp=otp_code, expires_at=expires_at)
+        db.add(db_otp)
+    
+    db.commit()
+    
+    # print(f"DEBUG: OTP for {email} is {otp_code}")
+    return {"message": "OTP sent successfully", "otp": otp_code}
 
 @router.post("/register/verify")
 async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)):
     """
-    Step 2: Verify OTP. User creation will happen via /sync after Firebase registration.
+    Step 2: Verify OTP.
     """
-    stored_otp_data = otp_store.get(verification.email)
-    if not stored_otp_data:
+    email = verification.email.lower().strip()
+    
+    db_otp = db.query(OTP).filter(OTP.email == email).first()
+    
+    if not db_otp:
         raise HTTPException(status_code=400, detail="OTP not requested or expired")
     
-    if stored_otp_data["otp"] != verification.otp:
+    if db_otp.otp != verification.otp:
         raise HTTPException(status_code=400, detail="Invalid OTP")
     
-    if datetime.now() > stored_otp_data["expires"]:
-        del otp_store[verification.email]
+    if datetime.utcnow() > db_otp.expires_at:
+        db.delete(db_otp)
+        db.commit()
         raise HTTPException(status_code=400, detail="OTP expired")
 
-    # Cleanup stores
-    if verification.email in otp_store:
-        del otp_store[verification.email]
+    # Cleanup OTP
+    db.delete(db_otp)
+    db.commit()
     
-    # We keep pending_users for a bit longer or just rely on Flutter to send data to /sync
-    # For now, let's just return success.
     return {"message": "OTP verified successfully", "success": True}
 
 @router.post("/sync", response_model=UserInDB)
