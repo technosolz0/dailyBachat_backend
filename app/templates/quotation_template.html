@@ -102,6 +102,10 @@
             <p>Subtotal: {{ data.subtotal }}</p>
             <p>Tax: {{ data.tax }}</p>
             <p class="total-row">Estimated Total: {{ data.total }}</p>
+            {% if data.advance_amount > 0 %}
+            <p>Advance Paid: {{ data.advance_amount }}</p>
+            <p><strong>Balance Due: {{ data.total - data.advance_amount }}</strong></p>
+            {% endif %}
         </div>
     </div>
 

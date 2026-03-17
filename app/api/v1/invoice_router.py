@@ -5,7 +5,7 @@ import uuid
 from datetime import datetime
 from app.core.database import get_db
 from app.models.business import BusinessProfile
-from app.models.invoice import Invoice, InvoiceItem, Quotation, QuotationItem, InvoiceStatus, QuotationStatus
+from app.models.invoice import Invoice, InvoiceItem, Quotation, QuotationItem, InvoiceStatus, QuotationStatus, Payment
 
 from app.schemas import invoice as schemas
 from app.core.pdf_service import pdf_service
@@ -42,7 +42,8 @@ async def convert_quotation_to_invoice(
         subtotal=quotation.subtotal,
         tax=quotation.tax,
         total=quotation.total,
-        status=InvoiceStatus.pending
+        paid_amount=quotation.advance_amount,
+        status=InvoiceStatus.paid if quotation.advance_amount >= quotation.total else (InvoiceStatus.partially_paid if quotation.advance_amount > 0 else InvoiceStatus.pending)
     )
     db.add(db_invoice)
     
@@ -195,7 +196,7 @@ async def create_quotation(
     db.refresh(db_quotation)
     return db_quotation
 
-@router.get("/quotations")
+@router.get("/quotations", response_model=List[schemas.Quotation])
 async def list_quotations(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id)
@@ -205,8 +206,6 @@ async def list_quotations(
         return []
     
     quotations = db.query(Quotation).filter(Quotation.business_id == profile.id).order_by(Quotation.date.desc()).all()
-    # Pydantic is missing full Quotation schema, passing raw or doing manual format depending on system, 
-    # Since schemas.Quotation might be missing we are just returning it raw, fastapi handles ORM normally.
     return quotations
 @router.get("/quotations/{quotation_id}/pdf")
 async def get_quotation_pdf(
@@ -329,3 +328,57 @@ async def update_quotation(
     db.commit()
     db.refresh(db_quotation)
     return db_quotation
+
+@router.post("/invoices/{invoice_id}/payments", response_model=schemas.Invoice)
+async def add_invoice_payment(
+    invoice_id: str,
+    payment: schemas.PaymentCreate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+        
+    if invoice.business.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+        
+    # Record payment
+    db_payment = Payment(
+        id=str(uuid.uuid4()),
+        invoice_id=invoice_id,
+        amount=payment.amount,
+        method=payment.method,
+        reference_id=payment.reference_id
+    )
+    db.add(db_payment)
+    
+    invoice.paid_amount += payment.amount
+    if invoice.paid_amount >= invoice.total:
+        invoice.status = InvoiceStatus.paid
+    else:
+        invoice.status = InvoiceStatus.partially_paid
+        
+    db.commit()
+    db.refresh(invoice)
+    return invoice
+
+@router.post("/invoices/{invoice_id}/mark-paid", response_model=schemas.Invoice)
+async def mark_invoice_paid(
+    invoice_id: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
+    if not invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+        
+    if invoice.business.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+        
+    invoice.paid_amount = invoice.total
+    invoice.status = InvoiceStatus.paid
+    
+    db.commit()
+    db.refresh(invoice)
+    return invoice

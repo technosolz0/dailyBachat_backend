@@ -48,17 +48,42 @@ class PaymentCreate(BaseModel):
     method: str
     reference_id: Optional[str] = None
 
-class QuotationItemCreate(BaseModel):
+# Quotations
+class QuotationItemBase(BaseModel):
     description: str
     quantity: float
     unit_price: float
     amount: float
 
-class QuotationCreate(BaseModel):
+class QuotationItemCreate(QuotationItemBase):
+    pass
+
+class QuotationItem(QuotationItemBase):
+    id: str
+    quotation_id: str
+
+    class Config:
+        from_attributes = True
+
+class QuotationBase(BaseModel):
     customer_id: str
     quotation_number: str
     expiry_date: Optional[datetime] = None
     subtotal: float
     tax: float
     total: float
+    advance_amount: Optional[float] = 0.0
+
+class QuotationCreate(QuotationBase):
     items: List[QuotationItemCreate]
+
+class Quotation(QuotationBase):
+    id: str
+    business_id: str
+    date: datetime
+    status: str
+    pdf_url: Optional[str] = None
+    items: List[QuotationItem] = []
+
+    class Config:
+        from_attributes = True
