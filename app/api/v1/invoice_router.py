@@ -5,7 +5,54 @@ import uuid
 from datetime import datetime
 from app.core.database import get_db
 from app.models.business import BusinessProfile
-from app.models.invoice import Invoice, InvoiceItem, Quotation, QuotationItem, InvoiceStatus
+from app.models.invoice import Invoice, InvoiceItem, Quotation, QuotationItem, InvoiceStatus, QuotationStatus
+
+@router.post("/quotations/{quotation_id}/convert-to-invoice", response_model=schemas.Invoice)
+async def convert_quotation_to_invoice(
+    quotation_id: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    quotation = db.query(Quotation).filter(Quotation.id == quotation_id).first()
+    if not quotation:
+        raise HTTPException(status_code=404, detail="Quotation not found")
+        
+    if quotation.business.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+        
+    if quotation.status == QuotationStatus.converted:
+        raise HTTPException(status_code=400, detail="Quotation already converted")
+        
+    invoice_id = str(uuid.uuid4())
+    invoice_number = quotation.quotation_number.replace("QUO", "INV")
+    
+    db_invoice = Invoice(
+        id=invoice_id,
+        business_id=quotation.business_id,
+        customer_id=quotation.customer_id,
+        invoice_number=invoice_number,
+        subtotal=quotation.subtotal,
+        tax=quotation.tax,
+        total=quotation.total,
+        status=InvoiceStatus.pending
+    )
+    db.add(db_invoice)
+    
+    for item in quotation.items:
+        db_item = InvoiceItem(
+            id=str(uuid.uuid4()),
+            invoice_id=invoice_id,
+            description=item.description,
+            quantity=item.quantity,
+            unit_price=item.unit_price,
+            amount=item.amount
+        )
+        db.add(db_item)
+        
+    quotation.status = QuotationStatus.converted
+    db.commit()
+    db.refresh(db_invoice)
+    return db_invoice
 from app.schemas import invoice as schemas
 from app.core.pdf_service import pdf_service
 
