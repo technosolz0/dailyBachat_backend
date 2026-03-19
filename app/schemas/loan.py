@@ -3,7 +3,8 @@ from typing import Optional, List, Any
 from datetime import datetime
 
 class LoanBase(BaseModel):
-    id: str
+    id: Optional[str] = None
+    user_id: str
     person_name: str
     amount: float
     paid_amount: float = 0.0
@@ -29,7 +30,7 @@ class LoanUpdate(BaseModel):
     payment_history: Optional[List[Any]] = None
 
 class LoanInDB(LoanBase):
-    user_id: str
+    id: str # Required in DB
 
     class Config:
         from_attributes = True

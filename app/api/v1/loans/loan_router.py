@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import uuid
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List
 from app.core.database import get_db
@@ -9,30 +10,29 @@ router = APIRouter()
 
 @router.post("/", response_model=LoanInDB)
 async def create_loan(loan: LoanCreate, db: Session = Depends(get_db)):
-    # Placeholder: In real app, get user_id from token
-    user_id = "test_user" 
-    db_loan = Loan(**loan.dict(), user_id=user_id)
+    loan_dict = loan.dict()
+    if not loan_dict.get('id'):
+        loan_dict['id'] = str(uuid.uuid4())
+    
+    db_loan = Loan(**loan_dict)
     db.add(db_loan)
     db.commit()
     db.refresh(db_loan)
     return db_loan
 
 @router.get("/", response_model=List[LoanInDB])
-async def list_loans(db: Session = Depends(get_db)):
-    user_id = "test_user"
+async def list_loans(user_id: str = Query(...), db: Session = Depends(get_db)):
     return db.query(Loan).filter(Loan.user_id == user_id).all()
 
 @router.get("/{loan_id}", response_model=LoanInDB)
-async def get_loan(loan_id: str, db: Session = Depends(get_db)):
-    user_id = "test_user"
+async def get_loan(loan_id: str, user_id: str = Query(...), db: Session = Depends(get_db)):
     db_loan = db.query(Loan).filter(Loan.id == loan_id, Loan.user_id == user_id).first()
     if not db_loan:
         raise HTTPException(status_code=404, detail="Loan not found")
     return db_loan
 
 @router.put("/{loan_id}", response_model=LoanInDB)
-async def update_loan(loan_id: str, loan: LoanUpdate, db: Session = Depends(get_db)):
-    user_id = "test_user"
+async def update_loan(loan_id: str, loan: LoanUpdate, user_id: str = Query(...), db: Session = Depends(get_db)):
     db_loan = db.query(Loan).filter(Loan.id == loan_id, Loan.user_id == user_id).first()
     if not db_loan:
         raise HTTPException(status_code=404, detail="Loan not found")
@@ -46,8 +46,7 @@ async def update_loan(loan_id: str, loan: LoanUpdate, db: Session = Depends(get_
     return db_loan
 
 @router.delete("/{loan_id}")
-async def delete_loan(loan_id: str, db: Session = Depends(get_db)):
-    user_id = "test_user"
+async def delete_loan(loan_id: str, user_id: str = Query(...), db: Session = Depends(get_db)):
     db_loan = db.query(Loan).filter(Loan.id == loan_id, Loan.user_id == user_id).first()
     if not db_loan:
         raise HTTPException(status_code=404, detail="Loan not found")
