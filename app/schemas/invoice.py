@@ -26,7 +26,9 @@ class InvoiceBase(BaseModel):
     due_date: Optional[datetime] = None
     subtotal: float
     tax: float
+    tax_percent: Optional[float] = 0.0
     total: float
+    date: Optional[datetime] = None
 
 class InvoiceCreate(InvoiceBase):
     items: List[InvoiceItemCreate]
@@ -71,7 +73,10 @@ class QuotationBase(BaseModel):
     expiry_date: Optional[datetime] = None
     subtotal: float
     tax: float
+    tax_percent: Optional[float] = 0.0
     total: float
+    date: Optional[datetime] = None
+    status: Optional[str] = "draft"
     advance_amount: Optional[float] = 0.0
 
 class QuotationCreate(QuotationBase):

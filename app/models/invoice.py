@@ -27,6 +27,8 @@ class Quotation(Base):
     subtotal = Column(Float, default=0.0)
     tax = Column(Float, default=0.0)
     total = Column(Float, default=0.0)
+    advance_amount = Column(Float, default=0.0)
+    tax_percent = Column(Float, default=0.0)
     status = Column(String, default=QuotationStatus.draft)
     pdf_url = Column(String)
 
@@ -58,6 +60,7 @@ class Invoice(Base):
     subtotal = Column(Float, default=0.0)
     tax = Column(Float, default=0.0)
     total = Column(Float, default=0.0)
+    tax_percent = Column(Float, default=0.0)
     paid_amount = Column(Float, default=0.0)
     status = Column(String, default=InvoiceStatus.pending)
     pdf_url = Column(String)

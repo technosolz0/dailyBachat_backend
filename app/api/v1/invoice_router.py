@@ -41,6 +41,7 @@ async def convert_quotation_to_invoice(
         invoice_number=invoice_number,
         subtotal=quotation.subtotal,
         tax=quotation.tax,
+        tax_percent=quotation.tax_percent,
         total=quotation.total,
         paid_amount=quotation.advance_amount,
         status=InvoiceStatus.paid if quotation.advance_amount >= quotation.total else (InvoiceStatus.partially_paid if quotation.advance_amount > 0 else InvoiceStatus.pending)
@@ -74,10 +75,14 @@ async def create_invoice(
         raise HTTPException(status_code=400, detail="Business profile required")
         
     invoice_id = str(uuid.uuid4())
+    invoice_data = invoice.dict(exclude={"items"})
+    if invoice_data.get("date") is None:
+        invoice_data.pop("date", None)
+        
     db_invoice = Invoice(
         id=invoice_id,
         business_id=profile.id,
-        **invoice.dict(exclude={"items"})
+        **invoice_data
     )
     db.add(db_invoice)
     
@@ -154,6 +159,7 @@ async def get_invoice_pdf(
         },
         "subtotal": invoice.subtotal,
         "tax": invoice.tax,
+        "tax_percent": invoice.tax_percent,
         "total": invoice.total,
         "paid_amount": invoice.paid_amount
     }
@@ -166,7 +172,7 @@ async def get_invoice_pdf(
         headers={"Content-Disposition": f"attachment; filename=invoice_{invoice.invoice_number}.pdf"}
     )
 
-@router.post("/quotations", response_model=schemas.QuotationCreate)
+@router.post("/quotations", response_model=schemas.Quotation)
 async def create_quotation(
     quotation: schemas.QuotationCreate,
     db: Session = Depends(get_db),
@@ -177,10 +183,14 @@ async def create_quotation(
         raise HTTPException(status_code=400, detail="Business profile required")
         
     quotation_id = str(uuid.uuid4())
+    quotation_data = quotation.dict(exclude={"items"})
+    if quotation_data.get("date") is None:
+        quotation_data.pop("date", None)
+
     db_quotation = Quotation(
         id=quotation_id,
         business_id=profile.id,
-        **quotation.dict(exclude={"items"})
+        **quotation_data
     )
     db.add(db_quotation)
     
@@ -254,7 +264,9 @@ async def get_quotation_pdf(
         ],
         "subtotal": quotation.subtotal,
         "tax": quotation.tax,
-        "total": quotation.total
+        "tax_percent": quotation.tax_percent,
+        "total": quotation.total,
+        "advance_amount": quotation.advance_amount
     }
     
     pdf_content = pdf_service.generate_quotation_pdf(data)
@@ -297,7 +309,7 @@ async def update_invoice(
     db.refresh(db_invoice)
     return db_invoice
 
-@router.put("/quotations/{quotation_id}", response_model=schemas.QuotationCreate)
+@router.put("/quotations/{quotation_id}", response_model=schemas.Quotation)
 async def update_quotation(
     quotation_id: str,
     quotation_update: schemas.QuotationCreate,
