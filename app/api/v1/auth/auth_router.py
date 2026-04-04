@@ -7,6 +7,7 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import Token, RegisterRequest, OTPVerify, UserCreate, UserInDB
 
+from app.core.email_service import email_service
 from app.models.otp import OTP
 
 router = APIRouter()
@@ -14,12 +15,12 @@ router = APIRouter()
 @router.post("/register/request")
 async def register_request(user_data: RegisterRequest, db: Session = Depends(get_db)):
     """
-    Step 1: Receive user details and send OTP (mocked for now).
+    Step 1: Receive user details and send OTP via Email.
     """
     # Normalize email
     email = user_data.email.lower().strip()
     
-    # In a real app, send actual Email/SMS OTP
+    # Generate OTP
     otp_code = str(random.randint(100000, 999999))
     
     # Store in DB
@@ -36,8 +37,19 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
     
     db.commit()
     
-    # print(f"DEBUG: OTP for {email} is {otp_code}")
-    return {"message": "OTP sent successfully", "otp": otp_code}
+    # Send OTP via Email
+    success = email_service.send_otp(email, otp_code)
+    
+    if not success:
+        # For now, let's include it in response if mail fails just to avoid blocking tests
+        # or we could raise an error.
+        # But per user request, we want it SENT.
+        raise HTTPException(
+            status_code=500, 
+            detail="Failed to send verification email. Please check your email configuration."
+        )
+
+    return {"message": "OTP sent successfully to your email"}
 
 @router.post("/register/verify")
 async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)):
