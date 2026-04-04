@@ -41,6 +41,7 @@ class Invoice(InvoiceBase):
     status: str
     pdf_url: Optional[str] = None
     items: List[InvoiceItem] = []
+    customer: Optional[Customer] = None
 
     class Config:
         from_attributes = True
@@ -89,6 +90,7 @@ class Quotation(QuotationBase):
     status: str
     pdf_url: Optional[str] = None
     items: List[QuotationItem] = []
+    customer: Optional[Customer] = None
 
     class Config:
         from_attributes = True

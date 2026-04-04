@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Header, Response
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 import uuid
 from datetime import datetime
@@ -107,7 +107,7 @@ async def list_invoices(
     if not profile:
         return []
     
-    invoices = db.query(Invoice).filter(Invoice.business_id == profile.id).order_by(Invoice.date.desc()).all()
+    invoices = db.query(Invoice).options(joinedload(Invoice.customer)).filter(Invoice.business_id == profile.id).order_by(Invoice.date.desc()).all()
     return invoices
 
 @router.get("/invoices/{invoice_id}/pdf")
@@ -215,7 +215,7 @@ async def list_quotations(
     if not profile:
         return []
     
-    quotations = db.query(Quotation).filter(Quotation.business_id == profile.id).order_by(Quotation.date.desc()).all()
+    quotations = db.query(Quotation).options(joinedload(Quotation.customer)).filter(Quotation.business_id == profile.id).order_by(Quotation.date.desc()).all()
     return quotations
 @router.get("/quotations/{quotation_id}/pdf")
 async def get_quotation_pdf(
