@@ -34,13 +34,25 @@ async def create_product(
 
 @router.get("/", response_model=List[ProductResponse])
 async def list_products(
+    search: str = None,
+    min_price: float = None,
+    max_price: float = None,
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id)
 ):
     profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
     if not profile:
         return []
-    return db.query(Product).filter(Product.business_id == profile.id).all()
+    
+    query = db.query(Product).filter(Product.business_id == profile.id)
+    if search:
+        query = query.filter(Product.name.ilike(f"%{search}%"))
+    if min_price is not None:
+        query = query.filter(Product.price >= min_price)
+    if max_price is not None:
+        query = query.filter(Product.price <= max_price)
+        
+    return query.all()
 
 @router.get("/{product_id}", response_model=ProductResponse)
 async def get_product(
