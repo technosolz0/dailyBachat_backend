@@ -43,3 +43,7 @@ class RegisterRequest(BaseModel):
 class OTPVerify(BaseModel):
     email: EmailStr
     otp: str
+
+class DeletionRequest(BaseModel):
+    user_id: str
+    reason: str

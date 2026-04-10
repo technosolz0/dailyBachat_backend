@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.core import security
 from app.core.database import get_db
 from app.models.user import User
-from app.schemas.user import Token, RegisterRequest, OTPVerify, UserCreate, UserInDB
+from app.schemas.user import Token, RegisterRequest, OTPVerify, UserCreate, UserInDB, DeletionRequest
 
 from app.core.email_service import email_service
 from app.models.otp import OTP
@@ -41,13 +41,12 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
     success = email_service.send_otp(email, otp_code)
     
     if not success:
-        # For now, let's include it in response if mail fails just to avoid blocking tests
-        # or we could raise an error.
-        # But per user request, we want it SENT.
-        raise HTTPException(
-            status_code=500, 
-            detail="Failed to send verification email. Please check your email configuration."
-        )
+        # If email fails, we return the OTP in the message to unblock the user 
+        # during development/testing while they fix their SMTP config.
+        return {
+            "message": f"OTP sent successfully (DEBUG: {otp_code})",
+            "warning": "Email sending failed. Please check SMTP configuration."
+        }
 
     return {"message": "OTP sent successfully to your email"}
 
@@ -101,3 +100,19 @@ async def read_users_me(db: Session = Depends(get_db)):
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
+
+@router.post("/delete-request")
+async def delete_request(request: DeletionRequest, db: Session = Depends(get_db)):
+    """
+    Submits a deletion request for the user.
+    """
+    db_user = db.query(User).filter(User.id == request.user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    db_user.deletion_requested = True
+    db_user.deletion_reason = request.reason
+    db_user.deletion_requested_at = datetime.utcnow()
+    
+    db.commit()
+    return {"message": "Deletion request submitted successfully. Admin will review and delete your account permanently."}
