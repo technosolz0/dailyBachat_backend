@@ -10,7 +10,10 @@ from app.schemas.user import (
     UserInDB, DeletionRequest, FCMUpdate, LoginRequest, UserLoginResponse,
     ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest
 )
-from app.core.security import get_password_hash, verify_password, create_access_token, get_current_user_id
+from app.core.security import (
+    get_password_hash, verify_password, create_access_token, 
+    get_current_user_id, encrypt_data, decrypt_data
+)
 from firebase_admin import auth
 import uuid
 
@@ -27,6 +30,9 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
     email = user_data.email.lower().strip()
     hashed_password = get_password_hash(user_data.password)
     
+    # Encrypt sensitive data
+    encrypted_phone = encrypt_data(user_data.phone_number)
+    
     # Generate OTP
     otp_code = str(random.randint(100000, 999999))
     
@@ -37,8 +43,10 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
     if db_otp:
         db_otp.otp = otp_code
         db_otp.name = user_data.name
-        db_otp.phone_number = user_data.phone_number
+        db_otp.phone_number = encrypted_phone
         db_otp.hashed_password = hashed_password
+        db_otp.device_info = user_data.device_info
+        db_otp.fcm_token = user_data.fcm_token
         db_otp.expires_at = expires_at
         db_otp.created_at = datetime.utcnow()
     else:
@@ -46,14 +54,22 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
             email=email, 
             otp=otp_code, 
             name=user_data.name,
-            phone_number=user_data.phone_number,
+            phone_number=encrypted_phone,
             hashed_password=hashed_password,
+            device_info=user_data.device_info,
+            fcm_token=user_data.fcm_token,
             expires_at=expires_at
         )
         db.add(db_otp)
     
     db.commit()
     
+    # MOBILE OTP (Firebase) - Currently commented out as requested
+    """
+    # To implement Firebase Mobile Auth, we would send a session info from client
+    # and verify it here. For now, we only use Email OTP.
+    """
+
     success = email_service.send_otp(email, otp_code)
     
     if not success:
@@ -88,10 +104,19 @@ async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)
             id=str(uuid.uuid4()),
             email=email,
             name=db_otp.name,
-            phone_number=db_otp.phone_number,
-            hashed_password=db_otp.hashed_password
+            phone_number=db_otp.phone_number, # Already encrypted in OTP table
+            hashed_password=db_otp.hashed_password,
+            device_info=verification.device_info or db_otp.device_info,
+            fcm_token=verification.fcm_token or db_otp.fcm_token,
+            last_login=datetime.utcnow()
         )
         db.add(db_user)
+    else:
+        # User already exists, just update info
+        db_user.device_info = verification.device_info or db_otp.device_info
+        db_user.fcm_token = verification.fcm_token or db_otp.fcm_token
+        db_user.last_login = datetime.utcnow()
+
     # Step 5: Generate Auth Tokens (Login user immediately after verification)
     access_token = create_access_token(data={"sub": db_user.id})
     
@@ -139,7 +164,13 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
             print(f"Firebase token failed: {fe}")
             custom_token = None
         
+        # Update login details
         user.last_login = datetime.utcnow()
+        if login_data.device_info:
+            user.device_info = login_data.device_info
+        if login_data.fcm_token:
+            user.fcm_token = login_data.fcm_token
+            
         db.commit()
         
         return {
@@ -221,27 +252,47 @@ async def change_password(
     db.commit()
     return {"message": "Password changed successfully"}
 
-@router.post("/sync", response_model=UserInDB)
+@router.post("/sync", response_model=UserLoginResponse)
 async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
     """
     Sync user data from Firebase/Auth. Stores device info and records last login.
+    Returns access token for backend authentication.
     """
+    encrypted_phone = encrypt_data(user.phone_number)
     db_user = db.query(User).filter(User.id == user.id).first()
+    
     if db_user:
+        # Update existing user info
         db_user.email = user.email
         db_user.name = user.name
-        db_user.phone_number = user.phone_number
+        db_user.phone_number = encrypted_phone
         db_user.device_info = user.device_info
         db_user.fcm_token = user.fcm_token
         db_user.last_login = datetime.utcnow()
     else:
-        db_user = User(**user.dict())
+        # Register new phone user
+        user_dict = user.dict()
+        user_dict['phone_number'] = encrypted_phone
+        # Hash the placeholder password
+        user_dict['hashed_password'] = get_password_hash(user.password)
+        # Remove the raw password field before creating model
+        del user_dict['password']
+        
+        db_user = User(**user_dict)
         db_user.last_login = datetime.utcnow()
         db.add(db_user)
     
     db.commit()
     db.refresh(db_user)
-    return db_user
+    
+    # Generate JWT for the synced user
+    access_token = create_access_token(data={"sub": db_user.id})
+    
+    return {
+        "user": db_user,
+        "access_token": access_token,
+        "token_type": "bearer"
+    }
 
 @router.put("/fcm-token")
 async def update_fcm_token(

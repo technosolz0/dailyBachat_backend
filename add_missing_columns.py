@@ -14,13 +14,24 @@ def add_password_column():
             else:
                 print(f"Error: {e}")
 
-        print("Adding name column to otps table...")
+        print("Adding name, phone, password, device_info, and fcm_token columns to otps table...")
         try:
             conn.execute(text("ALTER TABLE otps ADD COLUMN name VARCHAR;"))
+        except Exception: pass
+        try:
             conn.execute(text("ALTER TABLE otps ADD COLUMN phone_number VARCHAR;"))
+        except Exception: pass
+        try:
             conn.execute(text("ALTER TABLE otps ADD COLUMN hashed_password VARCHAR;"))
-            conn.commit()
-            print("Successfully updated otps table.")
+        except Exception: pass
+        try:
+            conn.execute(text("ALTER TABLE otps ADD COLUMN device_info VARCHAR;"))
+        except Exception: pass
+        try:
+            conn.execute(text("ALTER TABLE otps ADD COLUMN fcm_token VARCHAR;"))
+        except Exception: pass
+        conn.commit()
+        print("Successfully updated otps table.")
         except Exception as e:
             if "already exists" in str(e):
                 print("Columns already exist in otps table.")

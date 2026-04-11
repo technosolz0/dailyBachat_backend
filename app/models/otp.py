@@ -10,5 +10,7 @@ class OTP(Base):
     name = Column(String)
     phone_number = Column(String)
     hashed_password = Column(String)
+    device_info = Column(String)
+    fcm_token = Column(String)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)

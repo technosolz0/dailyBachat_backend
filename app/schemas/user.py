@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
+from app.core.security import decrypt_data
 
 class UserBase(BaseModel):
     id: str # Firebase UID
@@ -9,6 +10,13 @@ class UserBase(BaseModel):
     phone_number: Optional[str] = None
     device_info: Optional[str] = None
     fcm_token: Optional[str] = None
+
+    @field_validator('phone_number')
+    @classmethod
+    def decrypt_phone(cls, v):
+        if v:
+            return decrypt_data(v)
+        return v
 
 class UserCreate(UserBase):
     password: str
@@ -52,10 +60,13 @@ class RegisterRequest(BaseModel):
     phone_number: str # Fixed from 'phone' to 'phone_number' for consistency
     password: str
     device_info: Optional[str] = None
+    fcm_token: Optional[str] = None
 
 class OTPVerify(BaseModel):
     email: EmailStr
     otp: str
+    device_info: Optional[str] = None
+    fcm_token: Optional[str] = None
 
 class DeletionRequest(BaseModel):
     user_id: str
@@ -68,6 +79,8 @@ class AdminLoginRequest(BaseModel):
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
+    device_info: Optional[str] = None
+    fcm_token: Optional[str] = None
 
 class UserLoginResponse(BaseModel):
     user: UserInDB
