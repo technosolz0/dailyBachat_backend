@@ -33,20 +33,28 @@ def update_db():
 
         # Add missing columns to users table
         print("Checking users table...")
-        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='is_admin';")
-        if not cursor.fetchone():
-            print("Adding is_admin to users...")
-            cursor.execute("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;")
+        columns_to_add = [
+            ("id", "VARCHAR PRIMARY KEY"),
+            ("email", "VARCHAR UNIQUE NOT NULL"),
+            ("name", "VARCHAR"),
+            ("phone_number", "VARCHAR"),
+            ("device_info", "VARCHAR"),
+            ("fcm_token", "VARCHAR"),
+            ("created_at", "TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP"),
+            ("updated_at", "TIMESTAMP WITH TIME ZONE"),
+            ("deletion_requested", "BOOLEAN DEFAULT FALSE"),
+            ("deletion_reason", "VARCHAR"),
+            ("deletion_requested_at", "TIMESTAMP WITH TIME ZONE"),
+            ("is_admin", "BOOLEAN DEFAULT FALSE"),
+            ("is_active", "BOOLEAN DEFAULT TRUE"),
+            ("last_login", "TIMESTAMP WITH TIME ZONE")
+        ]
 
-        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='is_active';")
-        if not cursor.fetchone():
-            print("Adding is_active to users...")
-            cursor.execute("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE;")
-
-        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='last_login';")
-        if not cursor.fetchone():
-            print("Adding last_login to users...")
-            cursor.execute("ALTER TABLE users ADD COLUMN last_login TIMESTAMP WITH TIME ZONE;")
+        for col_name, col_type in columns_to_add:
+            cursor.execute(f"SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='{col_name}';")
+            if not cursor.fetchone():
+                print(f"Adding {col_name} to users...")
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col_name} {col_type};")
 
         # Commit changes and close
         conn.commit()
