@@ -19,10 +19,3 @@ async def create_feedback(feedback: FeedbackCreate, db: Session = Depends(get_db
     db.commit()
     db.refresh(db_feedback)
     return db_feedback
-
-@router.get("/", response_model=List[FeedbackSchema])
-async def get_all_feedback(db: Session = Depends(get_db)):
-    """
-    Get all feedback. In a real app, this would be restricted to administrators.
-    """
-    return db.query(FeedbackModel).all()

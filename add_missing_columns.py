@@ -31,6 +31,23 @@ def update_db():
             print("Adding tax_percent to invoices...")
             cursor.execute("ALTER TABLE invoices ADD COLUMN tax_percent FLOAT DEFAULT 0.0;")
 
+        # Add missing columns to users table
+        print("Checking users table...")
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='is_admin';")
+        if not cursor.fetchone():
+            print("Adding is_admin to users...")
+            cursor.execute("ALTER TABLE users ADD COLUMN is_admin BOOLEAN DEFAULT FALSE;")
+
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='is_active';")
+        if not cursor.fetchone():
+            print("Adding is_active to users...")
+            cursor.execute("ALTER TABLE users ADD COLUMN is_active BOOLEAN DEFAULT TRUE;")
+
+        cursor.execute("SELECT column_name FROM information_schema.columns WHERE table_name='users' AND column_name='last_login';")
+        if not cursor.fetchone():
+            print("Adding last_login to users...")
+            cursor.execute("ALTER TABLE users ADD COLUMN last_login TIMESTAMP WITH TIME ZONE;")
+
         # Commit changes and close
         conn.commit()
         print("Database updated successfully!")

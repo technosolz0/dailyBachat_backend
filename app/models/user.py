@@ -15,3 +15,6 @@ class User(Base):
     deletion_requested = Column(Boolean, default=False)
     deletion_reason = Column(String, nullable=True)
     deletion_requested_at = Column(DateTime(timezone=True), nullable=True)
+    is_admin = Column(Boolean, default=False)
+    is_active = Column(Boolean, default=True)
+    last_login = Column(DateTime(timezone=True))

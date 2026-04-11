@@ -22,6 +22,16 @@ class UserUpdate(BaseModel):
 class UserInDB(UserBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
+    is_admin: bool = False
+    is_active: bool = True
+    last_login: Optional[datetime] = None
+
+class FCMUpdate(BaseModel):
+    fcm_token: str
+
+class AdminUserUpdate(BaseModel):
+    is_active: Optional[bool] = None
+    is_admin: Optional[bool] = None
 
     class Config:
         from_attributes = True
