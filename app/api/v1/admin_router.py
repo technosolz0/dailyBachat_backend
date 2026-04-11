@@ -21,24 +21,25 @@ from sqlalchemy import func
 import os
 
 from app.core.security import create_access_token
-from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 router = APIRouter()
 
-# Setup OAuth2
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/admin/login")
+# Setup HTTP Bearer Auth
+security = HTTPBearer()
 
 # Static admin credentials from environment
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@dailybachat.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@123")
 
-def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_admin(auth: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     """
     Decodes JWT token and verifies admin privileges.
     """
     from jose import jwt, JWTError
     from app.core.security import SECRET_KEY, ALGORITHM
     
+    token = auth.credentials
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id: str = payload.get("sub")
