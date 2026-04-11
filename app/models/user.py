@@ -8,6 +8,7 @@ class User(Base):
     email = Column(String, unique=True, index=True, nullable=False)
     name = Column(String)
     phone_number = Column(String)
+    hashed_password = Column(String)
     device_info = Column(String)
     fcm_token = Column(String)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

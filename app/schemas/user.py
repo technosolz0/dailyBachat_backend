@@ -11,7 +11,7 @@ class UserBase(BaseModel):
     fcm_token: Optional[str] = None
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -49,7 +49,7 @@ class TokenData(BaseModel):
 class RegisterRequest(BaseModel):
     name: str
     email: EmailStr
-    phone: str
+    phone_number: str # Fixed from 'phone' to 'phone_number' for consistency
     password: str
     device_info: Optional[str] = None
 
@@ -64,3 +64,13 @@ class DeletionRequest(BaseModel):
 class AdminLoginRequest(BaseModel):
     email: EmailStr
     password: str
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+class UserLoginResponse(BaseModel):
+    user: UserInDB
+    access_token: str
+    token_type: str
+    firebase_custom_token: Optional[str] = None
