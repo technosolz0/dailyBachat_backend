@@ -8,7 +8,7 @@ from app.models.business import BusinessProfile
 from app.models.invoice import Invoice
 from app.models.transaction import Transaction
 
-from app.schemas.user import UserInDB, AdminUserUpdate, AdminLoginRequest
+from app.schemas.user import UserInDB, AdminUserUpdate, AdminLoginRequest, Token as TokenSchema
 from app.schemas.feedback import Feedback as FeedbackSchema
 from app.schemas.loan import LoanInDB
 from app.schemas.business import BusinessProfile as BusinessProfileSchema
@@ -18,64 +18,73 @@ from app.schemas.notification import NotificationSend, NotificationResponse
 from app.core.firebase_config import send_push_notification, send_multicast_notification
 from typing import List
 from sqlalchemy import func
+import os
+
+from app.core.security import create_access_token
+from fastapi.security import OAuth2PasswordBearer
 
 router = APIRouter()
 
-import os
-from app.schemas.user import Token as TokenSchema
+# Setup OAuth2
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/v1/admin/login")
 
 # Static admin credentials from environment
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@dailybachat.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@123")
 
-def get_current_admin(x_user_id: str = Header(...), db: Session = Depends(get_db)):
-    # Check static admin bypass (if x_user_id is the static admin email)
-    if x_user_id == ADMIN_EMAIL:
+def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    """
+    Decodes JWT token and verifies admin privileges.
+    """
+    from jose import jwt, JWTError
+    from app.core.security import SECRET_KEY, ALGORITHM
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id: str = payload.get("sub")
+        if user_id is None:
+            raise HTTPException(status_code=401, detail="Invalid token")
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+    # Static admin bypass from token
+    if user_id == ADMIN_EMAIL:
         return User(id=ADMIN_EMAIL, email=ADMIN_EMAIL, is_admin=True, name="Static Admin")
         
-    user = db.query(User).filter(User.id == x_user_id).first()
-    if not user:
-        # Check by email too for convenience
-        user = db.query(User).filter(User.email == x_user_id).first()
-        
+    user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized. Admin privileges required.")
     return user
 
-@router.post("/login", response_model=dict)
+@router.post("/login", response_model=TokenSchema)
 async def admin_login(login_data: AdminLoginRequest, db: Session = Depends(get_db)):
     """
-    Static admin login logic.
+    Authenticates admin and returns a JWT token.
     """
     email = login_data.email
     password = login_data.password
     
-    if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
-        return {
-            "access_token": email, # Using email as token for simplicity as per current architecture
-            "token_type": "bearer",
-            "is_admin": True,
-            "user": {
-                "email": email,
-                "name": "Super Admin"
-            }
-        }
+    user_id = None
+    user_name = None
     
-    # Fallback to DB check for promoted admins
-    user = db.query(User).filter(User.email == email).first()
-    if user and user.is_admin:
-        # In a real app, verify password here. 
-        # Since this app uses Firebase, this is a simplified bridge.
+    if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        user_id = email
+        user_name = "Super Admin"
+    else:
+        # Check DB
+        user = db.query(User).filter(User.email == email).first()
+        if user and user.is_admin:
+            # Note: In production, verify user password here!
+            user_id = user.id
+            user_name = user.name
+    
+    if user_id:
+        access_token = create_access_token(data={"sub": user_id})
         return {
-            "access_token": user.id,
-            "token_type": "bearer",
-            "is_admin": True,
-            "user": {
-                "email": user.email,
-                "name": user.name
-            }
+            "access_token": access_token,
+            "token_type": "bearer"
         }
         
     raise HTTPException(status_code=401, detail="Invalid credentials or not an admin")
