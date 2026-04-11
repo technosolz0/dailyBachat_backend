@@ -17,6 +17,7 @@ from app.schemas.transaction import TransactionInDB
 from app.schemas.notification import NotificationSend, NotificationResponse
 from app.core.firebase_config import send_push_notification, send_multicast_notification
 from typing import List
+from sqlalchemy import func
 
 router = APIRouter()
 
@@ -233,8 +234,54 @@ async def send_notifications(
     )
     failure_count = len(token_list) - success_count
 
-    return NotificationResponse(
-        message=f"Notifications processed. Success: {success_count}, Failure: {failure_count}",
-        success_count=success_count,
-        failure_count=failure_count
-    )
+    return {"message": "Notifications processed. Success: {success_count}, Failure: {failure_count}", "success_count": success_count, "failure_count": failure_count}
+
+@router.get("/dashboard")
+async def get_dashboard_stats(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Get overview statistics for the admin dashboard.
+    """
+    # User stats
+    total_users = db.query(User).count()
+    active_users = db.query(User).filter(User.is_active == True).count()
+    admin_users = db.query(User).filter(User.is_admin == True).count()
+    
+    # Financial stats
+    total_income = db.query(func.sum(Transaction.amount)).filter(Transaction.type == 'income').scalar() or 0
+    total_expense = db.query(func.sum(Transaction.amount)).filter(Transaction.type == 'expense').scalar() or 0
+    
+    # Business & Product stats
+    total_businesses = db.query(BusinessProfile).count()
+    total_invoices = db.query(Invoice).count()
+    
+    # Loans
+    total_loans = db.query(Loan).count()
+    total_loan_amount = db.query(func.sum(Loan.amount)).scalar() or 0
+    
+    # Feedback
+    total_feedback = db.query(Feedback).count()
+    avg_rating = db.query(func.avg(Feedback.rating)).scalar() or 0
+
+    return {
+        "users": {
+            "total": total_users,
+            "active": active_users,
+            "admins": admin_users
+        },
+        "finances": {
+            "total_income": total_income,
+            "total_expense": total_expense,
+            "net_flow": total_income - total_expense
+        },
+        "platform": {
+            "businesses": total_businesses,
+            "invoices": total_invoices,
+            "loans": total_loans,
+            "total_loan_volume": total_loan_amount,
+            "feedback_count": total_feedback,
+            "average_feedback_rating": round(float(avg_rating), 2)
+        }
+    }
