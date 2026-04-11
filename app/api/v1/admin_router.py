@@ -8,7 +8,7 @@ from app.models.business import BusinessProfile
 from app.models.invoice import Invoice
 from app.models.transaction import Transaction
 
-from app.schemas.user import UserInDB, AdminUserUpdate
+from app.schemas.user import UserInDB, AdminUserUpdate, AdminLoginRequest
 from app.schemas.feedback import Feedback as FeedbackSchema
 from app.schemas.loan import LoanInDB
 from app.schemas.business import BusinessProfile as BusinessProfileSchema
@@ -45,12 +45,12 @@ def get_current_admin(x_user_id: str = Header(...), db: Session = Depends(get_db
     return user
 
 @router.post("/login", response_model=dict)
-async def admin_login(login_data: dict, db: Session = Depends(get_db)):
+async def admin_login(login_data: AdminLoginRequest, db: Session = Depends(get_db)):
     """
     Static admin login logic.
     """
-    email = login_data.get("email")
-    password = login_data.get("password")
+    email = login_data.email
+    password = login_data.password
     
     if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
         return {

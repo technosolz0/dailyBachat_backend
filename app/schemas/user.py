@@ -57,3 +57,7 @@ class OTPVerify(BaseModel):
 class DeletionRequest(BaseModel):
     user_id: str
     reason: str
+
+class AdminLoginRequest(BaseModel):
+    email: EmailStr
+    password: str
