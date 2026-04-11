@@ -10,7 +10,8 @@ from app.api.v1.categories import category_router
 from app.api.v1.loans import loan_router
 from app.api.v1 import (
     business_router, invoice_router, product_router, 
-    feedback_router, notification_router, admin_router
+    feedback_router, notification_router, admin_router,
+    payment_router
 )
 from app.core.firebase_config import initialize_firebase
 
@@ -42,6 +43,7 @@ app.include_router(product_router.router, prefix="/api/v1/business/inventory", t
 app.include_router(feedback_router.router, prefix="/api/v1/feedback", tags=["feedback"])
 app.include_router(notification_router.router, prefix="/api/v1/notifications", tags=["notifications"])
 app.include_router(admin_router.router, prefix="/api/v1/admin", tags=["admin"])
+app.include_router(payment_router.router, prefix="/api/v1/payment", tags=["payment"])
 
 @app.get("/")
 async def root():

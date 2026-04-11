@@ -120,9 +120,11 @@ async def update_fcm_token(
     return {"message": "FCM token updated successfully"}
 
 @router.get("/me", response_model=UserInDB)
-async def read_users_me(db: Session = Depends(get_db)):
-    user_id = "test_user" 
-    db_user = db.query(User).filter(User.id == user_id).first()
+async def read_users_me(
+    db: Session = Depends(get_db),
+    x_user_id: str = Header(...)
+):
+    db_user = db.query(User).filter(User.id == x_user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user

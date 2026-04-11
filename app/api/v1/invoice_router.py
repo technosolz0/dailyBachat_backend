@@ -2,6 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, Header, Response
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 import uuid
+import csv
+import io
 from datetime import datetime
 from app.core.database import get_db
 from app.models.business import BusinessProfile
@@ -11,6 +13,49 @@ from app.schemas import invoice as schemas
 from app.core.pdf_service import pdf_service
 
 router = APIRouter()
+
+@router.get("/invoices/export/csv")
+async def export_invoices_csv(
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=400, detail="Business profile required")
+        
+    invoices = db.query(Invoice).filter(Invoice.business_id == profile.id).all()
+    
+    output = io.StringIO()
+    writer = csv.writer(output)
+    
+    # Header with Business Info (Logo URL included as per request)
+    writer.writerow(["Business Name", profile.name])
+    writer.writerow(["Logo URL", profile.logo_url if profile.user.is_premium else "N/A (Free Version)"])
+    writer.writerow(["Premium Status", "Premium" if profile.user.is_premium else "Free"])
+    writer.writerow([])
+    
+    # Data Header
+    writer.writerow(["Invoice Number", "Customer", "Date", "Status", "Subtotal", "Tax", "Total", "Paid", "Balance"])
+    
+    for inv in invoices:
+        writer.writerow([
+            inv.invoice_number,
+            inv.customer.name,
+            inv.date.strftime("%Y-%m-%d"),
+            inv.status,
+            inv.subtotal,
+            inv.tax,
+            inv.total,
+            inv.paid_amount,
+            inv.total - inv.paid_amount
+        ])
+        
+    output.seek(0)
+    return Response(
+        content=output.getvalue(),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=invoices_export.csv"}
+    )
 
 def get_current_user_id(x_user_id: str = Header(...)):
     return x_user_id
@@ -135,7 +180,8 @@ async def get_invoice_pdf(
             "address": invoice.business.address,
             "phone": invoice.business.phone,
             "email": invoice.business.email,
-            "gst_number": invoice.business.gst_number
+            "gst_number": invoice.business.gst_number,
+            "logo_url": invoice.business.logo_url
         },
         "customer": {
             "name": invoice.customer.name,
@@ -161,7 +207,8 @@ async def get_invoice_pdf(
         "tax": invoice.tax,
         "tax_percent": invoice.tax_percent,
         "total": invoice.total,
-        "paid_amount": invoice.paid_amount
+        "paid_amount": invoice.paid_amount,
+        "is_premium": invoice.business.user.is_premium
     }
     
     pdf_content = pdf_service.generate_invoice_pdf(data)
@@ -240,7 +287,8 @@ async def get_quotation_pdf(
             "address": quotation.business.address,
             "phone": quotation.business.phone,
             "email": quotation.business.email,
-            "gst_number": quotation.business.gst_number
+            "gst_number": quotation.business.gst_number,
+            "logo_url": quotation.business.logo_url
         },
         "customer": {
             "name": quotation.customer.name,
@@ -266,7 +314,8 @@ async def get_quotation_pdf(
         "tax": quotation.tax,
         "tax_percent": quotation.tax_percent,
         "total": quotation.total,
-        "advance_amount": quotation.advance_amount
+        "advance_amount": quotation.advance_amount,
+        "is_premium": quotation.business.user.is_premium
     }
     
     pdf_content = pdf_service.generate_quotation_pdf(data)

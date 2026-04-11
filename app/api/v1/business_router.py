@@ -134,3 +134,62 @@ async def list_customers(
     if not profile:
         return []
     return db.query(Customer).filter(Customer.business_id == profile.id).all()
+
+from fastapi import Response
+from app.core.pdf_service import pdf_service
+from datetime import datetime
+
+@router.get("/customers/{customer_id}/statement")
+async def get_customer_statement(
+    customer_id: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=400, detail="Business profile required")
+        
+    customer = db.query(Customer).filter(Customer.id == customer_id, Customer.business_id == profile.id).first()
+    if not customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+        
+    # Prepare transactions data (invoices)
+    transactions = []
+    for inv in customer.invoices:
+        transactions.append({
+            "date": inv.date.strftime("%Y-%m-%d"),
+            "number": inv.invoice_number,
+            "type": "Invoice",
+            "total": inv.total,
+            "paid": inv.paid_amount,
+            "balance": inv.total - inv.paid_amount
+        })
+        
+    data = {
+        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "is_premium": profile.user.is_premium,
+        "business": {
+            "name": profile.name,
+            "address": profile.address,
+            "phone": profile.phone,
+            "email": profile.email,
+            "logo_url": profile.logo_url
+        },
+        "customer": {
+            "name": customer.name,
+            "address": customer.address,
+            "phone": customer.phone
+        },
+        "total_sales": customer.total_sales,
+        "total_paid": customer.total_paid,
+        "balance_due": customer.pending_amount,
+        "transactions": transactions
+    }
+    
+    pdf_content = pdf_service.generate_statement_pdf(data)
+    
+    return Response(
+        content=pdf_content,
+        media_type="application/pdf",
+        headers={"Content-Disposition": f"attachment; filename=statement_{customer.name.replace(' ', '_')}.pdf"}
+    )

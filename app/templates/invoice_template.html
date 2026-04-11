@@ -138,14 +138,29 @@
             height: 80px;
             margin-top: 5px;
         }
+        .watermark {
+            position: fixed;
+            top: 45%;
+            left: 20%;
+            transform: rotate(-45deg);
+            font-size: 80pt;
+            color: rgba(200, 200, 200, 0.2);
+            z-index: -1000;
+            white-space: nowrap;
+        }
     </style>
 </head>
 
 <body>
+    {% if not data.is_premium %}
+    <div class="watermark">DAILYBACHAT</div>
+    {% endif %}
     <div class="header">
         <div class="business-info">
-            {% if data.business.logo_url %}
+            {% if data.is_premium and data.business.logo_url %}
             <img src="{{ data.business.logo_url }}" class="logo" alt="Business Logo">
+            {% else %}
+            <img src="https://dailybachat.serwex.in/static/logo.png" class="logo" alt="DailyBachat Logo">
             {% endif %}
             <h2 style="margin: 0; color: #2061e5;">{{ data.business.name }}</h2>
             <p style="margin: 5px 0;">{{ data.business.address }}<br>

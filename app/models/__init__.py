@@ -8,3 +8,4 @@ from .invoice import Quotation, QuotationItem, Invoice, InvoiceItem, Payment, Sh
 from .otp import OTP
 from .product import Product
 from .feedback import Feedback
+from .system_settings import SystemSettings

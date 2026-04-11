@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Statement</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1cm;
+            @frame footer_frame {
+                -pdf-frame-content: footer;
+                left: 1cm; width: 19cm; bottom: 1cm; height: 3cm;
+            }
+        }
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            font-size: 11pt;
+        }
+        .header {
+            display: table;
+            width: 100%;
+            border-bottom: 2px solid #6c5ce7;
+            padding-bottom: 15px;
+        }
+        .business-info {
+            display: table-cell;
+            width: 60%;
+            vertical-align: top;
+        }
+        .logo {
+            max-width: 150px;
+            max-height: 60px;
+            margin-bottom: 8px;
+        }
+        .statement-title {
+            display: table-cell;
+            width: 40%;
+            text-align: right;
+            vertical-align: top;
+        }
+        .statement-title h1 {
+            color: #6c5ce7;
+            margin: 0;
+            font-size: 24pt;
+        }
+        .details-section {
+            margin-top: 25px;
+            display: table;
+            width: 100%;
+        }
+        .customer-info {
+            display: table-cell;
+            width: 50%;
+            vertical-align: top;
+        }
+        .statement-summary {
+            display: table-cell;
+            width: 50%;
+            text-align: right;
+            vertical-align: top;
+        }
+        .summary-card {
+            background-color: #f9f9ff;
+            border: 1px solid #e0e0ff;
+            padding: 10px;
+            border-radius: 5px;
+            display: inline-block;
+            text-align: left;
+            min-width: 200px;
+        }
+        .summary-row {
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        .summary-total {
+            font-weight: bold;
+            color: #6c5ce7;
+            border-top: 1px solid #ccc;
+            padding-top: 5px;
+            margin-top: 5px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 30px;
+        }
+        .items-table th {
+            background-color: #6c5ce7;
+            color: white;
+            text-align: left;
+            padding: 10px;
+            font-weight: bold;
+        }
+        .items-table td {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .status-paid { color: green; }
+        .status-pending { color: orange; }
+        .status-partial { color: blue; }
+        #footer {
+            text-align: center;
+            font-size: 9pt;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+        .watermark {
+            position: fixed;
+            top: 45%;
+            left: 20%;
+            transform: rotate(-45deg);
+            font-size: 80pt;
+            color: rgba(200, 200, 200, 0.2);
+            z-index: -1000;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body>
+    {% if not data.is_premium %}
+    <div class="watermark">DAILYBACHAT</div>
+    {% endif %}
+    <div class="header">
+        <div class="business-info">
+            {% if data.is_premium and data.business.logo_url %}
+            <img src="{{ data.business.logo_url }}" class="logo" alt="Business Logo">
+            {% else %}
+            <img src="https://dailybachat.serwex.in/static/logo.png" class="logo" alt="DailyBachat Logo">
+            {% endif %}
+            <h2 style="margin: 0; color: #6c5ce7;">{{ data.business.name }}</h2>
+            <p style="margin: 5px 0;">{{ data.business.address }}<br>
+            Phone: {{ data.business.phone }}<br>
+            Email: {{ data.business.email }}</p>
+        </div>
+        <div class="statement-title">
+            <h1>Ledger Statement</h1>
+            <p style="margin: 5px 0;">Generated: {{ data.generated_at }}</p>
+        </div>
+    </div>
+
+    <div class="details-section">
+        <div class="customer-info">
+            <h3 style="color: #6c5ce7; margin-bottom: 10px;">CUSTOMER:</h3>
+            <strong>{{ data.customer.name }}</strong><br>
+            {{ data.customer.address }}<br>
+            Phone: {{ data.customer.phone }}
+        </div>
+        <div class="statement-summary">
+            <div class="summary-card">
+                <div class="summary-row"><strong>Total Sales:</strong> {{ data.total_sales }}</div>
+                <div class="summary-row"><strong>Total Paid:</strong> {{ data.total_paid }}</div>
+                <div class="summary-total"><strong>Balance Due:</strong> {{ data.balance_due }}</div>
+            </div>
+        </div>
+    </div>
+
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Voucher No</th>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Paid</th>
+                <th>Balance</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for trans in data.transactions %}
+            <tr>
+                <td>{{ trans.date }}</td>
+                <td>{{ trans.number }}</td>
+                <td>{{ trans.type }}</td>
+                <td>{{ trans.total }}</td>
+                <td>{{ trans.paid }}</td>
+                <td>{{ trans.balance }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div id="footer">
+        <p style="margin-bottom: 5px;">This is a computer generated statement.</p>
+        <div style="padding: 10px; border-top: 1px dashed #6c5ce7; color: #555;">
+            <p style="margin: 0; font-weight: bold; font-size: 1.1em; color: #6c5ce7;">DailyBachat - Business Management Suite</p>
+        </div>
+    </div>
+</body>
+</html>

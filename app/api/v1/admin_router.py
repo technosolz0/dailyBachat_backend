@@ -7,6 +7,7 @@ from app.models.loan import Loan
 from app.models.business import BusinessProfile
 from app.models.invoice import Invoice
 from app.models.transaction import Transaction
+from app.models.system_settings import SystemSettings
 
 from app.schemas.user import UserInDB, AdminUserUpdate, AdminLoginRequest, Token as TokenSchema
 from app.schemas.feedback import Feedback as FeedbackSchema
@@ -15,6 +16,7 @@ from app.schemas.business import BusinessProfile as BusinessProfileSchema
 from app.schemas.invoice import Invoice as InvoiceSchema
 from app.schemas.transaction import TransactionInDB
 from app.schemas.notification import NotificationSend, NotificationResponse
+from app.schemas.system_settings import PremiumAmountUpdate
 from app.core.firebase_config import send_push_notification, send_multicast_notification
 from typing import List
 from sqlalchemy import func
@@ -298,3 +300,22 @@ async def get_dashboard_stats(
             "average_feedback_rating": round(float(avg_rating), 2)
         }
     }
+
+@router.post("/settings/premium-amount")
+async def update_premium_amount(
+    data: PremiumAmountUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Update the premium feature price. Restricted to admins.
+    """
+    setting = db.query(SystemSettings).filter(SystemSettings.key == "premium_amount").first()
+    if not setting:
+        setting = SystemSettings(key="premium_amount", value=str(data.amount))
+        db.add(setting)
+    else:
+        setting.value = str(data.amount)
+    
+    db.commit()
+    return {"message": "Premium amount updated successfully", "amount": data.amount}

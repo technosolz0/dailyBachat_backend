@@ -23,6 +23,7 @@ class UserInDB(UserBase):
     created_at: datetime
     updated_at: Optional[datetime] = None
     is_admin: bool = False
+    is_premium: bool = False
     is_active: bool = True
     last_login: Optional[datetime] = None
 
@@ -32,6 +33,7 @@ class FCMUpdate(BaseModel):
 class AdminUserUpdate(BaseModel):
     is_active: Optional[bool] = None
     is_admin: Optional[bool] = None
+    is_premium: Optional[bool] = None
 
     class Config:
         from_attributes = True
