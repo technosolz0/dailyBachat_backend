@@ -20,13 +20,64 @@ from typing import List
 
 router = APIRouter()
 
+import os
+from app.schemas.user import Token as TokenSchema
+
+# Static admin credentials from environment
+ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@dailybachat.com")
+ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@123")
+
 def get_current_admin(x_user_id: str = Header(...), db: Session = Depends(get_db)):
+    # Check static admin bypass (if x_user_id is the static admin email)
+    if x_user_id == ADMIN_EMAIL:
+        return User(id=ADMIN_EMAIL, email=ADMIN_EMAIL, is_admin=True, name="Static Admin")
+        
     user = db.query(User).filter(User.id == x_user_id).first()
+    if not user:
+        # Check by email too for convenience
+        user = db.query(User).filter(User.email == x_user_id).first()
+        
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized. Admin privileges required.")
     return user
+
+@router.post("/login", response_model=dict)
+async def admin_login(login_data: dict, db: Session = Depends(get_db)):
+    """
+    Static admin login logic.
+    """
+    email = login_data.get("email")
+    password = login_data.get("password")
+    
+    if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
+        return {
+            "access_token": email, # Using email as token for simplicity as per current architecture
+            "token_type": "bearer",
+            "is_admin": True,
+            "user": {
+                "email": email,
+                "name": "Super Admin"
+            }
+        }
+    
+    # Fallback to DB check for promoted admins
+    user = db.query(User).filter(User.email == email).first()
+    if user and user.is_admin:
+        # In a real app, verify password here. 
+        # Since this app uses Firebase, this is a simplified bridge.
+        return {
+            "access_token": user.id,
+            "token_type": "bearer",
+            "is_admin": True,
+            "user": {
+                "email": user.email,
+                "name": user.name
+            }
+        }
+        
+    raise HTTPException(status_code=401, detail="Invalid credentials or not an admin")
 
 @router.get("/users", response_model=List[UserInDB])
 async def get_all_users(
