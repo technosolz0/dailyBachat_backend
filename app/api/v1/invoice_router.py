@@ -11,6 +11,7 @@ from app.models.invoice import Invoice, InvoiceItem, Quotation, QuotationItem, I
 
 from app.schemas import invoice as schemas
 from app.core.pdf_service import pdf_service
+from app.core.security import get_current_user_id
 
 router = APIRouter()
 
@@ -57,8 +58,6 @@ async def export_invoices_csv(
         headers={"Content-Disposition": "attachment; filename=invoices_export.csv"}
     )
 
-def get_current_user_id(x_user_id: str = Header(...)):
-    return x_user_id
 
 @router.post("/quotations/{quotation_id}/convert-to-invoice", response_model=schemas.Invoice)
 async def convert_quotation_to_invoice(

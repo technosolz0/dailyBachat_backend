@@ -9,6 +9,7 @@ from app.schemas.payment import (
     RazorpayOrderCreate, RazorpayOrderResponse, 
     PaymentCaptureRequest, PremiumUpdateResponse
 )
+from app.core.security import get_current_user_id
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -44,7 +45,7 @@ async def initiate_order(order_data: RazorpayOrderCreate):
 @router.post("/verify-payment", response_model=PremiumUpdateResponse)
 async def verify_payment(
     payment_data: PaymentCaptureRequest, 
-    x_user_id: str = Header(...),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
     """
@@ -61,7 +62,7 @@ async def verify_payment(
         client.utility.verify_payment_signature(params_dict)
         
         # Update user status
-        db_user = db.query(User).filter(User.id == x_user_id).first()
+        db_user = db.query(User).filter(User.id == user_id).first()
         if not db_user:
             raise HTTPException(status_code=404, detail="User not found")
         
@@ -79,13 +80,13 @@ async def verify_payment(
 @router.post("/update-premium", response_model=PremiumUpdateResponse)
 async def update_premium_value(
     is_premium: bool,
-    x_user_id: str = Header(...),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db)
 ):
     """
     Directly update premium value (Admin or specific use case).
     """
-    db_user = db.query(User).filter(User.id == x_user_id).first()
+    db_user = db.query(User).filter(User.id == user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     

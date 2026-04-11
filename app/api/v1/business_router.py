@@ -10,12 +10,10 @@ from app.models.invoice import Invoice, InvoiceItem, Payment, Quotation, Quotati
 from app.schemas import business as schemas
 from app.schemas import customer as customer_schemas
 from app.schemas import invoice as invoice_schemas
+from app.core.security import get_current_user_id
 
 router = APIRouter()
 
-# Simple dependency to get user_id from Header for now
-def get_current_user_id(x_user_id: str = Header(...)):
-    return x_user_id
 
 @router.get("/banks", response_model=List[str])
 async def get_banks():
