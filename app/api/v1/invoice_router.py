@@ -140,6 +140,14 @@ async def create_invoice(
         
     db.commit()
     db.refresh(db_invoice)
+    
+    # Send notification to customer
+    try:
+        from app.services.notification_service import handle_invoice_addition_notification
+        handle_invoice_addition_notification(db, db_invoice)
+    except Exception as e:
+        print(f"Notification error: {e}")
+        
     return db_invoice
 
 @router.get("/invoices", response_model=List[schemas.Invoice])

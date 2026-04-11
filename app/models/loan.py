@@ -8,6 +8,7 @@ class Loan(Base):
     id = Column(String, primary_key=True, index=True)
     user_id = Column(String, ForeignKey("users.id"), nullable=False)
     person_name = Column(String, nullable=False)
+    person_phone = Column(String, nullable=True) # Added to support notifications
     amount = Column(Float, nullable=False)
     paid_amount = Column(Float, default=0.0)
     status = Column(String) # 'unpaid', 'partially paid', 'paid'

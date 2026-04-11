@@ -24,6 +24,14 @@ async def create_loan(
     db.add(db_loan)
     db.commit()
     db.refresh(db_loan)
+    
+    # Send notification to other party
+    try:
+        from app.services.notification_service import handle_loan_addition_notification
+        handle_loan_addition_notification(db, db_loan)
+    except Exception as e:
+        print(f"Notification error: {e}")
+        
     return db_loan
 
 @router.get("/", response_model=List[LoanInDB])

@@ -14,12 +14,28 @@ from app.api.v1 import (
     payment_router
 )
 from app.core.firebase_config import initialize_firebase
+from apscheduler.schedulers.background import BackgroundScheduler
+from app.services.notification_service import process_reminders
+from app.core.database import SessionLocal
 
 # Create database tables
 Base.metadata.create_all(bind=engine)
 
 # Initialize Firebase
 initialize_firebase()
+
+# Initialize Scheduler
+scheduler = BackgroundScheduler()
+
+def scheduled_reminders():
+    db = SessionLocal()
+    try:
+        process_reminders(db)
+    finally:
+        db.close()
+
+scheduler.add_job(scheduled_reminders, 'interval', hours=2)
+scheduler.start()
 
 app = FastAPI(title="DailyBachat API")
 

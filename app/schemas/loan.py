@@ -6,6 +6,7 @@ class LoanBase(BaseModel):
     id: Optional[str] = None
     user_id: str
     person_name: str
+    person_phone: Optional[str] = None # Added for notifications
     amount: float
     paid_amount: float = 0.0
     status: Optional[str] = "unpaid"
@@ -20,6 +21,7 @@ class LoanCreate(LoanBase):
 
 class LoanUpdate(BaseModel):
     person_name: Optional[str] = None
+    person_phone: Optional[str] = None
     amount: Optional[float] = None
     paid_amount: Optional[float] = None
     status: Optional[str] = None
