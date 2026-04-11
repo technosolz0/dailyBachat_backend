@@ -49,6 +49,7 @@ class RegisterRequest(BaseModel):
     email: EmailStr
     phone: str
     password: str
+    device_info: Optional[str] = None
 
 class OTPVerify(BaseModel):
     email: EmailStr
