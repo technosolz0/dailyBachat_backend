@@ -7,9 +7,10 @@ from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import (
     Token, RegisterRequest, OTPVerify, UserCreate, 
-    UserInDB, DeletionRequest, FCMUpdate, LoginRequest, UserLoginResponse
+    UserInDB, DeletionRequest, FCMUpdate, LoginRequest, UserLoginResponse,
+    ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest
 )
-from app.core.security import get_password_hash, verify_password, create_access_token
+from app.core.security import get_password_hash, verify_password, create_access_token, get_current_user_id
 from firebase_admin import auth
 import uuid
 
@@ -80,66 +81,145 @@ async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)
         db.commit()
         raise HTTPException(status_code=400, detail="OTP expired")
 
-    # Step 3: Create Shadow Firebase User for Chat
-    try:
-        fb_user = auth.get_user_by_email(email)
-    except auth.UserNotFoundError:
-        fb_user = auth.create_user(
-            email=email,
-            password=str(uuid.uuid4()), # We don't need their real password in Firebase
-            display_name=db_otp.name
-        )
-
-    # Step 4: Create local user
+    # Step 3: Create local user
     db_user = db.query(User).filter(User.email == email).first()
     if not db_user:
         db_user = User(
-            id=fb_user.uid,
+            id=str(uuid.uuid4()),
             email=email,
             name=db_otp.name,
             phone_number=db_otp.phone_number,
             hashed_password=db_otp.hashed_password
         )
         db.add(db_user)
-    else:
-        # Update existing user if they are re-verifying
-        db_user.id = fb_user.uid
-        db_user.name = db_otp.name
-        db_user.phone_number = db_otp.phone_number
-        db_user.hashed_password = db_otp.hashed_password
+    # Step 5: Generate Auth Tokens (Login user immediately after verification)
+    access_token = create_access_token(data={"sub": db_user.id})
+    
+    # Generate Firebase Custom Token (Safely)
+    try:
+        custom_token_binary = auth.create_custom_token(db_user.id)
+        custom_token = custom_token_binary.decode('utf-8') if isinstance(custom_token_binary, bytes) else custom_token_binary
+    except Exception as fe:
+        print(f"Firebase token failed during registration: {fe}")
+        custom_token = None
 
+    # Clean up OTP and commit
     db.delete(db_otp)
     db.commit()
     db.refresh(db_user)
     
-    return {"message": "Account verified and created successfully", "user": db_user}
+    return {
+        "message": "Account verified and created successfully", 
+        "user": db_user,
+        "access_token": access_token,
+        "token_type": "bearer",
+        "firebase_custom_token": custom_token
+    }
 
 @router.post("/login", response_model=UserLoginResponse)
 async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
     """
     Authenticates user, creates JWT, and generates Firebase Custom Token for Chat.
     """
-    email = login_data.email.lower().strip()
+    try:
+        email = login_data.email.lower().strip()
+        user = db.query(User).filter(User.email == email).first()
+        
+        if not user or not user.hashed_password or not verify_password(login_data.password, user.hashed_password):
+            raise HTTPException(status_code=401, detail="Invalid email or password")
+        
+        # Generate JWT
+        access_token = create_access_token(data={"sub": user.id})
+        
+        # Generate Firebase Custom Token (Safely)
+        try:
+            custom_token_binary = auth.create_custom_token(user.id)
+            custom_token = custom_token_binary.decode('utf-8') if isinstance(custom_token_binary, bytes) else custom_token_binary
+        except Exception as fe:
+            print(f"Firebase token failed: {fe}")
+            custom_token = None
+        
+        user.last_login = datetime.utcnow()
+        db.commit()
+        
+        return {
+            "user": user,
+            "access_token": access_token,
+            "token_type": "bearer",
+            "firebase_custom_token": custom_token
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        error_msg = f"In-app error: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
+
+@router.post("/forgot-password/request")
+async def forgot_password_request(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Send OTP for password reset.
+    """
+    email = data.email.lower().strip()
     user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User with this email not found")
+        
+    otp_code = str(random.randint(100000, 999999))
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
     
-    if not user or not user.hashed_password or not verify_password(login_data.password, user.hashed_password):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
+    db_otp = db.query(OTP).filter(OTP.email == email).first()
+    if db_otp:
+        db_otp.otp = otp_code
+        db_otp.expires_at = expires_at
+    else:
+        db_otp = OTP(email=email, otp=otp_code, expires_at=expires_at)
+        db.add(db_otp)
     
-    # Generate JWT
-    access_token = create_access_token(data={"sub": user.id})
-    
-    # Generate Firebase Custom Token
-    custom_token = auth.create_custom_token(user.id).decode('utf-8')
-    
-    user.last_login = datetime.utcnow()
     db.commit()
+    email_service.send_otp(email, otp_code)
+    return {"message": f"Reset OTP sent to your email (DEBUG: {otp_code})"}
+
+@router.post("/forgot-password/reset")
+async def forgot_password_reset(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """
+    Reset password using OTP.
+    """
+    email = data.email.lower().strip()
+    db_otp = db.query(OTP).filter(OTP.email == email).first()
     
-    return {
-        "user": user,
-        "access_token": access_token,
-        "token_type": "bearer",
-        "firebase_custom_token": custom_token
-    }
+    if not db_otp or db_otp.otp != data.otp or datetime.utcnow() > db_otp.expires_at:
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+        
+    user = db.query(User).filter(User.email == email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    user.hashed_password = get_password_hash(data.new_password)
+    db.delete(db_otp)
+    db.commit()
+    return {"message": "Password reset successfully"}
+
+@router.post("/change-password")
+async def change_password(
+    data: ChangePasswordRequest, 
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Change password for authenticated user.
+    """
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    if not verify_password(data.old_password, user.hashed_password):
+        raise HTTPException(status_code=400, detail="Incorrect old password")
+        
+    user.hashed_password = get_password_hash(data.new_password)
+    db.commit()
+    return {"message": "Password changed successfully"}
 
 @router.post("/sync", response_model=UserInDB)
 async def sync_user(user: UserCreate, db: Session = Depends(get_db)):

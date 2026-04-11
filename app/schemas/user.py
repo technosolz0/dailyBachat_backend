@@ -74,3 +74,15 @@ class UserLoginResponse(BaseModel):
     access_token: str
     token_type: str
     firebase_custom_token: Optional[str] = None
+
+class ForgotPasswordRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
+
+class ChangePasswordRequest(BaseModel):
+    old_password: str
+    new_password: str
