@@ -21,7 +21,7 @@ from sqlalchemy import func
 import os
 
 from app.core.security import create_access_token
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 
 router = APIRouter()
 
@@ -59,12 +59,16 @@ def get_current_admin(token: str = Depends(oauth2_scheme), db: Session = Depends
     return user
 
 @router.post("/login", response_model=TokenSchema)
-async def admin_login(login_data: AdminLoginRequest, db: Session = Depends(get_db)):
+async def admin_login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+    db: Session = Depends(get_db)
+):
     """
     Authenticates admin and returns a JWT token.
+    Compatible with Swagger 'Authorize' button.
     """
-    email = login_data.email
-    password = login_data.password
+    email = form_data.username
+    password = form_data.password
     
     user_id = None
     user_name = None
