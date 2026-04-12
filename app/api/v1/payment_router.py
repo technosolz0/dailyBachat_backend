@@ -74,8 +74,12 @@ async def verify_payment(
             "message": "Payment verified and premium status updated.",
             "is_premium": True
         }
+    except razorpay.errors.SignatureVerificationError:
+        print(f"Signature verification failed for order {payment_data.razorpay_order_id}")
+        raise HTTPException(status_code=400, detail="Invalid payment signature")
     except Exception as e:
-        raise HTTPException(status_code=400, detail="Payment verification failed")
+        print(f"Payment verification error: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Payment verification failed: {str(e)}")
 
 @router.post("/update-premium", response_model=PremiumUpdateResponse)
 async def update_premium_value(
