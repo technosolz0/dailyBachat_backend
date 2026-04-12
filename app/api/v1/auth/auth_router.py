@@ -258,41 +258,57 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
     Sync user data from Firebase/Auth. Stores device info and records last login.
     Returns access token for backend authentication.
     """
-    encrypted_phone = encrypt_data(user.phone_number)
-    db_user = db.query(User).filter(User.id == user.id).first()
-    
-    if db_user:
-        # Update existing user info
-        db_user.email = user.email
-        db_user.name = user.name
-        db_user.phone_number = encrypted_phone
-        db_user.device_info = user.device_info
-        db_user.fcm_token = user.fcm_token
-        db_user.last_login = datetime.utcnow()
-    else:
-        # Register new phone user
-        user_dict = user.dict()
-        user_dict['phone_number'] = encrypted_phone
-        # Hash the placeholder password
-        user_dict['hashed_password'] = get_password_hash(user.password)
-        # Remove the raw password field before creating model
-        del user_dict['password']
+    try:
+        encrypted_phone = encrypt_data(user.phone_number)
         
-        db_user = User(**user_dict)
-        db_user.last_login = datetime.utcnow()
-        db.add(db_user)
-    
-    db.commit()
-    db.refresh(db_user)
-    
-    # Generate JWT for the synced user
-    access_token = create_access_token(data={"sub": db_user.id})
-    
-    return {
-        "user": db_user,
-        "access_token": access_token,
-        "token_type": "bearer"
-    }
+        # 1. Try to find user by their Firebase UID
+        db_user = db.query(User).filter(User.id == user.id).first()
+        
+        # 2. If not found by ID, try to find by Email (for users who signed up via email/password first)
+        if not db_user and user.email:
+            db_user = db.query(User).filter(User.email == user.email.lower().strip()).first()
+            if db_user:
+                # Update the ID to the Firebase UID for future syncs
+                db_user.id = user.id
+
+        if db_user:
+            # Update existing user info
+            db_user.email = user.email.lower().strip() if user.email else db_user.email
+            db_user.name = user.name or db_user.name
+            db_user.phone_number = encrypted_phone
+            db_user.device_info = user.device_info
+            db_user.fcm_token = user.fcm_token
+            db_user.last_login = datetime.utcnow()
+        else:
+            # Register new phone user
+            user_dict = user.dict()
+            user_dict['email'] = user.email.lower().strip()
+            user_dict['phone_number'] = encrypted_phone
+            # Hash the placeholder password
+            user_dict['hashed_password'] = get_password_hash(user.password)
+            # Remove the raw password field before creating model
+            del user_dict['password']
+            
+            db_user = User(**user_dict)
+            db_user.last_login = datetime.utcnow()
+            db.add(db_user)
+        
+        db.commit()
+        db.refresh(db_user)
+        
+        # Generate JWT for the synced user
+        access_token = create_access_token(data={"sub": db_user.id})
+        
+        return {
+            "user": db_user,
+            "access_token": access_token,
+            "token_type": "bearer"
+        }
+    except Exception as e:
+        import traceback
+        error_msg = f"Sync error: {str(e)}\n{traceback.format_exc()}"
+        print(error_msg)
+        raise HTTPException(status_code=500, detail=error_msg)
 
 @router.put("/fcm-token")
 async def update_fcm_token(
