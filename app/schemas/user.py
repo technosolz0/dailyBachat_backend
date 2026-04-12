@@ -11,6 +11,9 @@ class UserBase(BaseModel):
     device_info: Optional[str] = None
     fcm_token: Optional[str] = None
 
+    class Config:
+        from_attributes = True
+
     @field_validator('phone_number')
     @classmethod
     def decrypt_phone(cls, v):
@@ -87,6 +90,9 @@ class UserLoginResponse(BaseModel):
     access_token: str
     token_type: str
     firebase_custom_token: Optional[str] = None
+
+    class Config:
+        from_attributes = True
 
 class ForgotPasswordRequest(BaseModel):
     email: EmailStr
