@@ -16,11 +16,12 @@ from app.schemas.business import BusinessProfile as BusinessProfileSchema
 from app.schemas.invoice import Invoice as InvoiceSchema
 from app.schemas.transaction import TransactionInDB
 from app.schemas.notification import NotificationSend, NotificationResponse
-from app.schemas.system_settings import PremiumAmountUpdate
+from app.schemas.system_settings import PremiumAmountUpdate, PremiumFeaturesUpdate
 from app.core.firebase_config import send_push_notification, send_multicast_notification
 from typing import List
 from sqlalchemy import func
 import os
+import json
 
 from app.core.security import create_access_token
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -319,3 +320,25 @@ async def update_premium_amount(
     
     db.commit()
     return {"message": "Premium amount updated successfully", "amount": data.amount}
+
+@router.post("/settings/premium-features")
+async def update_premium_features(
+    data: PremiumFeaturesUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Update the list of premium features. Restricted to admins.
+    """
+    # Convert list of features to JSON string
+    features_json = json.dumps([f.dict() for f in data.features])
+    
+    setting = db.query(SystemSettings).filter(SystemSettings.key == "premium_features").first()
+    if not setting:
+        setting = SystemSettings(key="premium_features", value=features_json)
+        db.add(setting)
+    else:
+        setting.value = features_json
+    
+    db.commit()
+    return {"message": "Premium features updated successfully", "features": data.features}

@@ -1,4 +1,5 @@
 import os
+import json
 import razorpay
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
@@ -112,3 +113,35 @@ async def get_premium_amount(db: Session = Depends(get_db)):
     if not setting:
         return {"amount": 499} # Default fallback
     return {"amount": int(setting.value)}
+
+@router.get("/premium-features")
+async def get_premium_features(db: Session = Depends(get_db)):
+    """
+    Fetch the list of premium features.
+    """
+    setting = db.query(SystemSettings).filter(SystemSettings.key == "premium_features").first()
+    if not setting:
+        # Default fallback features
+        return [
+            {
+                "icon": "auto_graph_rounded",
+                "title": "Advanced Analytics",
+                "subtitle": "Detailed insights into your spending patterns."
+            },
+            {
+                "icon": "picture_as_pdf_rounded",
+                "title": "Custom Invoices",
+                "subtitle": "Add your logo and branding to all exports."
+            },
+            {
+                "icon": "cloud_done_rounded",
+                "title": "Cloud Backup",
+                "subtitle": "Never lose your data with automatic sync."
+            },
+            {
+                "icon": "block_rounded",
+                "title": "Ad-Free Experience",
+                "subtitle": "Focus on your finances without distractions."
+            }
+        ]
+    return json.loads(setting.value)
