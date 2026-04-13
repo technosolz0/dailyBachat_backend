@@ -13,12 +13,21 @@ from app.schemas.payment import (
 from app.core.security import get_current_user_id
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load environment variables
+dotenv_path = os.path.join(os.getcwd(), '.env')
+if not os.path.exists(dotenv_path):
+    # Try parent directory if running from app/
+    dotenv_path = os.path.join(os.path.dirname(os.getcwd()), '.env')
+
+load_dotenv(dotenv_path=dotenv_path)
 
 router = APIRouter()
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+
+if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+    print(f"WARNING: Razorpay keys not found in environment. Path: {dotenv_path}")
 
 client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
@@ -27,21 +36,30 @@ async def initiate_order(order_data: RazorpayOrderCreate):
     """
     Create a Razorpay order.
     """
+    if not RAZORPAY_KEY_ID or not RAZORPAY_KEY_SECRET:
+        raise HTTPException(
+            status_code=500, 
+            detail="Razorpay keys are not configured on the server."
+        )
+        
     try:
         data = {
             "amount": order_data.amount,
             "currency": order_data.currency,
             "payment_capture": 1  # Auto capture
         }
+        print(f"Initiating Razorpay order: {data}")
         order = client.order.create(data=data)
         return {
+            "key": RAZORPAY_KEY_ID,
             "order_id": order['id'],
             "amount": order['amount'],
             "currency": order['currency'],
             "status": order['status']
         }
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        print(f"Razorpay Order Creation Failed: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"Razorpay error: {str(e)}")
 
 @router.post("/verify-payment", response_model=PremiumUpdateResponse)
 async def verify_payment(

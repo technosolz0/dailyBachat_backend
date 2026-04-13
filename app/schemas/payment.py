@@ -6,6 +6,7 @@ class RazorpayOrderCreate(BaseModel):
     currency: str = "INR"
 
 class RazorpayOrderResponse(BaseModel):
+    key: str
     order_id: str
     amount: int
     currency: str
