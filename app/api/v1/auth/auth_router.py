@@ -20,6 +20,31 @@ import uuid
 from app.core.email_service import email_service
 from app.models.otp import OTP
 
+def find_user_by_phone(db: Session, phone: str):
+    """
+    Finds a user by phone number. Handles encryption by decrypting and checking if needed,
+    but first tries exact match (just in case they aren't encrypted or they use deterministic encryption).
+    """
+    if not phone:
+        return None
+    
+    # Try exact match first
+    user = db.query(User).filter(User.phone_number == phone).first()
+    if user:
+        return user
+        
+    # Fallback: fetch all and decrypt (optimized would be having a hash)
+    all_users = db.query(User).all()
+    for u in all_users:
+        if u.phone_number:
+            try:
+                decrypted = decrypt_data(u.phone_number)
+                if decrypted == phone:
+                    return u
+            except Exception:
+                continue
+    return None
+
 router = APIRouter()
 
 @router.post("/register/request")
@@ -190,40 +215,70 @@ async def login(login_data: LoginRequest, db: Session = Depends(get_db)):
 @router.post("/forgot-password/request")
 async def forgot_password_request(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     """
-    Send OTP for password reset.
+    Send OTP for password reset (Phone preferred, Email fallback).
     """
-    email = data.email.lower().strip()
-    user = db.query(User).filter(User.email == email).first()
+    user = None
+    identifier = ""
+    is_phone = False
+
+    if data.phone_number:
+        user = find_user_by_phone(db, data.phone_number)
+        identifier = data.phone_number
+        is_phone = True
+    elif data.email:
+        email = data.email.lower().strip()
+        user = db.query(User).filter(User.email == email).first()
+        identifier = email
+    
     if not user:
-        raise HTTPException(status_code=404, detail="User with this email not found")
+        detail = "User with this phone number not found" if is_phone else "User with this email not found"
+        raise HTTPException(status_code=404, detail=detail)
         
     otp_code = str(random.randint(100000, 999999))
     expires_at = datetime.utcnow() + timedelta(minutes=10)
     
-    db_otp = db.query(OTP).filter(OTP.email == email).first()
-    if db_otp:
-        db_otp.otp = otp_code
-        db_otp.expires_at = expires_at
-    else:
-        db_otp = OTP(email=email, otp=otp_code, expires_at=expires_at)
-        db.add(db_otp)
+    # Cleanup old OTPs for this identifier
+    db.query(OTP).filter((OTP.email == identifier) | (OTP.phone_number == identifier)).delete()
     
+    db_otp = OTP(
+        email=user.email if not is_phone else None,
+        phone_number=identifier if is_phone else None,
+        otp=otp_code, 
+        expires_at=expires_at
+    )
+    db.add(db_otp)
     db.commit()
-    email_service.send_otp(email, otp_code)
-    return {"message": f"Reset OTP sent to your email (DEBUG: {otp_code})"}
+    
+    if is_phone:
+        # With Firebase Auth, the frontend handles sending the SMS.
+        # This endpoint now just validates that the user exists.
+        return {"message": "User verified. Please proceed with Firebase Phone Auth."}
+    else:
+        email_service.send_otp(user.email, otp_code)
+        return {"message": f"Reset OTP sent to your email (DEBUG: {otp_code})"}
 
 @router.post("/forgot-password/reset")
 async def forgot_password_reset(data: ResetPasswordRequest, db: Session = Depends(get_db)):
     """
-    Reset password using OTP.
+    Reset password using OTP (supports phone or email).
     """
-    email = data.email.lower().strip()
-    db_otp = db.query(OTP).filter(OTP.email == email).first()
+    identifier = data.phone_number if data.phone_number else (data.email.lower().strip() if data.email else None)
+    if not identifier:
+        raise HTTPException(status_code=400, detail="Missing identifier (email or phone_number)")
+
+    db_otp = db.query(OTP).filter(
+        (OTP.email == identifier) | (OTP.phone_number == identifier)
+    ).first()
     
     if not db_otp or db_otp.otp != data.otp or datetime.utcnow() > db_otp.expires_at:
         raise HTTPException(status_code=400, detail="Invalid or expired OTP")
         
-    user = db.query(User).filter(User.email == email).first()
+    user = None
+    if data.phone_number:
+        user = find_user_by_phone(db, data.phone_number)
+    else:
+        user = db.query(User).filter(User.email == identifier).first()
+
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         

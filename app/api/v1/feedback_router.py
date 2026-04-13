@@ -7,7 +7,7 @@ from typing import List
 
 router = APIRouter()
 
-@router.post("/", response_model=FeedbackSchema)
+@router.post("", response_model=FeedbackSchema)
 async def create_feedback(feedback: FeedbackCreate, db: Session = Depends(get_db)):
     db_feedback = FeedbackModel(
         user_id=feedback.user_id,

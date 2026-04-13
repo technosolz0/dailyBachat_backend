@@ -95,10 +95,12 @@ class UserLoginResponse(BaseModel):
         from_attributes = True
 
 class ForgotPasswordRequest(BaseModel):
-    email: EmailStr
+    email: Optional[EmailStr] = None
+    phone_number: Optional[str] = None
 
 class ResetPasswordRequest(BaseModel):
-    email: EmailStr
+    email: Optional[EmailStr] = None
+    phone_number: Optional[str] = None
     otp: str
     new_password: str
 

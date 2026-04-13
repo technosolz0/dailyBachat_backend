@@ -1,14 +1,15 @@
-from sqlalchemy import Column, String, DateTime
+from sqlalchemy import Column, String, DateTime, Integer
 from app.core.database import Base
 from datetime import datetime
 
 class OTP(Base):
     __tablename__ = "otps"
 
-    email = Column(String, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True, nullable=True)
+    phone_number = Column(String, index=True, nullable=True)
     otp = Column(String, nullable=False)
     name = Column(String)
-    phone_number = Column(String)
     hashed_password = Column(String)
     device_info = Column(String)
     fcm_token = Column(String)
