@@ -39,17 +39,26 @@ def decrypt_data(encrypted_data: str) -> str:
     except Exception:
         return encrypted_data # Return as is if decryption fails (might be unencrypted)
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def verify_password(plain_password: str, hashed_password: str):
+    if not plain_password:
+        return False
+    password_bytes = plain_password.encode('utf-8')
+    # bcrypt limit is 72 bytes
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+    return pwd_context.verify(password_bytes, hashed_password)
 
 def get_password_hash(password: str) -> str:
-    # bcrypt has a 72-character limit for the input secret
     if not password:
-        return pwd_context.hash("placeholder_password")
+        password = "placeholder_password"
     
-    truncated_password = password[:72]
-    print(f"Hashing password (length: {len(password)})")
-    return pwd_context.hash(truncated_password)
+    password_bytes = password.encode('utf-8')
+    # bcrypt has a 72-byte limit
+    if len(password_bytes) > 72:
+        password_bytes = password_bytes[:72]
+    
+    print(f"Hashing password (original length: {len(password)}, byte length: {len(password_bytes)})")
+    return pwd_context.hash(password_bytes)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
