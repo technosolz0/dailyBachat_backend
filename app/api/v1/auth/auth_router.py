@@ -326,23 +326,28 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
                 # Update the ID to the Firebase UID for future syncs
                 db_user.id = user.id
 
+        # 3. Handle registration or update
         if db_user:
             # Update existing user info
-            db_user.email = user.email.lower().strip() if user.email else db_user.email
+            if user.email:
+                db_user.email = user.email.lower().strip()
             db_user.name = user.name or db_user.name
             db_user.phone_number = encrypted_phone
-            db_user.device_info = user.device_info
-            db_user.fcm_token = user.fcm_token
+            db_user.device_info = user.device_info or db_user.device_info
+            db_user.fcm_token = user.fcm_token or db_user.fcm_token
             db_user.last_login = datetime.utcnow()
         else:
             # Register new phone user
             user_dict = user.dict()
-            user_dict['email'] = user.email.lower().strip()
+            if user.email:
+                user_dict['email'] = user.email.lower().strip()
             user_dict['phone_number'] = encrypted_phone
-            # Hash the placeholder password
-            user_dict['hashed_password'] = get_password_hash(user.password)
+            # Hash the password (check if it exists)
+            password_to_hash = user.password if user.password else "internal_auto_sync_placeholder"
+            user_dict['hashed_password'] = get_password_hash(password_to_hash)
             # Remove the raw password field before creating model
-            del user_dict['password']
+            if 'password' in user_dict:
+                del user_dict['password']
             
             db_user = User(**user_dict)
             db_user.last_login = datetime.utcnow()
