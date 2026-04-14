@@ -24,7 +24,7 @@ cipher_suite = Fernet(ENCRYPTION_KEY.encode())
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto")
 
 def encrypt_data(data: str) -> str:
     if not data:
@@ -42,23 +42,22 @@ def decrypt_data(encrypted_data: str) -> str:
 def verify_password(plain_password: str, hashed_password: str):
     if not plain_password:
         return False
-    password_bytes = plain_password.encode('utf-8')
-    # bcrypt limit is 72 bytes
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
-    return pwd_context.verify(password_bytes, hashed_password)
+    # bcrypt limit is 72 bytes. Truncate and convert to string for safety.
+    password_bytes = plain_password.encode('utf-8')[:71]
+    safe_password = password_bytes.decode('utf-8', 'ignore')
+    return pwd_context.verify(safe_password, hashed_password)
 
 def get_password_hash(password: str) -> str:
     if not password:
         password = "placeholder_password"
     
-    password_bytes = password.encode('utf-8')
-    # bcrypt has a 72-byte limit
-    if len(password_bytes) > 72:
-        password_bytes = password_bytes[:72]
+    # bcrypt has a 72-byte limit. We truncate to 71 bytes and decode back to string.
+    # This avoids "Sync error: password cannot be longer than 72 bytes" even in stub mode.
+    password_bytes = password.encode('utf-8')[:71]
+    safe_password = password_bytes.decode('utf-8', 'ignore')
     
-    print(f"Hashing password (original length: {len(password)}, byte length: {len(password_bytes)})")
-    return pwd_context.hash(password_bytes)
+    print(f"Hashing password (original length: {len(password)}, safe length: {len(safe_password)})")
+    return pwd_context.hash(safe_password)
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     to_encode = data.copy()
