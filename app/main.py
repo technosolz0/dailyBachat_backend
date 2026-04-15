@@ -1,5 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 from app.core.database import engine, Base
 import app.models
 
@@ -13,6 +15,7 @@ from app.api.v1 import (
     feedback_router, notification_router, admin_router,
     payment_router
 )
+from app.api.v1.whatsapp_router import router as whatsapp_router
 from app.core.firebase_config import initialize_firebase
 from apscheduler.schedulers.background import BackgroundScheduler
 from app.services.notification_service import process_reminders
@@ -34,10 +37,19 @@ def scheduled_reminders():
     finally:
         db.close()
 
-scheduler.add_job(scheduled_reminders, 'interval', hours=2)
+# Run once every hour for timely reminder delivery (2-day, 1-day, due-date windows)
+scheduler.add_job(scheduled_reminders, 'interval', hours=1)
 scheduler.start()
 
 app = FastAPI(title="DailyBachat API")
+
+# Ensure uploads directory exists
+UPLOAD_DIR = "uploads"
+if not os.path.exists(UPLOAD_DIR):
+    os.makedirs(UPLOAD_DIR)
+    os.makedirs(os.path.join(UPLOAD_DIR, "business_logos"))
+
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 # Configure CORS
 app.add_middleware(
@@ -60,6 +72,7 @@ app.include_router(feedback_router.router, prefix="/api/v1/feedback", tags=["fee
 app.include_router(notification_router.router, prefix="/api/v1/notifications", tags=["notifications"])
 app.include_router(admin_router.router, prefix="/api/v1/admin", tags=["admin"])
 app.include_router(payment_router.router, prefix="/api/v1/payment", tags=["payment"])
+app.include_router(whatsapp_router, prefix="/api/v1/whatsapp", tags=["whatsapp"])
 
 @app.get("/")
 async def root():

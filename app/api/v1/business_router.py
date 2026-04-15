@@ -1,4 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Header
+from fastapi import APIRouter, Depends, HTTPException, Header, File, UploadFile
+import shutil
+import os
 from sqlalchemy.orm import Session
 from typing import List, Optional
 import uuid
@@ -91,6 +93,58 @@ async def create_or_update_business_profile(
         raise HTTPException(status_code=500, detail=f"Database error during profile save: {str(e)}")
         
     return db_profile
+ 
+@router.put("/profile", response_model=schemas.BusinessProfile)
+async def update_business_profile(
+    profile: schemas.BusinessProfileCreate, 
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    return await create_or_update_business_profile(profile, db, user_id)
+
+@router.patch("/profile", response_model=schemas.BusinessProfile)
+async def patch_business_profile(
+    profile_update: dict, 
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    db_profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not db_profile:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    
+    for key, value in profile_update.items():
+        if hasattr(db_profile, key) and key != "payment_details":
+            setattr(db_profile, key, value)
+    
+    db.commit()
+    db.refresh(db_profile)
+    return db_profile
+
+@router.post("/profile/logo")
+async def upload_business_logo(
+    file: UploadFile = File(...),
+    user_id: str = Depends(get_current_user_id)
+):
+    try:
+        # Define path
+        ext = os.path.splitext(file.filename)[1]
+        if not ext: ext = ".jpg"
+        filename = f"{user_id}{ext}"
+        
+        upload_folder = "uploads/business_logos"
+        if not os.path.exists(upload_folder):
+            os.makedirs(upload_folder)
+            
+        file_path = os.path.join(upload_folder, filename)
+        
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+            
+        # Return the public URL path
+        return {"logo_url": f"/uploads/business_logos/{filename}"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to upload logo: {str(e)}")
+
 
 @router.get("/profile", response_model=schemas.BusinessProfile)
 async def get_business_profile(
@@ -132,6 +186,51 @@ async def list_customers(
     if not profile:
         return []
     return db.query(Customer).filter(Customer.business_id == profile.id).all()
+
+@router.put("/customers/{customer_id}", response_model=customer_schemas.Customer)
+async def update_customer(
+    customer_id: str,
+    customer_update: customer_schemas.CustomerCreate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=400, detail="Create business profile first")
+        
+    db_customer = db.query(Customer).filter(Customer.id == customer_id, Customer.business_id == profile.id).first()
+    if not db_customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+        
+    for key, value in customer_update.dict().items():
+        setattr(db_customer, key, value)
+        
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
+
+@router.patch("/customers/{customer_id}", response_model=customer_schemas.Customer)
+async def patch_customer(
+    customer_id: str,
+    customer_update: dict,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=400, detail="Create business profile first")
+        
+    db_customer = db.query(Customer).filter(Customer.id == customer_id, Customer.business_id == profile.id).first()
+    if not db_customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+        
+    for key, value in customer_update.items():
+        if hasattr(db_customer, key):
+            setattr(db_customer, key, value)
+            
+    db.commit()
+    db.refresh(db_customer)
+    return db_customer
 
 from fastapi import Response
 from app.core.pdf_service import pdf_service
