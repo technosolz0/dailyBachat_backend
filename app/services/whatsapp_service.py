@@ -207,6 +207,7 @@ def send_invoice_created_notification(
     invoice_number: str,
     total: float,
     due_date: Optional[str] = None,
+    pdf_url: Optional[str] = None,
 ) -> bool:
     """
     Notify customer when a new invoice is raised for them.
@@ -234,6 +235,21 @@ def send_invoice_created_notification(
             ],
         }
     ]
+    
+    if pdf_url:
+        components.insert(0, {
+            "type": "header",
+            "parameters": [
+                {
+                    "type": "document",
+                    "document": {
+                        "link": pdf_url,
+                        "filename": f"Invoice_{invoice_number}.pdf"
+                    }
+                }
+            ]
+        })
+        
     return _send_template(to_phone, "dailybachat_invoice_created", components=components)
 
 
@@ -244,6 +260,7 @@ def send_quotation_created_notification(
     quotation_number: str,
     total: float,
     expiry_date: Optional[str] = None,
+    pdf_url: Optional[str] = None,
 ) -> bool:
     """
     Notify customer when a new quotation is sent to them.
@@ -271,6 +288,21 @@ def send_quotation_created_notification(
             ],
         }
     ]
+    
+    if pdf_url:
+        components.insert(0, {
+            "type": "header",
+            "parameters": [
+                {
+                    "type": "document",
+                    "document": {
+                        "link": pdf_url,
+                        "filename": f"Quotation_{quotation_number}.pdf"
+                    }
+                }
+            ]
+        })
+        
     return _send_template(to_phone, "dailybachat_quotation_created", components=components)
 
 
