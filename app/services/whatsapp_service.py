@@ -149,7 +149,7 @@ def send_loan_lent_notification(
         {{3}} – borrower's name
         {{4}} – due date (or 'N/A')
     """
-    amount_str = f"₹{amount:,.0f}"
+    amount_str = f"{amount:,.0f}"
     due_str = due_date if due_date else "Not set"
 
     components = [
@@ -183,7 +183,7 @@ def send_loan_borrowed_notification(
         {{3}} – lender's name
         {{4}} – due date (or 'N/A')
     """
-    amount_str = f"₹{amount:,.0f}"
+    amount_str = f"{amount:,.0f}"
     due_str = due_date if due_date else "Not set"
 
     components = [
@@ -328,7 +328,7 @@ def send_reminder_2days_before(
             "parameters": [
                 {"type": "text", "text": recipient_name},
                 {"type": "text", "text": context_info},
-                {"type": "text", "text": f"₹{amount:,.0f}"},
+                {"type": "text", "text": f"{amount:,.0f}"},
                 {"type": "text", "text": due_date},
             ],
         }
@@ -353,7 +353,7 @@ def send_reminder_1day_before(
             "parameters": [
                 {"type": "text", "text": recipient_name},
                 {"type": "text", "text": context_info},
-                {"type": "text", "text": f"₹{amount:,.0f}"},
+                {"type": "text", "text": f"{amount:,.0f}"},
                 {"type": "text", "text": due_date},
             ],
         }
@@ -378,7 +378,7 @@ def send_reminder_on_due_date(
             "parameters": [
                 {"type": "text", "text": recipient_name},
                 {"type": "text", "text": context_info},
-                {"type": "text", "text": f"₹{amount:,.0f}"},
+                {"type": "text", "text": f"{amount:,.0f}"},
                 {"type": "text", "text": due_date},
             ],
         }
