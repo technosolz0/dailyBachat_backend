@@ -6,7 +6,7 @@ from app.core import security
 from app.core.database import get_db
 from app.models.user import User
 from app.schemas.user import (
-    Token, RegisterRequest, OTPVerify, UserCreate, 
+    Token, RegisterRequest, OTPVerify, UserCreate, UserUpdate,
     UserInDB, DeletionRequest, FCMUpdate, LoginRequest, UserLoginResponse,
     ForgotPasswordRequest, ResetPasswordRequest, ChangePasswordRequest
 )
@@ -314,16 +314,16 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
     Returns access token for backend authentication.
     """
     try:
-        encrypted_phone = encrypt_data(user.phone_number)
-        
         # 1. Try to find user by their Firebase UID
         db_user = db.query(User).filter(User.id == user.id).first()
         
         # 2. If not found by ID, try to find by Email (for users who signed up via email/password first)
         if not db_user and user.email:
-            db_user = db.query(User).filter(User.email == user.email.lower().strip()).first()
+            email = user.email.lower().strip()
+            db_user = db.query(User).filter(User.email == email).first()
             if db_user:
                 # Update the ID to the Firebase UID for future syncs
+                # NOTE: We can't easily change PK in some DBs, but SQLAlchemy handles it if not constrained.
                 db_user.id = user.id
 
         # 3. Handle registration or update
@@ -331,17 +331,23 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
             # Update existing user info
             if user.email:
                 db_user.email = user.email.lower().strip()
-            db_user.name = user.name or db_user.name
-            db_user.phone_number = encrypted_phone
-            db_user.device_info = user.device_info or db_user.device_info
-            db_user.fcm_token = user.fcm_token or db_user.fcm_token
+            if user.name:
+                db_user.name = user.name
+            if user.phone_number:
+                db_user.phone_number = encrypt_data(user.phone_number)
+            if user.device_info:
+                db_user.device_info = user.device_info
+            if user.fcm_token:
+                db_user.fcm_token = user.fcm_token
             db_user.last_login = datetime.utcnow()
         else:
             # Register new phone user
             user_dict = user.dict()
             if user.email:
                 user_dict['email'] = user.email.lower().strip()
-            user_dict['phone_number'] = encrypted_phone
+            if user.phone_number:
+                user_dict['phone_number'] = encrypt_data(user.phone_number)
+            
             # Hash the password (check if it exists)
             password_to_hash = user.password if user.password else "internal_auto_sync_placeholder"
             user_dict['hashed_password'] = get_password_hash(password_to_hash)
@@ -365,10 +371,50 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
             "token_type": "bearer"
         }
     except Exception as e:
+        db.rollback()
         import traceback
         error_msg = f"Sync error: {str(e)}\n{traceback.format_exc()}"
         print(error_msg)
         raise HTTPException(status_code=500, detail=error_msg)
+
+@router.put("/me", response_model=UserInDB)
+async def update_profile(
+    user_data: UserUpdate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Updates profile for the authenticated user.
+    """
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user_data.email:
+        email = user_data.email.lower().strip()
+        if email != db_user.email:
+            # Check if email is already taken
+            existing_user = db.query(User).filter(User.email == email).first()
+            if existing_user:
+                raise HTTPException(status_code=400, detail="Email already in use")
+            db_user.email = email
+
+    if user_data.name:
+        db_user.name = user_data.name
+    
+    if user_data.phone_number:
+        db_user.phone_number = encrypt_data(user_data.phone_number)
+        
+    if user_data.device_info:
+        db_user.device_info = user_data.device_info
+        
+    if user_data.fcm_token:
+        db_user.fcm_token = user_data.fcm_token
+
+    db_user.updated_at = datetime.utcnow()
+    db.commit()
+    db.refresh(db_user)
+    return db_user
 
 @router.put("/fcm-token")
 async def update_fcm_token(
