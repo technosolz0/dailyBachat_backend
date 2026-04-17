@@ -21,7 +21,7 @@ from datetime import datetime, timedelta
 import logging
 
 from app.models.loan import Loan
-from app.models.invoice import Invoice
+from app.models.invoice import Invoice, Quotation
 from app.models.user import User
 from app.models.customer import Customer
 from app.models.business import BusinessProfile
