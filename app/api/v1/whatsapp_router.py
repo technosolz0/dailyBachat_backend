@@ -12,9 +12,12 @@ Routes:
   POST /api/v1/whatsapp/invoice  – send invoice creation WA message
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from typing import Optional
+from sqlalchemy.orm import Session
+from app.core.database import get_db
+from app.models.user import User
 from app.core.security import get_current_user_id
 from app.services.whatsapp_service import (
     send_loan_lent_notification,
@@ -50,12 +53,17 @@ class InvoiceWARequest(BaseModel):
 @router.post("/loan")
 async def trigger_loan_whatsapp(
     payload: LoanWARequest,
+    db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id),  # must be authenticated
 ):
     """
     Send a WhatsApp utility template when a loan is recorded.
-    The Flutter app calls this after successfully creating a loan.
     """
+    # Check premium status
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_premium:
+        return {"success": False, "message": "WhatsApp notifications are a premium feature"}
+
     success = False
     if payload.type == "lent":
         success = send_loan_lent_notification(
@@ -80,12 +88,17 @@ async def trigger_loan_whatsapp(
 @router.post("/invoice")
 async def trigger_invoice_whatsapp(
     payload: InvoiceWARequest,
+    db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id),
 ):
     """
     Send a WhatsApp utility template when an invoice is created.
-    The Flutter app calls this after successfully creating an invoice.
     """
+    # Check premium status
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_premium:
+        return {"success": False, "message": "WhatsApp notifications are a premium feature"}
+
     success = send_invoice_created_notification(
         to_phone=payload.phone,
         customer_name=payload.customer_name,

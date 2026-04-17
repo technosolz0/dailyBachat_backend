@@ -24,6 +24,7 @@ from app.models.loan import Loan
 from app.models.invoice import Invoice
 from app.models.user import User
 from app.models.customer import Customer
+from app.models.business import BusinessProfile
 from app.core import firebase_config
 
 # WhatsApp helpers ─────────────────────────────────────────────────────────────
@@ -31,6 +32,7 @@ from app.services.whatsapp_service import (
     send_loan_lent_notification,
     send_loan_borrowed_notification,
     send_invoice_created_notification,
+    send_quotation_created_notification,
     send_reminder_2days_before,
     send_reminder_1day_before,
     send_reminder_on_due_date,
@@ -107,7 +109,7 @@ def handle_loan_addition_notification(db: Session, loan: Loan):
                 other_user.fcm_token,
                 title,
                 body,
-                {"loan_id": str(loan.id), "type": "loan_new"},
+                {"loan_id": str(loan.id), "type": "loan_new", "target_screen": "view_loan"},
             )
 
     # ── WhatsApp ─────────────────────────────────────────────────────────────
@@ -136,12 +138,12 @@ def handle_loan_addition_notification(db: Session, loan: Loan):
 
     # Also notify the owner via FCM (confirmation to self)
     try:
-        send_notification_to_user(
-            db,
-            loan.user_id,
+        firebase_config.send_push_notification(
+            owner.fcm_token,
             "✅ Loan Recorded",
             f"{'Lent' if loan.type == 'lent' else 'Borrowed'} ₹{loan.amount} "
             f"with {loan.person_name} recorded successfully.",
+            {"loan_id": str(loan.id), "type": "loan_new", "target_screen": "view_loan"},
         )
     except Exception as exc:
         logger.error(f"FCM owner loan confirmation failed: {exc}")
@@ -178,11 +180,14 @@ def handle_invoice_addition_notification(db: Session, invoice: Invoice):
                 other_user.fcm_token,
                 title,
                 body,
-                {"invoice_id": str(invoice.id), "type": "invoice_new"},
+                {"invoice_id": str(invoice.id), "type": "invoice_new", "target_screen": "invoice_list"},
             )
 
     # ── WhatsApp ─────────────────────────────────────────────────────────────
-    if customer.phone:
+    # Only send for premium users
+    is_premium = invoice.business.user.is_premium if (invoice.business and invoice.business.user) else False
+    
+    if customer.phone and is_premium:
         try:
             send_invoice_created_notification(
                 to_phone=customer.phone,
@@ -194,6 +199,61 @@ def handle_invoice_addition_notification(db: Session, invoice: Invoice):
             )
         except Exception as exc:
             logger.error(f"WhatsApp invoice notification failed: {exc}")
+    elif customer.phone and not is_premium:
+        logger.info(f"Skipping WhatsApp invoice notification for non-premium user: {invoice.business.user_id if invoice.business else 'Unknown'}")
+
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Quotation – creation notification
+# ──────────────────────────────────────────────────────────────────────────────
+
+def handle_quotation_addition_notification(db: Session, quotation: Quotation):
+    """
+    Called right after a new quotation is saved.
+    
+    Checks if the user is premium before sending WhatsApp notification.
+    """
+    customer = db.query(Customer).filter(Customer.id == quotation.customer_id).first()
+    if not customer:
+        return
+
+    business_name = quotation.business.name if quotation.business else "A Business"
+    expiry_str = _fmt_date(quotation.expiry_date)
+
+    # ── FCM ──────────────────────────────────────────────────────────────────
+    if customer.phone:
+        other_user = get_user_by_phone(db, customer.phone)
+        if other_user and other_user.fcm_token:
+            title = f"📄 New Quotation from {business_name}"
+            body = (
+                f"Quotation {quotation.quotation_number} for ₹{quotation.total} "
+                f"has been received. Valid until: {expiry_str}"
+            )
+            firebase_config.send_push_notification(
+                other_user.fcm_token,
+                title,
+                body,
+                {"quotation_id": str(quotation.id), "type": "quotation_new", "target_screen": "quotation_list"},
+            )
+
+    # ── WhatsApp ─────────────────────────────────────────────────────────────
+    # Only send for premium users
+    is_premium = quotation.business.user.is_premium if (quotation.business and quotation.business.user) else False
+    
+    if customer.phone and is_premium:
+        try:
+            send_quotation_created_notification(
+                to_phone=customer.phone,
+                customer_name=customer.name,
+                business_name=business_name,
+                quotation_number=quotation.quotation_number,
+                total=quotation.total,
+                expiry_date=expiry_str,
+            )
+        except Exception as exc:
+            logger.error(f"WhatsApp quotation notification failed: {exc}")
+    elif customer.phone and not is_premium:
+        logger.info(f"Skipping WhatsApp quotation notification for non-premium user: {quotation.business.user_id if quotation.business else 'Unknown'}")
 
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -272,6 +332,7 @@ def _send_loan_reminder_fcm(db: Session, loan: Loan, window_key: str):
         loan.user_id,
         "Loan Reminder",
         f"{prefix}: ₹{loan.amount} with {loan.person_name}",
+        {"loan_id": str(loan.id), "type": "loan_reminder", "target_screen": "view_loan"},
     )
 
     # Notify other party (if registered)
@@ -284,6 +345,7 @@ def _send_loan_reminder_fcm(db: Session, loan: Loan, window_key: str):
                 other_user.id,
                 "Loan Reminder",
                 f"{prefix}: ₹{loan.amount} with {owner_name}",
+                {"loan_id": str(loan.id), "type": "loan_reminder", "target_screen": "view_loan"},
             )
 
 
@@ -407,18 +469,19 @@ def _send_invoice_reminder_fcm(db: Session, inv: Invoice, window_key: str):
             inv.business.user_id,
             "Invoice Reminder",
             f"{prefix}: Invoice {inv.invoice_number} for ₹{inv.total}",
+            {"invoice_id": str(inv.id), "type": "invoice_reminder", "target_screen": "invoice_list"},
         )
 
     # Notify customer (if registered user)
     if inv.customer and inv.customer.phone:
         other_user = get_user_by_phone(db, inv.customer.phone)
         if other_user:
-            biz_name = inv.business.name if inv.business else "Business"
             send_notification_to_user(
                 db,
                 other_user.id,
                 "Invoice Reminder",
-                f"{prefix}: Invoice {inv.invoice_number} from {biz_name}",
+                f"{prefix}: Invoice from {inv.business.name if inv.business else 'Business'}",
+                {"invoice_id": str(inv.id), "type": "invoice_reminder", "target_screen": "invoice_list"},
             )
 
 

@@ -258,6 +258,14 @@ async def create_quotation(
         
     db.commit()
     db.refresh(db_quotation)
+    
+    # Send notification to customer
+    try:
+        from app.services.notification_service import handle_quotation_addition_notification
+        handle_quotation_addition_notification(db, db_quotation)
+    except Exception as e:
+        print(f"Notification error: {e}")
+        
     return db_quotation
 
 @router.get("/quotations", response_model=List[schemas.Quotation])
