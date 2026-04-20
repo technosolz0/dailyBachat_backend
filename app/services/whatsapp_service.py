@@ -220,7 +220,7 @@ def send_invoice_created_notification(
         {{4}} – total (₹)
         {{5}} – due date (or 'N/A')
     """
-    amount_str = f"₹{total:,.0f}"
+    amount_str = f"{total:,.0f}"
     due_str = due_date if due_date else "N/A"
 
     components = [
@@ -273,7 +273,7 @@ def send_quotation_created_notification(
         {{4}} – estimated total (₹)
         {{5}} – expiry date (or 'N/A')
     """
-    amount_str = f"₹{total:,.0f}"
+    amount_str = f"{total:,.0f}"
     expiry_str = expiry_date if expiry_date else "N/A"
 
     components = [
