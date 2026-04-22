@@ -459,3 +459,30 @@ async def delete_request(request: DeletionRequest, db: Session = Depends(get_db)
     
     db.commit()
     return {"message": "Deletion request submitted successfully. Admin will review and delete your account permanently."}
+
+@router.delete("/delete-account")
+async def delete_account(
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    """
+    Permanently deletes the authenticated user's account and data.
+    Satisfies Google Play's requirement for in-app account deletion.
+    """
+    db_user = db.query(User).filter(User.id == user_id).first()
+    if not db_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Delete the user from the database
+    db.delete(db_user)
+    db.commit()
+    
+    # Try to delete the user from Firebase Auth
+    try:
+        auth.delete_user(user_id)
+    except Exception as e:
+        # Log but don't fail if Firebase deletion fails (e.g. if user already deleted there)
+        print(f"Firebase deletion failed for {user_id}: {str(e)}")
+
+    return {"message": "Your account and all associated data have been permanently deleted."}
+

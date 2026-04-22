@@ -41,7 +41,17 @@ def scheduled_reminders():
 scheduler.add_job(scheduled_reminders, 'interval', hours=1)
 scheduler.start()
 
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi import Request
+
 app = FastAPI(title="DailyBachat API")
+
+templates = Jinja2Templates(directory="app/templates")
+
+@app.get("/delete-account", response_class=HTMLResponse)
+async def delete_account_page(request: Request):
+    return templates.TemplateResponse("delete_account.html", {"request": request})
 
 # Ensure uploads directory exists
 UPLOAD_DIR = "uploads"

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete Account - DailyBachat</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #FF3B30;
+            --bg: #F9FAFB;
+            --text: #111827;
+            --text-secondary: #4B5563;
+            --card-bg: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 24px;
+            padding: 2.5rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--primary);
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        p {
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .instructions {
+            text-align: left;
+            background: #F3F4F6;
+            padding: 1.5rem;
+            border-radius: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .instructions h3 {
+            margin-top: 0;
+            font-size: 1rem;
+            color: var(--text);
+        }
+
+        .instructions ol {
+            padding-left: 1.2rem;
+            margin-bottom: 0;
+        }
+
+        .instructions li {
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: opacity 0.2s;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+        }
+
+        .footer {
+            margin-top: 2rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .footer a {
+            color: var(--text);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .data-warning {
+            font-size: 0.8rem;
+            color: #9CA3AF;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <div class="logo">Daily<span>Bachat</span></div>
+            <h1>Account Deletion</h1>
+            <p>We are sorry to see you go. Following Google Play policy, we provide a direct way to delete your account and all associated data.</p>
+            
+            <div class="instructions">
+                <h3>Steps to delete from App:</h3>
+                <ol>
+                    <li>Open <b>DailyBachat</b> app</li>
+                    <li>Go to <b>Profile</b> screen</li>
+                    <li>Tap on <b>Delete Account</b></li>
+                    <li>Confirm <b>Delete Permanently</b></li>
+                </ol>
+            </div>
+
+            <p>Alternatively, you can contact our support team to request immediate deletion:</p>
+            <a href="mailto:support@dailybachat.com" class="btn">Email Support</a>
+            
+            <p class="data-warning">
+                Note: Deletion will permanently remove all your transactions, invoices, and profile data from our servers. This action cannot be undone.
+            </p>
+        </div>
+        <div class="footer">
+            &copy; 2024 DailyBachat. All rights reserved.
+        </div>
+    </div>
+</body>
+</html>
