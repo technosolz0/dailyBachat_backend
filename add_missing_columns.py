@@ -49,18 +49,27 @@ def add_missing_columns():
                 else:
                     print(f"Error adding {col_name} to otps: {e}")
 
-        # 3. Update loans table (New field for notifications)
+        # 3. Update loans table
         print("Checking loans table...")
-        try:
-            conn.execute(text("ALTER TABLE loans ADD COLUMN person_phone VARCHAR;"))
-            conn.commit()
-            print("Added person_phone to loans.")
-        except Exception as e:
-            conn.rollback()
-            if "already exists" in str(e).lower():
-                print("Column person_phone already exists in loans.")
-            else:
-                print(f"Error adding person_phone to loans: {e}")
+        cols_to_add_loans = [
+            ("person_phone", "VARCHAR"),
+            ("creator_name", "VARCHAR"),
+            ("payment_history", "JSON DEFAULT '[]'::json"),
+            ("reason", "VARCHAR"),
+            ("expected_return_date", "TIMESTAMP WITH TIME ZONE")
+        ]
+        
+        for col_name, col_type in cols_to_add_loans:
+            try:
+                conn.execute(text(f"ALTER TABLE loans ADD COLUMN {col_name} {col_type};"))
+                conn.commit()
+                print(f"Added {col_name} to loans.")
+            except Exception as e:
+                conn.rollback()
+                if "already exists" in str(e).lower():
+                    pass
+                else:
+                    print(f"Error adding {col_name} to loans: {e}")
 
         # 4. Update customers table (optional check)
         print("Checking customers table...")
