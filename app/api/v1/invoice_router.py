@@ -5,9 +5,12 @@ import uuid
 import csv
 import io
 from datetime import datetime
+from sqlalchemy import or_
 from app.core.database import get_db
 from app.models.business import BusinessProfile
 from app.models.invoice import Invoice, InvoiceItem, Quotation, QuotationItem, InvoiceStatus, QuotationStatus, Payment
+from app.models.customer import Customer
+from app.models.user import User
 
 from app.schemas import invoice as schemas
 from app.core.pdf_service import pdf_service
@@ -155,11 +158,27 @@ async def list_invoices(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id)
 ):
-    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
-    if not profile:
-        return []
+    # Get current user and their phone number
+    current_user = db.query(User).filter(User.id == user_id).first()
+    user_phone = current_user.phone_number if current_user else None
     
-    invoices = db.query(Invoice).options(joinedload(Invoice.customer)).filter(Invoice.business_id == profile.id).order_by(Invoice.date.desc()).all()
+    # Get user's business profile
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    profile_id = profile.id if profile else None
+    
+    # Base query joining with Customer
+    query = db.query(Invoice).options(joinedload(Invoice.customer)).join(Customer, Invoice.customer_id == Customer.id)
+    
+    conditions = []
+    if profile_id:
+        conditions.append(Invoice.business_id == profile_id)
+    if user_phone:
+        conditions.append(Customer.phone == user_phone)
+    
+    if not conditions:
+        return []
+        
+    invoices = query.filter(or_(*conditions)).order_by(Invoice.date.desc()).all()
     return invoices
 
 @router.get("/invoices/{invoice_id}/pdf")
@@ -273,11 +292,24 @@ async def list_quotations(
     db: Session = Depends(get_db),
     user_id: str = Depends(get_current_user_id)
 ):
+    current_user = db.query(User).filter(User.id == user_id).first()
+    user_phone = current_user.phone_number if current_user else None
+    
     profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
-    if not profile:
+    profile_id = profile.id if profile else None
+    
+    query = db.query(Quotation).options(joinedload(Quotation.customer)).join(Customer, Quotation.customer_id == Customer.id)
+    
+    conditions = []
+    if profile_id:
+        conditions.append(Quotation.business_id == profile_id)
+    if user_phone:
+        conditions.append(Customer.phone == user_phone)
+        
+    if not conditions:
         return []
     
-    quotations = db.query(Quotation).options(joinedload(Quotation.customer)).filter(Quotation.business_id == profile.id).order_by(Quotation.date.desc()).all()
+    quotations = query.filter(or_(*conditions)).order_by(Quotation.date.desc()).all()
     return quotations
 @router.get("/quotations/{quotation_id}/pdf")
 async def get_quotation_pdf(

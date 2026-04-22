@@ -29,6 +29,7 @@ class Quotation(Base):
     total = Column(Float, default=0.0)
     advance_amount = Column(Float, default=0.0)
     tax_percent = Column(Float, default=0.0)
+    creator_name = Column(String, nullable=True)
     status = Column(String, default=QuotationStatus.draft)
     pdf_url = Column(String)
 
@@ -62,6 +63,7 @@ class Invoice(Base):
     total = Column(Float, default=0.0)
     tax_percent = Column(Float, default=0.0)
     paid_amount = Column(Float, default=0.0)
+    creator_name = Column(String, nullable=True)
     status = Column(String, default=InvoiceStatus.pending)
     pdf_url = Column(String)
 

@@ -13,6 +13,7 @@ class Loan(Base):
     paid_amount = Column(Float, default=0.0)
     status = Column(String) # 'unpaid', 'partially paid', 'paid'
     type = Column(String) # 'lent' or 'borrowed'
+    creator_name = Column(String, nullable=True)
     reason = Column(String)
     date = Column(DateTime(timezone=True), server_default=func.now())
     expected_return_date = Column(DateTime(timezone=True))

@@ -28,6 +28,7 @@ class InvoiceBase(BaseModel):
     tax: float
     tax_percent: Optional[float] = 0.0
     total: float
+    creator_name: Optional[str] = None
     date: Optional[datetime] = None
 
 class InvoiceCreate(InvoiceBase):
@@ -76,6 +77,7 @@ class QuotationBase(BaseModel):
     tax: float
     tax_percent: Optional[float] = 0.0
     total: float
+    creator_name: Optional[str] = None
     date: Optional[datetime] = None
     status: Optional[str] = "draft"
     advance_amount: Optional[float] = 0.0

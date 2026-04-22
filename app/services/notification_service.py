@@ -180,7 +180,7 @@ def handle_invoice_addition_notification(db: Session, invoice: Invoice):
                 other_user.fcm_token,
                 title,
                 body,
-                {"invoice_id": str(invoice.id), "type": "invoice_new", "target_screen": "invoice_list"},
+                {"invoice_id": str(invoice.id), "type": "invoice_new", "target_screen": "view_invoice"},
             )
 
     # ── WhatsApp ─────────────────────────────────────────────────────────────
@@ -233,7 +233,7 @@ def handle_quotation_addition_notification(db: Session, quotation: Quotation):
                 other_user.fcm_token,
                 title,
                 body,
-                {"quotation_id": str(quotation.id), "type": "quotation_new", "target_screen": "quotation_list"},
+                {"quotation_id": str(quotation.id), "type": "quotation_new", "target_screen": "view_quotation"},
             )
 
     # ── WhatsApp ─────────────────────────────────────────────────────────────
@@ -481,7 +481,7 @@ def _send_invoice_reminder_fcm(db: Session, inv: Invoice, window_key: str):
                 other_user.id,
                 "Invoice Reminder",
                 f"{prefix}: Invoice from {inv.business.name if inv.business else 'Business'}",
-                {"invoice_id": str(inv.id), "type": "invoice_reminder", "target_screen": "invoice_list"},
+                {"invoice_id": str(inv.id), "type": "invoice_reminder", "target_screen": "view_invoice"},
             )
 
 
