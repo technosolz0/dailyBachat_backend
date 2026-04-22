@@ -139,27 +139,30 @@ async def get_premium_features(db: Session = Depends(get_db)):
     """
     setting = db.query(SystemSettings).filter(SystemSettings.key == "premium_features").first()
     if not setting:
-        # Default fallback features
+        # Default fallback features if not found in database
         return [
             {
                 "icon": "auto_graph_rounded",
                 "title": "Advanced Analytics",
-                "subtitle": "Detailed insights into your spending patterns."
+                "subtitle": "Deep insights into your spending patterns."
             },
             {
                 "icon": "picture_as_pdf_rounded",
-                "title": "Custom Invoices",
-                "subtitle": "Add your logo and branding to all exports."
+                "title": "PDF / CSV Reports",
+                "subtitle": "Export data for easy tax and expense filing."
             },
             {
                 "icon": "cloud_done_rounded",
                 "title": "Cloud Backup",
-                "subtitle": "Never lose your data with automatic sync."
+                "subtitle": "Never lose your data with real-time sync."
             },
             {
                 "icon": "block_rounded",
                 "title": "Ad-Free Experience",
-                "subtitle": "Focus on your finances without distractions."
+                "subtitle": "Enjoy a clean interface without interruptions."
             }
         ]
-    return json.loads(setting.value)
+    try:
+        return json.loads(setting.value)
+    except Exception:
+        return []
