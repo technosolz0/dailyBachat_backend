@@ -71,18 +71,49 @@ def add_missing_columns():
                 else:
                     print(f"Error adding {col_name} to loans: {e}")
 
-        # 4. Update customers table (optional check)
+        # 4. Update customers table
         print("Checking customers table...")
+        cols_to_add_customers = [
+            ("address", "VARCHAR"),
+            ("created_at", "TIMESTAMP WITH TIME ZONE DEFAULT NOW()")
+        ]
+        for col_name, col_type in cols_to_add_customers:
+            try:
+                conn.execute(text(f"ALTER TABLE customers ADD COLUMN {col_name} {col_type};"))
+                conn.commit()
+                print(f"Added {col_name} to customers.")
+            except Exception as e:
+                conn.rollback()
+                if "already exists" in str(e).lower():
+                    pass
+                else:
+                    print(f"Error adding {col_name} to customers: {e}")
+
+        # 5. Update invoices table
+        print("Checking invoices table...")
         try:
-            conn.execute(text("ALTER TABLE customers ADD COLUMN address VARCHAR;"))
+            conn.execute(text("ALTER TABLE invoices ADD COLUMN date TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
             conn.commit()
-            print("Added address to customers.")
+            print("Added date to invoices.")
         except Exception as e:
             conn.rollback()
             if "already exists" in str(e).lower():
                 pass
             else:
-                print(f"Error adding address to customers: {e}")
+                print(f"Error adding date to invoices: {e}")
+
+        # 6. Update quotations table
+        print("Checking quotations table...")
+        try:
+            conn.execute(text("ALTER TABLE quotations ADD COLUMN date TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
+            conn.commit()
+            print("Added date to quotations.")
+        except Exception as e:
+            conn.rollback()
+            if "already exists" in str(e).lower():
+                pass
+            else:
+                print(f"Error adding date to quotations: {e}")
 
         print("Migration check complete.")
 

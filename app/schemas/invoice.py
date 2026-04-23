@@ -37,7 +37,7 @@ class InvoiceCreate(InvoiceBase):
 class Invoice(InvoiceBase):
     id: str
     business_id: str
-    date: datetime
+    date: Optional[datetime] = None
     paid_amount: float
     status: str
     pdf_url: Optional[str] = None
@@ -88,7 +88,7 @@ class QuotationCreate(QuotationBase):
 class Quotation(QuotationBase):
     id: str
     business_id: str
-    date: datetime
+    date: Optional[datetime] = None
     status: str
     pdf_url: Optional[str] = None
     items: List[QuotationItem] = []

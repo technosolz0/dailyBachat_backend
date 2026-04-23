@@ -18,13 +18,13 @@ class Customer(Base):
     quotations = relationship("Quotation", back_populates="customer")
 
     @property
-    def total_sales(self):
-        return sum(inv.total for inv in self.invoices if inv.status != 'void')
+    def total_sales(self) -> float:
+        return sum((inv.total or 0.0) for inv in self.invoices if inv.status != 'void')
 
     @property
-    def total_paid(self):
-        return sum(inv.paid_amount for inv in self.invoices if inv.status != 'void')
+    def total_paid(self) -> float:
+        return sum((inv.paid_amount or 0.0) for inv in self.invoices if inv.status != 'void')
 
     @property
-    def pending_amount(self):
+    def pending_amount(self) -> float:
         return self.total_sales - self.total_paid

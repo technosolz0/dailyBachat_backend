@@ -14,7 +14,7 @@ class CustomerCreate(CustomerBase):
 class Customer(CustomerBase):
     id: str
     business_id: str
-    created_at: datetime
+    created_at: Optional[datetime] = None
     total_sales: float = 0.0
     total_paid: float = 0.0
     pending_amount: float = 0.0
