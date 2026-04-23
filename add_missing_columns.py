@@ -91,29 +91,47 @@ def add_missing_columns():
 
         # 5. Update invoices table
         print("Checking invoices table...")
-        try:
-            conn.execute(text("ALTER TABLE invoices ADD COLUMN date TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
-            conn.commit()
-            print("Added date to invoices.")
-        except Exception as e:
-            conn.rollback()
-            if "already exists" in str(e).lower():
-                pass
-            else:
-                print(f"Error adding date to invoices: {e}")
+        cols_to_add_invoices = [
+            ("date", "TIMESTAMP WITH TIME ZONE DEFAULT NOW()"),
+            ("creator_name", "VARCHAR"),
+            ("tax_percent", "FLOAT DEFAULT 0.0"),
+            ("paid_amount", "FLOAT DEFAULT 0.0"),
+            ("status", "VARCHAR DEFAULT 'pending'"),
+            ("pdf_url", "VARCHAR")
+        ]
+        for col_name, col_type in cols_to_add_invoices:
+            try:
+                conn.execute(text(f"ALTER TABLE invoices ADD COLUMN {col_name} {col_type};"))
+                conn.commit()
+                print(f"Added {col_name} to invoices.")
+            except Exception as e:
+                conn.rollback()
+                if "already exists" in str(e).lower():
+                    pass
+                else:
+                    print(f"Error adding {col_name} to invoices: {e}")
 
         # 6. Update quotations table
         print("Checking quotations table...")
-        try:
-            conn.execute(text("ALTER TABLE quotations ADD COLUMN date TIMESTAMP WITH TIME ZONE DEFAULT NOW();"))
-            conn.commit()
-            print("Added date to quotations.")
-        except Exception as e:
-            conn.rollback()
-            if "already exists" in str(e).lower():
-                pass
-            else:
-                print(f"Error adding date to quotations: {e}")
+        cols_to_add_quotations = [
+            ("date", "TIMESTAMP WITH TIME ZONE DEFAULT NOW()"),
+            ("creator_name", "VARCHAR"),
+            ("tax_percent", "FLOAT DEFAULT 0.0"),
+            ("status", "VARCHAR DEFAULT 'draft'"),
+            ("pdf_url", "VARCHAR"),
+            ("advance_amount", "FLOAT DEFAULT 0.0")
+        ]
+        for col_name, col_type in cols_to_add_quotations:
+            try:
+                conn.execute(text(f"ALTER TABLE quotations ADD COLUMN {col_name} {col_type};"))
+                conn.commit()
+                print(f"Added {col_name} to quotations.")
+            except Exception as e:
+                conn.rollback()
+                if "already exists" in str(e).lower():
+                    pass
+                else:
+                    print(f"Error adding {col_name} to quotations: {e}")
 
         print("Migration check complete.")
 
