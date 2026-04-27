@@ -23,7 +23,7 @@ from sqlalchemy import func
 import os
 import json
 
-from app.core.security import create_access_token
+from app.core.security import create_access_token, verify_password
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 router = APIRouter()
@@ -74,18 +74,15 @@ async def admin_login(
     password = login_data.password
     
     user_id = None
-    user_name = None
     
     if email == ADMIN_EMAIL and password == ADMIN_PASSWORD:
         user_id = email
-        user_name = "Super Admin"
     else:
         # Check DB
         user = db.query(User).filter(User.email == email).first()
         if user and user.is_admin:
-            # Note: In production, verify user password here!
-            user_id = user.id
-            user_name = user.name
+            if user.hashed_password and verify_password(password, user.hashed_password):
+                user_id = user.id
     
     if user_id:
         access_token = create_access_token(data={"sub": user_id})
