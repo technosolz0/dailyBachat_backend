@@ -23,6 +23,7 @@ async def list_categories(db: Session = Depends(get_db)):
     return db.query(Category).filter(Category.user_id == user_id).all()
 
 @router.put("/{category_id}", response_model=CategoryInDB)
+@router.patch("/{category_id}", response_model=CategoryInDB)
 async def update_category(category_id: int, category: CategoryUpdate, db: Session = Depends(get_db)):
     user_id = "test_user"
     db_category = db.query(Category).filter(Category.id == category_id, Category.user_id == user_id).first()

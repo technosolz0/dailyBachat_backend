@@ -119,6 +119,7 @@ async def get_user_detail(
     return user
 
 @router.put("/users/{user_id}", response_model=UserInDB)
+@router.patch("/users/{user_id}", response_model=UserInDB)
 async def update_user(
     user_id: str,
     user_update: AdminUserUpdate,

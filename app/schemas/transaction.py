@@ -8,6 +8,7 @@ class TransactionBase(BaseModel):
     description: Optional[str] = None
     category: str
     type: str # 'income' or 'expense'
+    payment_mode: Optional[str] = None
     date: datetime
 
 class TransactionCreate(TransactionBase):
@@ -18,6 +19,7 @@ class TransactionUpdate(BaseModel):
     description: Optional[str] = None
     category: Optional[str] = None
     type: Optional[str] = None
+    payment_mode: Optional[str] = None
     date: Optional[datetime] = None
 
 class TransactionInDB(TransactionBase):

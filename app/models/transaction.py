@@ -11,6 +11,7 @@ class Transaction(Base):
     description = Column(String)
     category = Column(String) # For now, keeping it as string to match Firestore logic, but could be a foreign key to Category
     type = Column(String, nullable=False) # 'income' or 'expense'
+    payment_mode = Column(String)
     date = Column(DateTime(timezone=True), server_default=func.now())
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 

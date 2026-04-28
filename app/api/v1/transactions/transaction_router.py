@@ -63,3 +63,23 @@ async def delete_transaction(
     db.commit()
     return {"message": "Transaction deleted"}
 
+@router.put("/{transaction_id}", response_model=TransactionInDB)
+@router.patch("/{transaction_id}", response_model=TransactionInDB)
+async def update_transaction(
+    transaction_id: str,
+    transaction_update: TransactionUpdate,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    db_transaction = db.query(Transaction).filter(Transaction.id == transaction_id, Transaction.user_id == user_id).first()
+    if not db_transaction:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    
+    update_data = transaction_update.dict(exclude_unset=True)
+    for key, value in update_data.items():
+        setattr(db_transaction, key, value)
+        
+    db.commit()
+    db.refresh(db_transaction)
+    return db_transaction
+

@@ -290,3 +290,25 @@ async def get_customer_statement(
         media_type="application/pdf",
         headers={"Content-Disposition": f"attachment; filename=statement_{customer.name.replace(' ', '_')}.pdf"}
     )
+
+@router.delete("/customers/{customer_id}")
+async def delete_customer(
+    customer_id: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    profile = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).first()
+    if not profile:
+        raise HTTPException(status_code=400, detail="Create business profile first")
+        
+    db_customer = db.query(Customer).filter(Customer.id == customer_id, Customer.business_id == profile.id).first()
+    if not db_customer:
+        raise HTTPException(status_code=404, detail="Customer not found")
+        
+    # Check if customer has invoices or quotations
+    if db_customer.invoices or db_customer.quotations:
+        raise HTTPException(status_code=400, detail="Cannot delete customer with active invoices or quotations")
+        
+    db.delete(db_customer)
+    db.commit()
+    return {"message": "Customer deleted successfully"}

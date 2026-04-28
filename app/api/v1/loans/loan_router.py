@@ -65,6 +65,7 @@ async def get_loan(
     return db_loan
 
 @router.put("/{loan_id}", response_model=LoanInDB)
+@router.patch("/{loan_id}", response_model=LoanInDB)
 async def update_loan(
     loan_id: str, 
     loan: LoanUpdate, 

@@ -378,6 +378,7 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=error_msg)
 
 @router.put("/me", response_model=UserInDB)
+@router.patch("/me", response_model=UserInDB)
 async def update_profile(
     user_data: UserUpdate,
     db: Session = Depends(get_db),
@@ -417,6 +418,7 @@ async def update_profile(
     return db_user
 
 @router.put("/fcm-token")
+@router.patch("/fcm-token")
 async def update_fcm_token(
     fcm_data: FCMUpdate, 
     x_user_id: str = Header(...),

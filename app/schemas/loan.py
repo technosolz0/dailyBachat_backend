@@ -11,6 +11,7 @@ class LoanBase(BaseModel):
     paid_amount: float = 0.0
     status: Optional[str] = "unpaid"
     type: str # 'lent' or 'borrowed'
+    payment_mode: Optional[str] = None
     creator_name: Optional[str] = None
     reason: Optional[str] = None
     date: datetime
@@ -27,6 +28,7 @@ class LoanUpdate(BaseModel):
     paid_amount: Optional[float] = None
     status: Optional[str] = None
     type: Optional[str] = None
+    payment_mode: Optional[str] = None
     reason: Optional[str] = None
     date: Optional[datetime] = None
     expected_return_date: Optional[datetime] = None

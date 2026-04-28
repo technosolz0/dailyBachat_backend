@@ -70,6 +70,7 @@ async def get_product(
     return product
 
 @router.put("/{product_id}", response_model=ProductResponse)
+@router.patch("/{product_id}", response_model=ProductResponse)
 async def update_product(
     product_id: str,
     product_update: ProductUpdate,

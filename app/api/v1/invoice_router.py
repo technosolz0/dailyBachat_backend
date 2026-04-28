@@ -91,6 +91,7 @@ async def convert_quotation_to_invoice(
         tax_percent=quotation.tax_percent,
         total=quotation.total,
         paid_amount=quotation.advance_amount,
+        payment_mode=quotation.payment_mode,
         status=InvoiceStatus.paid if quotation.advance_amount >= quotation.total else (InvoiceStatus.partially_paid if quotation.advance_amount > 0 else InvoiceStatus.pending)
     )
     db.add(db_invoice)
@@ -374,6 +375,7 @@ async def get_quotation_pdf(
     )
 
 @router.put("/invoices/{invoice_id}", response_model=schemas.Invoice)
+@router.patch("/invoices/{invoice_id}", response_model=schemas.Invoice)
 async def update_invoice(
     invoice_id: str,
     invoice_update: schemas.InvoiceCreate, # Reusing create schema if update is similar
@@ -406,6 +408,7 @@ async def update_invoice(
     return db_invoice
 
 @router.put("/quotations/{quotation_id}", response_model=schemas.Quotation)
+@router.patch("/quotations/{quotation_id}", response_model=schemas.Quotation)
 async def update_quotation(
     quotation_id: str,
     quotation_update: schemas.QuotationCreate,
@@ -490,3 +493,43 @@ async def mark_invoice_paid(
     db.commit()
     db.refresh(invoice)
     return invoice
+
+@router.delete("/invoices/{invoice_id}")
+async def delete_invoice(
+    invoice_id: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    db_invoice = db.query(Invoice).filter(Invoice.id == invoice_id).first()
+    if not db_invoice:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+        
+    if db_invoice.business.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+        
+    # Delete related items first (though cascade might handle it)
+    db.query(InvoiceItem).filter(InvoiceItem.invoice_id == invoice_id).delete()
+    db.query(Payment).filter(Payment.invoice_id == invoice_id).delete()
+    
+    db.delete(db_invoice)
+    db.commit()
+    return {"message": "Invoice deleted successfully"}
+
+@router.delete("/quotations/{quotation_id}")
+async def delete_quotation(
+    quotation_id: str,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id)
+):
+    db_quotation = db.query(Quotation).filter(Quotation.id == quotation_id).first()
+    if not db_quotation:
+        raise HTTPException(status_code=404, detail="Quotation not found")
+        
+    if db_quotation.business.user_id != user_id:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+        
+    db.query(QuotationItem).filter(QuotationItem.quotation_id == quotation_id).delete()
+    
+    db.delete(db_quotation)
+    db.commit()
+    return {"message": "Quotation deleted successfully"}
