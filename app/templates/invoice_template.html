@@ -47,199 +47,220 @@
             font-weight: bold;
         }
 
-        .header {
-            display: table;
+        .header-table {
             width: 100%;
-            border-bottom: 2px solid #0056b3;
-            padding-bottom: 15px;
+            margin-bottom: 10px;
         }
 
-        .business-info {
-            display: table-cell;
-            width: 60%;
-            vertical-align: top;
+        .business-name {
+            font-size: 18pt;
+            font-weight: bold;
+            margin-bottom: 5px;
         }
 
-        .logo {
-            max-width: 150px;
-            max-height: 60px;
-            margin-bottom: 8px;
+        .business-details {
+            font-size: 9pt;
+            line-height: 1.2;
+            color: #444;
         }
 
-        .invoice-title-section {
-            display: table-cell;
-            width: 40%;
-            text-align: right;
-            vertical-align: top;
-        }
-
-        .invoice-title-section h1 {
-            color: #0056b3;
+        .invoice-title {
+            font-size: 32pt;
+            font-weight: bold;
+            color: #636e72;
             margin: 0;
-            font-size: 28pt;
-            letter-spacing: 1px;
+            line-height: 1;
         }
 
         .bill-to-section {
-            margin-top: 25px;
-            width: 100%;
+            margin: 25px 0 15px 0;
         }
 
-        .bill-to-details {
-            width: 60%;
-            vertical-align: top;
-        }
-
-        .invoice-meta {
-            width: 40%;
-            text-align: right;
-            vertical-align: top;
+        .bill-to-title {
+            font-weight: bold;
+            color: #636e72;
+            font-size: 10pt;
+            margin-bottom: 5px;
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 30px;
+            margin: 20px 0;
         }
 
         .items-table th {
-            background-color: #0056b3;
-            color: white;
+            background-color: #f2f2f2;
+            color: #333;
             text-align: left;
             padding: 10px;
-            font-weight: bold;
-        }
-
-        .items-table td {
-            padding: 10px;
+            font-size: 10pt;
             border-bottom: 1px solid #eee;
         }
 
-        .totals-section {
-            margin-top: 25px;
-            display: table;
+        .items-table td {
+            padding: 12px 10px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+
+        .totals-container {
+            width: 100%;
+            margin-top: 10px;
+        }
+
+        .totals-table {
+            float: right;
+            width: 40%;
+        }
+
+        .totals-table td {
+            padding: 4px 0;
+        }
+
+        .grand-total-label {
+            font-size: 12pt;
+            font-weight: bold;
+            padding-top: 10px !important;
+        }
+
+        .grand-total-value {
+            font-size: 12pt;
+            font-weight: bold;
+            padding-top: 10px !important;
+        }
+
+        .payment-details-box {
+            margin-top: 50px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
             width: 100%;
         }
 
-        .payment-info {
-            display: table-cell;
-            width: 55%;
-            font-size: 10pt;
-            vertical-align: top;
-            padding-right: 20px;
-        }
-
-        .totals {
-            display: table-cell;
-            width: 45%;
-            text-align: right;
-            vertical-align: top;
-        }
-
-        .total-row {
+        .payment-title {
             font-weight: bold;
-            font-size: 1.2em;
-            color: #0056b3;
-            padding-top: 5px;
+            font-size: 9pt;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            color: #333;
         }
 
         #footer {
             text-align: center;
-            font-size: 9pt;
-            color: #666;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
+            width: 100%;
         }
     </style>
 </head>
 
 <body>
 
-    <div class="header">
-        <div class="business-info">
-            {% if data.is_premium and data.business.logo_url %}
-            <img src="{{ data.business.logo_url }}" class="logo" alt="Business Logo">
-            {% else %}
-            <img src="https://dailybachat.serwex.in/static/logo.png" class="logo" alt="DailyBachat Logo">
-            {% endif %}
-            <h2 style="margin: 0; color: #0056b3;">{{ data.business.name }}</h2>
-            <p style="margin: 5px 0;">{{ data.business.address }}<br>
-                Phone: {{ data.business.phone }}<br>
-                Email: {{ data.business.email }}<br>
-                {% if data.business.gst_number %}GST: {{ data.business.gst_number }}{% endif %}</p>
-        </div>
-        <div class="invoice-title-section">
-            <h1>INVOICE</h1>
-            <p style="font-size: 14pt; margin: 5px 0;">#{{ data.invoice_number }}</p>
-        </div>
-    </div>
-
-    <table class="bill-to-section">
+    <table class="header-table">
         <tr>
-            <td class="bill-to-details">
-                <h3 style="color: #0056b3; margin-bottom: 10px;">BILL TO:</h3>
-                <strong>{{ data.customer.name }}</strong><br>
-                {{ data.customer.address }}<br>
-                Phone: {{ data.customer.phone }}
+            <td width="65%" style="vertical-align: top;">
+                <div class="business-name text-blue">{{ data.business.name }}</div>
+                <div class="business-details">
+                    {{ data.business.address }}<br>
+                    Phone: {{ data.business.phone }}<br>
+                    Email: {{ data.business.email }}
+                </div>
             </td>
-            <td class="invoice-meta">
-                <p><strong>Date:</strong> {{ data.date }}<br>
-                    <strong>Due Date:</strong> {{ data.due_date|default(data.date) }}<br>
-                    <strong>Status:</strong> {{ data.status|default('Unpaid')|upper }}
-                </p>
+            <td width="35%" class="text-right" style="vertical-align: top;">
+                <h1 class="invoice-title">INVOICE</h1>
+                <div style="margin-top: 12px; font-size: 11pt;">
+                    <b>No:</b> {{ data.invoice_number }}<br>
+                    <b>Date:</b> {{ data.date }}
+                </div>
             </td>
         </tr>
     </table>
 
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+
+    <div class="bill-to-section">
+        <div class="bill-to-title">BILL TO:</div>
+        <div class="font-bold" style="font-size: 12pt; margin-top: 3px;">{{ data.customer.name }}</div>
+        <div class="text-grey" style="margin-top: 2px;">Phone: {{ data.customer.phone }}</div>
+    </div>
+
     <table class="items-table">
         <thead>
             <tr>
-                <th width="50%">Description</th>
-                <th width="10%">Qty</th>
-                <th width="20%">Unit Price</th>
-                <th width="20%">Amount</th>
+                <th width="55%">Description</th>
+                <th width="10%" class="text-right">Qty</th>
+                <th width="15%" class="text-right">Unit Price</th>
+                <th width="20%" class="text-right">Amount</th>
             </tr>
         </thead>
         <tbody>
             {% for item in data['items'] %}
             <tr>
                 <td>{{ item.description }}</td>
-                <td>{{ item.quantity }}</td>
-                <td>Rs {{ item.unit_price }}</td>
-                <td class="font-bold">Rs {{ item.amount }}</td>
+                <td class="text-right">{{ item.quantity }}</td>
+                <td class="text-right">Rs {{ item.unit_price }}</td>
+                <td class="text-right font-bold">Rs {{ item.amount }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <div class="totals-section">
-        <div class="payment-info">
-            <h3 style="color: #0056b3;">PAYMENT DETAILS:</h3>
-            {% if data.payment.upi_id %}
-            <p><strong>UPI ID:</strong> {{ data.payment.upi_id }}</p>
-            {% endif %}
-            {% if data.payment.bank_name %}
-            <p><strong>Bank:</strong> {{ data.payment.bank_name }}<br>
-                <strong>A/C No:</strong> {{ data.payment.account_number }}<br>
-                <strong>IFSC:</strong> {{ data.payment.ifsc }}
-            </p>
-            {% endif %}
-            <p style="margin-top: 20px; font-style: italic; color: #666;">Thank you for your business!</p>
-        </div>
-        <div class="totals">
-            <p>Subtotal: Rs {{ data.subtotal }}</p>
-            <p>Tax (0%): Rs {{ data.tax }}</p>
-            <p class="total-row">Grand Total: Rs {{ data.total }}</p>
-            <p>Paid Amount: Rs {{ data.paid_amount }}</p>
-            <p><strong>Balance Due: Rs {{ data.total - data.paid_amount }}</strong></p>
-        </div>
+    <div class="totals-container">
+        <table class="totals-table">
+            <tr>
+                <td class="text-right" width="60%">Subtotal:</td>
+                <td class="text-right" width="40%">Rs {{ data.subtotal }}</td>
+            </tr>
+            <tr>
+                <td class="text-right">Tax (0%):</td>
+                <td class="text-right">Rs {{ data.tax }}</td>
+            </tr>
+            <tr>
+                <td class="text-right grand-total-label">Grand Total:</td>
+                <td class="text-right grand-total-value">Rs {{ data.total }}</td>
+            </tr>
+            <tr>
+                <td class="text-right">Paid Amount:</td>
+                <td class="text-right">Rs {{ data.paid_amount }}</td>
+            </tr>
+            <tr>
+                <td class="text-right font-bold" style="font-size: 12pt;">Balance Due:</td>
+                <td class="text-right font-bold text-red" style="font-size: 12pt;">Rs {{ data.total - data.paid_amount
+                    }}</td>
+            </tr>
+        </table>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="payment-details-box">
+        <div class="payment-title">PAYMENT DETAILS</div>
+        <table width="100%">
+            <tr>
+                <td width="70%" style="vertical-align: top; font-size: 11pt;">
+                    {% if data.payment.bank_name %}
+                    <b>Bank:</b> {{ data.payment.bank_name }}<br>
+                    <b>A/C No:</b> {{ data.payment.account_number }}<br>
+                    <b>IFSC:</b> {{ data.payment.ifsc }}
+                    {% endif %}
+                </td>
+                <td width="30%" class="text-right" style="vertical-align: bottom; font-size: 11pt;">
+                    {% if data.payment.upi_id %}
+                    <b>UPI ID:</b> {{ data.payment.upi_id }}
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
     </div>
 
     <div id="footer">
-        <div style="padding: 10px; border-top: 1px dashed #0056b3; color: #555;">
-            <p style="margin: 0; font-weight: bold; font-size: 1.1em; color: #0056b3;">Powered by DailyBachat</p>
-            <p style="margin: 5px 0 0 0; font-size: 8pt;">Create professional invoices and manage expenses easily.
-                Download 'DailyBachat' on Play Store/App Store today!</p>
+        <p style="font-style: italic; color: #888; margin: 30px 0 10px 0;">Thank you for your business!</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 15px;">
+        <div style="font-size: 9pt;">
+            <div style="margin-bottom: 5px;">
+                <img src="https://dailybachat.serwex.in/static/logo.png"
+                    style="height: 14px; vertical-align: middle; margin-right: 4px;">
+                <span style="color: #0056b3; font-weight: bold;">Powered by DailyBachat</span>
+            </div>
+            <p style="color: #999; margin: 0;">Create professional invoices and manage expenses easily with DailyBachat.
+            </p>
         </div>
     </div>
 </body>
