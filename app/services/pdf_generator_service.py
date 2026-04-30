@@ -17,27 +17,36 @@ def generate_invoice_pdf_url(db: Session, invoice: Invoice) -> str:
     logger.info(f"Generating PDF URL for invoice {invoice.invoice_number}")
     try:
         # Ensure relationships are loaded
-        if not invoice.business or not invoice.customer:
+        if not invoice.business:
+            logger.info("Refreshing invoice to load business relationship")
             db.refresh(invoice)
             
+        if invoice.business and not invoice.business.user:
+            logger.info("Refreshing business to load user relationship")
+            db.refresh(invoice.business)
+            
         # 1. Prepare data (Logic copied from invoice_router.py)
+        is_premium = False
+        if invoice.business and invoice.business.user:
+            is_premium = getattr(invoice.business.user, 'is_premium', False)
+            
         data = {
-            "invoice_number": invoice.invoice_number,
-            "date": invoice.date.strftime("%Y-%m-%d"),
+            "invoice_number": invoice.invoice_number or "N/A",
+            "date": invoice.date.strftime("%Y-%m-%d") if invoice.date else "N/A",
             "due_date": invoice.due_date.strftime("%Y-%m-%d") if invoice.due_date else "N/A",
-            "status": invoice.status,
+            "status": invoice.status or "pending",
             "business": {
-                "name": invoice.business.name,
-                "address": invoice.business.address,
-                "phone": invoice.business.phone,
-                "email": invoice.business.email,
-                "gst_number": invoice.business.gst_number,
-                "logo_url": invoice.business.logo_url
+                "name": invoice.business.name if invoice.business else "A Business",
+                "address": invoice.business.address if invoice.business else "",
+                "phone": invoice.business.phone if invoice.business else "",
+                "email": invoice.business.email if invoice.business else "",
+                "gst_number": invoice.business.gst_number if invoice.business else "",
+                "logo_url": invoice.business.logo_url if invoice.business else None
             },
             "customer": {
-                "name": invoice.customer.name,
-                "address": invoice.customer.address,
-                "phone": invoice.customer.phone
+                "name": invoice.customer.name if invoice.customer else "Valued Customer",
+                "address": invoice.customer.address if invoice.customer else "",
+                "phone": invoice.customer.phone if invoice.customer else ""
             },
             "items": [
                 {
@@ -45,21 +54,21 @@ def generate_invoice_pdf_url(db: Session, invoice: Invoice) -> str:
                     "quantity": item.quantity,
                     "unit_price": item.unit_price,
                     "amount": item.amount
-                } for item in invoice.items
+                } for item in (invoice.items or [])
             ],
             "payment": {
-                "upi_id": invoice.business.payment_details[0].upi_id if invoice.business.payment_details else None,
-                "bank_name": invoice.business.payment_details[0].bank_name if invoice.business.payment_details else None,
-                "account_number": invoice.business.payment_details[0].account_number if invoice.business.payment_details else None,
-                "ifsc": invoice.business.payment_details[0].ifsc if invoice.business.payment_details else None,
-                "qr_code_url": invoice.business.payment_details[0].qr_code_url if invoice.business.payment_details else None
+                "upi_id": invoice.business.payment_details[0].upi_id if (invoice.business and invoice.business.payment_details) else None,
+                "bank_name": invoice.business.payment_details[0].bank_name if (invoice.business and invoice.business.payment_details) else None,
+                "account_number": invoice.business.payment_details[0].account_number if (invoice.business and invoice.business.payment_details) else None,
+                "ifsc": invoice.business.payment_details[0].ifsc if (invoice.business and invoice.business.payment_details) else None,
+                "qr_code_url": invoice.business.payment_details[0].qr_code_url if (invoice.business and invoice.business.payment_details) else None
             },
-            "subtotal": invoice.subtotal,
-            "tax": invoice.tax,
-            "tax_percent": invoice.tax_percent,
-            "total": invoice.total,
-            "paid_amount": invoice.paid_amount,
-            "is_premium": invoice.business.user.is_premium if invoice.business and invoice.business.user else False
+            "subtotal": invoice.subtotal or 0.0,
+            "tax": invoice.tax or 0.0,
+            "tax_percent": invoice.tax_percent or 0.0,
+            "total": invoice.total or 0.0,
+            "paid_amount": invoice.paid_amount or 0.0,
+            "is_premium": is_premium
         }
 
         # 2. Generate PDF bytes
