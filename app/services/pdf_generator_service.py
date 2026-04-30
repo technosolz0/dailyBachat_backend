@@ -16,13 +16,10 @@ def generate_invoice_pdf_url(db: Session, invoice: Invoice) -> str:
     """
     logger.info(f"Generating PDF URL for invoice {invoice.invoice_number}")
     try:
-        # Ensure relationships are loaded
-        if not invoice.business:
-            logger.info("Refreshing invoice to load business relationship")
-            db.refresh(invoice)
-            
+        # Ensure relationships are loaded - explicitly refresh to get all related data
+        db.refresh(invoice)
+        
         if invoice.business and not invoice.business.user:
-            logger.info("Refreshing business to load user relationship")
             db.refresh(invoice.business)
             
         # 1. Prepare data (Logic copied from invoice_router.py)
@@ -44,9 +41,9 @@ def generate_invoice_pdf_url(db: Session, invoice: Invoice) -> str:
                 "logo_url": invoice.business.logo_url if invoice.business else None
             },
             "customer": {
-                "name": invoice.customer.name if invoice.customer else "Valued Customer",
-                "address": invoice.customer.address if invoice.customer else "",
-                "phone": invoice.customer.phone if invoice.customer else ""
+                "name": invoice.customer.name if (invoice.customer and invoice.customer.name) else "Valued Customer",
+                "address": invoice.customer.address if (invoice.customer and invoice.customer.address) else "N/A",
+                "phone": invoice.customer.phone if (invoice.customer and invoice.customer.phone) else "N/A"
             },
             "items": [
                 {
@@ -121,9 +118,9 @@ def generate_quotation_pdf_url(db: Session, quotation: Quotation) -> str:
                 "logo_url": quotation.business.logo_url
             },
             "customer": {
-                "name": quotation.customer.name,
-                "address": quotation.customer.address,
-                "phone": quotation.customer.phone
+                "name": quotation.customer.name if (quotation.customer and quotation.customer.name) else "Valued Customer",
+                "address": quotation.customer.address if (quotation.customer and quotation.customer.address) else "N/A",
+                "phone": quotation.customer.phone if (quotation.customer and quotation.customer.phone) else "N/A"
             },
             "payment": {
                 "upi_id": quotation.business.payment_details[0].upi_id if quotation.business.payment_details else None,
