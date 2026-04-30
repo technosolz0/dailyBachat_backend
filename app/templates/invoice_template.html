@@ -177,8 +177,12 @@
 
     <div class="bill-to-section">
         <div class="bill-to-title">BILL TO:</div>
-        <div class="font-bold" style="font-size: 12pt; margin-top: 2px;">{{ data.customer.name }}</div>
-        <div class="text-grey" style="margin-top: 1px;">Phone: {{ data.customer.phone }}</div>
+        <p class="font-bold" style="font-size: 12pt; margin-top: 2px;">{{ data.customer.name }}</p>
+
+        <p class="text-grey" style="margin-top: 1px;">Phone: {{ data.customer.phone }}</p>
+        <p class="text-grey" style="margin-top: 1px;">{{ data.customer.address }}</p>
+
+
     </div>
 
     <table class="items-table">
@@ -202,7 +206,7 @@
         </tbody>
     </table>
 
-    <table width="100%" style="margin-top: 20px; border-collapse: collapse;">
+    <table width="100%" style="margin-top: 20px; vertical-align: bottom; border-collapse: collapse;">
         <tr>
             <td width="55%" style="vertical-align: bottom;">
                 <div class="payment-title">PAYMENT DETAILS</div>
