@@ -72,9 +72,9 @@
         }
 
         .invoice-title {
-            font-size: 32pt;
+            font-size: 28pt;
             font-weight: bold;
-            color: #636e72;
+            color: #0056b3;
             margin: 0;
             line-height: 1;
         }
@@ -126,13 +126,23 @@
         .grand-total-label {
             font-size: 12pt;
             font-weight: bold;
-            padding-top: 10px !important;
+            padding-top: 4px !important;
         }
 
         .grand-total-value {
             font-size: 12pt;
             font-weight: bold;
-            padding-top: 10px !important;
+            padding-top: 4px !important;
+        }
+
+        .bill-to-section p {
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .totals-table td {
+            padding: 1px 0;
+            line-height: 1.1;
         }
 
         /* .payment-details-box {
@@ -184,7 +194,7 @@
 
     <div class="bill-to-section">
         <div class="bill-to-title">BILL TO:</div>
-        <p class="font-bold" style="font-size: 12pt; margin-top: 1px;">{{ data.customer.name }}</p>
+        <p class="font-bold" style="font-size: 12pt;">{{ data.customer.name }}</p>
 
         <p class="text-grey">Phone: {{ data.customer.phone }}</p>
         <p class="text-grey">{{ data.customer.address if data.customer.address else "" }}</p>
@@ -230,23 +240,23 @@
                 <td width="45%" style="vertical-align: bottom;">
                     <table class="totals-table">
                         <tr>
-                            <td class="text-right" width="60%" style="padding: 2px 0;">Subtotal:</td>
+                            <td class="text-right" width="60%">Subtotal:</td>
                             <td class="text-right" width="40%">Rs {{ data.subtotal }}</td>
                         </tr>
                         <tr>
-                            <td class="text-right" style="padding: 2px 0;">Tax (0%):</td>
+                            <td class="text-right">Tax (0%):</td>
                             <td class="text-right">Rs {{ data.tax }}</td>
                         </tr>
                         <tr>
-                            <td class="text-right grand-total-label" style="padding: 5px 0 2px 0;">Grand Total:</td>
+                            <td class="text-right grand-total-label">Grand Total:</td>
                             <td class="text-right grand-total-value">Rs {{ data.total }}</td>
                         </tr>
                         <tr>
-                            <td class="text-right" style="padding: 2px 0;">Paid Amount:</td>
+                            <td class="text-right">Paid Amount:</td>
                             <td class="text-right">Rs {{ data.paid_amount }}</td>
                         </tr>
                         <tr>
-                            <td class="text-right font-bold" style="font-size: 12pt; padding: 5px 0;">Balance Due:</td>
+                            <td class="text-right font-bold" style="font-size: 12pt;">Balance Due:</td>
                             <td class="text-right font-bold text-red" style="font-size: 12pt; padding: 5px 0;">Rs {{
                                 data.total - data.paid_amount }}</td>
                         </tr>
@@ -255,7 +265,7 @@
             </tr>
         </table>
 
-        <p style="font-style: italic; color: #888; margin: 10px 0 10px 0;">Thank you for your business!</p>
+        <p style="font-style: italic; color: #888; margin: 5px 0 5px 0;">Thank you for your business!</p>
         <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 10px;">
         <div style="font-size: 9pt;">
             <div style="margin-bottom: 5px;">
