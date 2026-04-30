@@ -49,7 +49,7 @@
 
         .header-table {
             width: 100%;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .business-name {
@@ -61,23 +61,24 @@
         .business-details {
             font-size: 9pt;
             line-height: 1.2;
+            color: #444;
         }
 
         .invoice-title {
-            font-size: 28pt;
+            font-size: 32pt;
             font-weight: bold;
-            color: #777;
+            color: #636e72;
             margin: 0;
             line-height: 1;
         }
 
         .bill-to-section {
-            margin: 20px 0;
+            margin: 25px 0 15px 0;
         }
 
         .bill-to-title {
             font-weight: bold;
-            color: #555;
+            color: #636e72;
             font-size: 10pt;
             margin-bottom: 5px;
         }
@@ -90,16 +91,16 @@
 
         .items-table th {
             background-color: #f2f2f2;
-            color: #000;
+            color: #333;
             text-align: left;
-            padding: 8px 10px;
+            padding: 10px;
             font-size: 10pt;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #eee;
         }
 
         .items-table td {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
+            padding: 12px 10px;
+            border-bottom: 1px solid #f5f5f5;
         }
 
         .totals-container {
@@ -116,35 +117,43 @@
             padding: 4px 0;
         }
 
-        .grand-total-row {
+        .grand-total-label {
             font-size: 12pt;
             font-weight: bold;
+            padding-top: 10px !important;
+        }
+
+        .grand-total-value {
+            font-size: 12pt;
+            font-weight: bold;
+            padding-top: 10px !important;
         }
 
         .payment-details-box {
-            margin-top: 40px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
+            margin-top: 50px;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 15px 20px;
             width: 100%;
         }
 
         .payment-title {
             font-weight: bold;
-            font-size: 10pt;
-            margin-bottom: 8px;
+            font-size: 9pt;
+            margin-bottom: 10px;
             text-transform: uppercase;
+            color: #333;
         }
 
         #footer {
             text-align: center;
             width: 100%;
         }
+
     </style>
 </head>
 
 <body>
-    <!-- <div class="watermark">DB</div> -->
 
     <table class="header-table">
         <tr>
@@ -158,7 +167,7 @@
             </td>
             <td width="35%" class="text-right" style="vertical-align: top;">
                 <h1 class="invoice-title">INVOICE</h1>
-                <div style="margin-top: 10px; font-size: 11pt;">
+                <div style="margin-top: 12px; font-size: 11pt;">
                     <b>No:</b> {{ data.invoice_number }}<br>
                     <b>Date:</b> {{ data.date }}
                 </div>
@@ -166,10 +175,12 @@
         </tr>
     </table>
 
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+
     <div class="bill-to-section">
         <div class="bill-to-title">BILL TO:</div>
-        <div class="font-bold" style="font-size: 11pt;">{{ data.customer.name }}</div>
-        <div class="text-grey">Phone: {{ data.customer.phone }}</div>
+        <div class="font-bold" style="font-size: 12pt; margin-top: 3px;">{{ data.customer.name }}</div>
+        <div class="text-grey" style="margin-top: 2px;">Phone: {{ data.customer.phone }}</div>
     </div>
 
     <table class="items-table">
@@ -203,34 +214,35 @@
                 <td class="text-right">Tax (0%):</td>
                 <td class="text-right">Rs {{ data.tax }}</td>
             </tr>
-            <tr class="grand-total-row">
-                <td class="text-right">Grand Total:</td>
-                <td class="text-right">Rs {{ data.total }}</td>
+            <tr>
+                <td class="text-right grand-total-label">Grand Total:</td>
+                <td class="text-right grand-total-value">Rs {{ data.total }}</td>
             </tr>
             <tr>
                 <td class="text-right">Paid Amount:</td>
                 <td class="text-right">Rs {{ data.paid_amount }}</td>
             </tr>
-            <tr class="grand-total-row">
-                <td class="text-right">Balance Due:</td>
-                <td class="text-right text-red">Rs {{ data.total - data.paid_amount }}</td>
+            <tr>
+                <td class="text-right font-bold" style="font-size: 12pt;">Balance Due:</td>
+                <td class="text-right font-bold text-red" style="font-size: 12pt;">Rs {{ data.total - data.paid_amount
+                    }}</td>
             </tr>
         </table>
         <div style="clear: both;"></div>
     </div>
 
     <div class="payment-details-box">
-        <div class="payment-title">Payment Details</div>
+        <div class="payment-title">PAYMENT DETAILS</div>
         <table width="100%">
             <tr>
-                <td width="70%" style="vertical-align: top;">
+                <td width="70%" style="vertical-align: top; font-size: 11pt;">
                     {% if data.payment.bank_name %}
                     <b>Bank:</b> {{ data.payment.bank_name }}<br>
                     <b>A/C No:</b> {{ data.payment.account_number }}<br>
                     <b>IFSC:</b> {{ data.payment.ifsc }}
                     {% endif %}
                 </td>
-                <td width="30%" class="text-right" style="vertical-align: bottom;">
+                <td width="30%" class="text-right" style="vertical-align: bottom; font-size: 11pt;">
                     {% if data.payment.upi_id %}
                     <b>UPI ID:</b> {{ data.payment.upi_id }}
                     {% endif %}
@@ -240,15 +252,16 @@
     </div>
 
     <div id="footer">
-        <p style="font-style: italic; color: #888; margin-bottom: 10px;">Thank you for your business!</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 10px;">
+        <p style="font-style: italic; color: #888; margin: 30px 0 10px 0;">Thank you for your business!</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 15px;">
         <div style="font-size: 9pt;">
-            <span style="color: #0056b3; font-weight: bold;">
-                <img src="https://dailybachat.serwex.in/static/logo.png" style="height: 12px; vertical-align: middle;">
-                Powered by DailyBachat
-            </span>
-            <p style="color: #999; margin: 3px 0;">Create professional invoices and manage expenses easily with
-                DailyBachat.</p>
+            <div style="margin-bottom: 5px;">
+                <img src="https://dailybachat.serwex.in/static/logo.png"
+                    style="height: 14px; vertical-align: middle; margin-right: 4px;">
+                <span style="color: #0056b3; font-weight: bold;">Powered by DailyBachat</span>
+            </div>
+            <p style="color: #999; margin: 0;">Create professional invoices and manage expenses easily with DailyBachat.
+            </p>
         </div>
     </div>
 </body>
