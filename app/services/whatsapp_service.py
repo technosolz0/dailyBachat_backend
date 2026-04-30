@@ -228,10 +228,9 @@ def send_invoice_created_notification(
     due_str = due_date if due_date else "N/A"
 
     # Template 'dailybachat_invoice_created' REQUIRES a DOCUMENT header.
-    # If pdf_url is missing, we must provide a fallback or Meta will reject the request.
     if not pdf_url:
-        logger.warning(f"WhatsApp: No pdf_url for invoice {invoice_number}. Using placeholder to avoid API error.")
-        pdf_url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        logger.error(f"WhatsApp: Cannot send invoice {invoice_number} - pdf_url is missing!")
+        return False
 
     components = [
         {
@@ -286,8 +285,8 @@ def send_quotation_created_notification(
 
     # Template 'dailybachat_quotation_created' REQUIRES a DOCUMENT header.
     if not pdf_url:
-        logger.warning(f"WhatsApp: No pdf_url for quotation {quotation_number}. Using placeholder.")
-        pdf_url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+        logger.error(f"WhatsApp: Cannot send quotation {quotation_number} - pdf_url is missing!")
+        return False
 
     components = [
         {
