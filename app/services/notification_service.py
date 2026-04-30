@@ -196,6 +196,7 @@ def handle_invoice_addition_notification(db: Session, invoice: Invoice):
                 invoice_number=invoice.invoice_number,
                 total=invoice.total,
                 due_date=due_str,
+                pdf_url=invoice.pdf_url,
             )
         except Exception as exc:
             logger.error(f"WhatsApp invoice notification failed: {exc}")
@@ -249,6 +250,7 @@ def handle_quotation_addition_notification(db: Session, quotation: Quotation):
                 quotation_number=quotation.quotation_number,
                 total=quotation.total,
                 expiry_date=expiry_str,
+                pdf_url=quotation.pdf_url,
             )
         except Exception as exc:
             logger.error(f"WhatsApp quotation notification failed: {exc}")

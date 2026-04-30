@@ -109,6 +109,9 @@ def _send_template(
     if components:
         payload["template"]["components"] = components
 
+    # Log payload for debugging (masking phone number for privacy)
+    # logger.debug(f"WhatsApp Payload: {payload}")
+
     try:
         resp = requests.post(_api_url(), json=payload, headers=_headers(), timeout=10)
         if resp.status_code in (200, 201):
@@ -122,6 +125,7 @@ def _send_template(
                 f"WhatsApp API error [{resp.status_code}] for '{template_name}' "
                 f"to {normalized}: {resp.text}"
             )
+            logger.error(f"Failed Payload: {payload}")
             return False
     except requests.RequestException as exc:
         logger.error(f"WhatsApp request failed for '{template_name}': {exc}")

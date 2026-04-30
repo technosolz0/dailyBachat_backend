@@ -46,6 +46,7 @@ class InvoiceWARequest(BaseModel):
     invoice_number: str
     total: float
     due_date: Optional[str] = None
+    pdf_url: Optional[str] = None
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
@@ -106,5 +107,6 @@ async def trigger_invoice_whatsapp(
         invoice_number=payload.invoice_number,
         total=payload.total,
         due_date=payload.due_date,
+        pdf_url=payload.pdf_url,
     )
     return {"success": success}
