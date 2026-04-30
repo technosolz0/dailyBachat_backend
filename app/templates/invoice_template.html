@@ -9,12 +9,19 @@
             size: A4;
             margin: 1cm;
 
+            @frame content_frame {
+                left: 1cm;
+                right: 1cm;
+                top: 1cm;
+                bottom: 7cm;
+            }
+
             @frame footer_frame {
                 -pdf-frame-content: footer;
                 left: 1cm;
                 width: 19cm;
                 bottom: 0.5cm;
-                height: 3cm;
+                height: 6.5cm;
             }
         }
 
@@ -177,10 +184,10 @@
 
     <div class="bill-to-section">
         <div class="bill-to-title">BILL TO:</div>
-        <p class="font-bold" style="font-size: 12pt; margin-top: 2px;">{{ data.customer.name }}</p>
+        <p class="font-bold" style="font-size: 12pt; margin-top: 1px;">{{ data.customer.name }}</p>
 
-        <p class="text-grey" style="margin-top: 1px;">Phone: {{ data.customer.phone }}</p>
-        <p class="text-grey" style="margin-top: 1px;">{{ data.customer.address }}</p>
+        <p class="text-grey">Phone: {{ data.customer.phone }}</p>
+        <p class="text-grey">{{ data.customer.address if data.customer.address else "" }}</p>
 
 
     </div>
@@ -206,50 +213,50 @@
         </tbody>
     </table>
 
-    <table width="100%" style="margin-top: 20px; vertical-align: bottom; border-collapse: collapse;">
-        <tr>
-            <td width="55%" style="vertical-align: bottom;">
-                <div class="payment-title">PAYMENT DETAILS</div>
-                <div style="font-size: 11pt;">
-                    {% if data.payment.bank_name %}
-                    <b>Bank:</b> {{ data.payment.bank_name }}<br>
-                    <b>A/C No:</b> {{ data.payment.account_number }}<br>
-                    <b>IFSC:</b> {{ data.payment.ifsc }}
-                    <b>UPI ID:</b> {{ data.payment.upi_id }}
-                    {% endif %}
-                </div>
-            </td>
-            <td width="45%" style="vertical-align: bottom;">
-                <table class="totals-table">
-                    <tr>
-                        <td class="text-right" width="60%" style="padding: 2px 0;">Subtotal:</td>
-                        <td class="text-right" width="40%" style="padding: 2px 0;">Rs {{ data.subtotal }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-right" style="padding: 2px 0;">Tax (0%):</td>
-                        <td class="text-right" style="padding: 2px 0;">Rs {{ data.tax }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-right grand-total-label" style="padding: 5px 0 2px 0;">Grand Total:</td>
-                        <td class="text-right grand-total-value" style="padding: 5px 0 2px 0;">Rs {{ data.total }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-right" style="padding: 2px 0;">Paid Amount:</td>
-                        <td class="text-right" style="padding: 2px 0;">Rs {{ data.paid_amount }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-right font-bold" style="font-size: 12pt; padding: 5px 0;">Balance Due:</td>
-                        <td class="text-right font-bold text-red" style="font-size: 12pt; padding: 5px 0;">Rs {{
-                            data.total - data.paid_amount }}</td>
-                    </tr>
-                </table>
-            </td>
-        </tr>
-    </table>
-
     <div id="footer">
-        <p style="font-style: italic; color: #888; margin: 30px 0 10px 0;">Thank you for your business!</p>
-        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 15px;">
+        <table width="100%" style="vertical-align: bottom; border-collapse: collapse; margin-bottom: 10px;">
+            <tr>
+                <td width="55%" style="vertical-align: bottom;">
+                    <div class="payment-title">PAYMENT DETAILS</div>
+                    <div style="font-size: 11pt;">
+                        {% if data.payment.bank_name %}
+                        <b>Bank:</b> {{ data.payment.bank_name }}<br>
+                        <b>A/C No:</b> {{ data.payment.account_number }}<br>
+                        <b>IFSC:</b> {{ data.payment.ifsc }}
+                        <b>UPI ID:</b> {{ data.payment.upi_id }}
+                        {% endif %}
+                    </div>
+                </td>
+                <td width="45%" style="vertical-align: bottom;">
+                    <table class="totals-table">
+                        <tr>
+                            <td class="text-right" width="60%" style="padding: 2px 0;">Subtotal:</td>
+                            <td class="text-right" width="40%">Rs {{ data.subtotal }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-right" style="padding: 2px 0;">Tax (0%):</td>
+                            <td class="text-right">Rs {{ data.tax }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-right grand-total-label" style="padding: 5px 0 2px 0;">Grand Total:</td>
+                            <td class="text-right grand-total-value">Rs {{ data.total }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-right" style="padding: 2px 0;">Paid Amount:</td>
+                            <td class="text-right">Rs {{ data.paid_amount }}</td>
+                        </tr>
+                        <tr>
+                            <td class="text-right font-bold" style="font-size: 12pt; padding: 5px 0;">Balance Due:</td>
+                            <td class="text-right font-bold text-red" style="font-size: 12pt; padding: 5px 0;">Rs {{
+                                data.total - data.paid_amount }}</td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+        </table>
+
+        <p style="font-style: italic; color: #888; margin: 10px 0 10px 0;">Thank you for your business!</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 10px;">
         <div style="font-size: 9pt;">
             <div style="margin-bottom: 5px;">
                 <img src="https://dailybachat.serwex.in/static/logo.png"
