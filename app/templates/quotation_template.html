@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <title>Quotation</title>
@@ -7,9 +8,13 @@
         @page {
             size: A4;
             margin: 1cm;
+
             @frame footer_frame {
                 -pdf-frame-content: footer;
-                left: 1cm; width: 19cm; bottom: 1cm; height: 3cm;
+                left: 1cm;
+                width: 19cm;
+                bottom: 1cm;
+                height: 3cm;
             }
         }
 
@@ -127,6 +132,7 @@
             border-top: 1px solid #ddd;
             padding-top: 10px;
         }
+
         .watermark {
             position: fixed;
             top: 45%;
@@ -139,6 +145,7 @@
         }
     </style>
 </head>
+
 <body>
     {% if not data.is_premium %}
     <div class="watermark">DAILYBACHAT</div>
@@ -152,9 +159,9 @@
             {% endif %}
             <h2 style="margin: 0; color: #20e5bc;">{{ data.business.name }}</h2>
             <p style="margin: 5px 0;">{{ data.business.address }}<br>
-            Phone: {{ data.business.phone }}<br>
-            Email: {{ data.business.email }}<br>
-            {% if data.business.gst_number %}GST: {{ data.business.gst_number }}{% endif %}</p>
+                Phone: {{ data.business.phone }}<br>
+                Email: {{ data.business.email }}<br>
+                {% if data.business.gst_number %}GST: {{ data.business.gst_number }}{% endif %}</p>
         </div>
         <div class="quote-title">
             <h1>QUOTATION</h1>
@@ -171,8 +178,9 @@
         </div>
         <div class="quote-meta">
             <p><strong>Date:</strong> {{ data.date }}<br>
-            <strong>Expiry Date:</strong> {{ data.expiry_date }}<br>
-            <strong>Status:</strong> {{ data.status|upper }}</p>
+                <strong>Expiry Date:</strong> {{ data.expiry_date }}<br>
+                <strong>Status:</strong> {{ data.status|upper }}
+            </p>
         </div>
     </div>
 
@@ -186,7 +194,7 @@
             </tr>
         </thead>
         <tbody>
-            {% for item in data.items %}
+            {% for item in data['items'] %}
             <tr>
                 <td>{{ item.description }}</td>
                 <td>{{ item.quantity }}</td>
@@ -201,17 +209,18 @@
         <div class="terms-info">
             <h3 style="color: #20e5bc;">TERMS & CONDITIONS:</h3>
             <p>1. This quotation is valid until {{ data.expiry_date }}.<br>
-            2. Prices are subject to change after the validity period.<br>
-            3. Payment terms as discussed.</p>
-            
+                2. Prices are subject to change after the validity period.<br>
+                3. Payment terms as discussed.</p>
+
             <h3 style="color: #20e5bc; margin-top: 20px;">BANK DETAILS:</h3>
             {% if data.payment.upi_id %}
             <p><strong>UPI ID:</strong> {{ data.payment.upi_id }}</p>
             {% endif %}
             {% if data.payment.bank_name %}
             <p><strong>Bank:</strong> {{ data.payment.bank_name }}<br>
-            <strong>A/C No:</strong> {{ data.payment.account_number }}<br>
-            <strong>IFSC:</strong> {{ data.payment.ifsc }}</p>
+                <strong>A/C No:</strong> {{ data.payment.account_number }}<br>
+                <strong>IFSC:</strong> {{ data.payment.ifsc }}
+            </p>
             {% endif %}
             {% if data.payment.qr_code_url %}
             <div style="margin-top: 10px;">
@@ -234,8 +243,10 @@
         <p style="margin-bottom: 5px;">Looking forward to working with you!</p>
         <div style="padding: 10px; border-top: 1px dashed #20e5bc; color: #555;">
             <p style="margin: 0; font-weight: bold; font-size: 1.1em; color: #20e5bc;">Powered by DailyBachat</p>
-            <p style="margin: 5px 0 0 0; font-size: 8pt;">Create quotes and professional invoices instantly. Manage your business finances with ease. Download 'DailyBachat' on Play Store/App Store today!</p>
+            <p style="margin: 5px 0 0 0; font-size: 8pt;">Create quotes and professional invoices instantly. Manage your
+                business finances with ease. Download 'DailyBachat' on Play Store/App Store today!</p>
         </div>
     </div>
 </body>
+
 </html>
