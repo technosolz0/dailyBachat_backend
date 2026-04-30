@@ -113,9 +113,9 @@
             width: 40%;
         }
 
-        .totals-table td {
+        /* .totals-table td {
             padding: 4px 0;
-        }
+        } */
 
         .grand-total-label {
             font-size: 12pt;
@@ -129,13 +129,13 @@
             padding-top: 10px !important;
         }
 
-        .payment-details-box {
+        /* .payment-details-box {
             margin-top: 50px;
             border: 1px solid #e0e0e0;
             border-radius: 10px;
             padding: 15px 20px;
             width: 100%;
-        }
+        } */
 
         .payment-title {
             font-weight: bold;
@@ -230,25 +230,17 @@
         <div style="clear: both;"></div>
     </div>
 
-    <div class="payment-details-box">
-        <div class="payment-title">PAYMENT DETAILS</div>
-        <table width="100%">
-            <tr>
-                <td width="70%" style="vertical-align: top; font-size: 11pt;">
-                    {% if data.payment.bank_name %}
-                    <b>Bank:</b> {{ data.payment.bank_name }}<br>
-                    <b>A/C No:</b> {{ data.payment.account_number }}<br>
-                    <b>IFSC:</b> {{ data.payment.ifsc }}
-                    {% endif %}
-                </td>
-                <td width="30%" class="text-right" style="vertical-align: bottom; font-size: 11pt;">
-                    {% if data.payment.upi_id %}
-                    <b>UPI ID:</b> {{ data.payment.upi_id }}
-                    {% endif %}
-                </td>
-            </tr>
-        </table>
+    <!-- <div class="payment-details-box"> -->
+    <div class="payment-title">PAYMENT DETAILS</div>
+    <div style="vertical-align: bottom; font-size: 11pt;">
+        {% if data.payment.bank_name %}
+        <b>Bank:</b> {{ data.payment.bank_name }}<br>
+        <b>A/C No:</b> {{ data.payment.account_number }}<br>
+        <b>IFSC:</b> {{ data.payment.ifsc }}
+        <b>UPI ID:</b> {{ data.payment.upi_id }}
+        {% endif %}
     </div>
+    <!-- </div> -->
 
     <div id="footer">
         <p style="font-style: italic; color: #888; margin: 30px 0 10px 0;">Thank you for your business!</p>
