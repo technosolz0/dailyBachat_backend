@@ -37,6 +37,10 @@ from app.services.whatsapp_service import (
     send_reminder_1day_before,
     send_reminder_on_due_date,
 )
+from app.services.pdf_generator_service import (
+    generate_invoice_pdf_url,
+    generate_quotation_pdf_url,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -189,6 +193,10 @@ def handle_invoice_addition_notification(db: Session, invoice: Invoice):
     
     if customer.phone and is_premium:
         try:
+            # ── Generate PDF if missing ──
+            if not invoice.pdf_url:
+                generate_invoice_pdf_url(db, invoice)
+
             send_invoice_created_notification(
                 to_phone=customer.phone,
                 customer_name=customer.name,
@@ -243,6 +251,10 @@ def handle_quotation_addition_notification(db: Session, quotation: Quotation):
     
     if customer.phone and is_premium:
         try:
+            # ── Generate PDF if missing ──
+            if not quotation.pdf_url:
+                generate_quotation_pdf_url(db, quotation)
+
             send_quotation_created_notification(
                 to_phone=customer.phone,
                 customer_name=customer.name,

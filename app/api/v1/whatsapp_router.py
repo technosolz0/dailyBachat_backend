@@ -24,6 +24,8 @@ from app.services.whatsapp_service import (
     send_loan_borrowed_notification,
     send_invoice_created_notification,
 )
+from app.services.pdf_generator_service import generate_invoice_pdf_url
+from app.models.invoice import Invoice
 
 router = APIRouter()
 
@@ -100,6 +102,13 @@ async def trigger_invoice_whatsapp(
     if not user or not user.is_premium:
         return {"success": False, "message": "WhatsApp notifications are a premium feature"}
 
+    # Generate PDF if missing
+    url = payload.pdf_url
+    if not url:
+        invoice = db.query(Invoice).filter(Invoice.invoice_number == payload.invoice_number).first()
+        if invoice:
+            url = generate_invoice_pdf_url(db, invoice)
+
     success = send_invoice_created_notification(
         to_phone=payload.phone,
         customer_name=payload.customer_name,
@@ -107,6 +116,6 @@ async def trigger_invoice_whatsapp(
         invoice_number=payload.invoice_number,
         total=payload.total,
         due_date=payload.due_date,
-        pdf_url=payload.pdf_url,
+        pdf_url=url,
     )
     return {"success": success}

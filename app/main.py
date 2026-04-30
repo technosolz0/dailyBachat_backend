@@ -55,9 +55,10 @@ async def delete_account_page(request: Request):
 
 # Ensure uploads directory exists
 UPLOAD_DIR = "uploads"
-if not os.path.exists(UPLOAD_DIR):
-    os.makedirs(UPLOAD_DIR)
-    os.makedirs(os.path.join(UPLOAD_DIR, "business_logos"))
+for subdir in ["", "business_logos", "pdfs"]:
+    path = os.path.join(UPLOAD_DIR, subdir)
+    if not os.path.exists(path):
+        os.makedirs(path)
 
 app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
