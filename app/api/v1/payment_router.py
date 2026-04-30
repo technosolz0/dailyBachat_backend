@@ -1,6 +1,7 @@
 import os
 import json
 import razorpay
+from datetime import datetime, timedelta
 from fastapi import APIRouter, Depends, HTTPException, status, Header
 from sqlalchemy.orm import Session
 from app.core.database import get_db
@@ -86,12 +87,14 @@ async def verify_payment(
             raise HTTPException(status_code=404, detail="User not found")
         
         db_user.is_premium = True
+        db_user.premium_expiry = datetime.utcnow() + timedelta(days=365)
         db.commit()
         
         return {
             "success": True,
-            "message": "Payment verified and premium status updated.",
-            "is_premium": True
+            "message": "Payment verified and premium status updated for 1 year.",
+            "is_premium": True,
+            "premium_expiry": db_user.premium_expiry
         }
     except razorpay.errors.SignatureVerificationError:
         print(f"Signature verification failed for order {payment_data.razorpay_order_id}")
@@ -129,7 +132,7 @@ async def get_premium_amount(db: Session = Depends(get_db)):
     """
     setting = db.query(SystemSettings).filter(SystemSettings.key == "premium_amount").first()
     if not setting:
-        return {"amount": 499} # Default fallback
+        return {"amount": 99} # Default fallback
     return {"amount": int(setting.value)}
 
 @router.get("/premium-features")

@@ -29,7 +29,7 @@
         .header {
             display: table;
             width: 100%;
-            border-bottom: 2px solid #20e5bc;
+            border-bottom: 2px solid #0056b3;
             padding-bottom: 15px;
         }
 
@@ -53,7 +53,7 @@
         }
 
         .quote-title h1 {
-            color: #20e5bc;
+            color: #0056b3;
             margin: 0;
             font-size: 28pt;
             letter-spacing: 1px;
@@ -82,7 +82,7 @@
         }
 
         .items-table th {
-            background-color: #20e5bc;
+            background-color: #0056b3;
             color: white;
             text-align: left;
             padding: 10px;
@@ -118,16 +118,20 @@
         .total-row {
             font-weight: bold;
             font-size: 1.2em;
-            color: #20e5bc;
+            color: #0056b3;
             padding-top: 5px;
         }
 
         #footer {
             text-align: center;
-            font-size: 9pt;
-            color: #666;
-            border-top: 1px solid #ddd;
-            padding-top: 10px;
+            width: 100%;
+        }
+
+        .quote-to p,
+        .terms-info p,
+        .totals p {
+            margin: 0;
+            line-height: 1.2;
         }
     </style>
 </head>
@@ -140,7 +144,7 @@
             {% else %}
             <img src="https://dailybachat.serwex.in/static/logo.png" class="logo" alt="DailyBachat Logo">
             {% endif %}
-            <h2 style="margin: 0; color: #20e5bc;">{{ data.business.name }}</h2>
+            <h2 style="margin: 0; color: #0056b3;">{{ data.business.name }}</h2>
             <p style="margin: 5px 0;">{{ data.business.address }}<br>
                 Phone: {{ data.business.phone }}<br>
                 Email: {{ data.business.email }}<br>
@@ -155,10 +159,12 @@
     <table class="details-section">
         <tr>
             <td class="quote-to">
-                <h3 style="color: #20e5bc; margin-bottom: 10px;">QUOTE TO:</h3>
-                <strong>{{ data.customer.name }}</strong><br>
-                {{ data.customer.address }}<br>
-                Phone: {{ data.customer.phone }}
+                <h3 style="color: #0056b3; margin-bottom: 5px;">QUOTE TO:</h3>
+                <div style="line-height: 1.2;">
+                    <strong>{{ data.customer.name }}</strong><br>
+                    {{ data.customer.address }}<br>
+                    Phone: {{ data.customer.phone }}
+                </div>
             </td>
             <td class="quote-meta">
                 <p><strong>Date:</strong> {{ data.date }}<br>
@@ -192,12 +198,12 @@
 
     <div class="totals-section">
         <div class="terms-info">
-            <h3 style="color: #20e5bc;">TERMS & CONDITIONS:</h3>
+            <h3 style="color: #0056b3;">TERMS & CONDITIONS:</h3>
             <p>1. This quotation is valid until {{ data.expiry_date }}.<br>
                 2. Prices are subject to change after the validity period.<br>
                 3. Payment terms as discussed.</p>
 
-            <h3 style="color: #20e5bc; margin-top: 20px;">BANK DETAILS:</h3>
+            <h3 style="color: #0056b3; margin-top: 20px;">BANK DETAILS:</h3>
             {% if data.payment.upi_id %}
             <p><strong>UPI ID:</strong> {{ data.payment.upi_id }}</p>
             {% endif %}
@@ -225,11 +231,16 @@
     </div>
 
     <div id="footer">
-        <p style="margin-bottom: 5px;">Looking forward to working with you!</p>
-        <div style="padding: 10px; border-top: 1px dashed #20e5bc; color: #555;">
-            <p style="margin: 0; font-weight: bold; font-size: 1.1em; color: #20e5bc;">Powered by DailyBachat</p>
-            <p style="margin: 5px 0 0 0; font-size: 8pt;">Create quotes and professional invoices instantly. Manage your
-                business finances with ease. Download 'DailyBachat' on Play Store/App Store today!</p>
+        <p style="font-style: italic; color: #888; margin: 5px 0 5px 0;">Looking forward to working with you!</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 10px;">
+        <div style="font-size: 9pt;">
+            <div style="margin-bottom: 5px;">
+                <img src="https://dailybachat.serwex.in/static/logo.png"
+                    style="height: 14px; vertical-align: middle; margin-right: 4px;">
+                <span style="color: #0056b3; font-weight: bold;">Powered by DailyBachat</span>
+            </div>
+            <p style="color: #999; margin: 0;">Create quotes and professional invoices instantly. Manage your business
+                finances with ease. Download 'DailyBachat' on Play Store/App Store today!</p>
         </div>
     </div>
 </body>

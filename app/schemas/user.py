@@ -36,6 +36,7 @@ class UserInDB(UserBase):
     updated_at: Optional[datetime] = None
     is_admin: bool = False
     is_premium: bool = False
+    premium_expiry: Optional[datetime] = None
     is_active: bool = True
     last_login: Optional[datetime] = None
 

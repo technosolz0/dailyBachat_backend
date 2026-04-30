@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import datetime
 
 class RazorpayOrderCreate(BaseModel):
     amount: int  # in paise
@@ -21,3 +22,4 @@ class PremiumUpdateResponse(BaseModel):
     success: bool
     message: str
     is_premium: bool
+    premium_expiry: Optional[datetime] = None

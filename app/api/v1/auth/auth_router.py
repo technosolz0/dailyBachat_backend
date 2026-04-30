@@ -444,6 +444,14 @@ async def read_users_me(
     db_user = db.query(User).filter(User.id == x_user_id).first()
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
+    
+    # Auto-expiry check
+    if db_user.is_premium and db_user.premium_expiry:
+        if db_user.premium_expiry.replace(tzinfo=None) < datetime.utcnow():
+            db_user.is_premium = False
+            db.commit()
+            db.refresh(db_user)
+            
     return db_user
 
 @router.post("/delete-request")
