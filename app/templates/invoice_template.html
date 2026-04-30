@@ -7,29 +7,36 @@
     <style>
         @page {
             size: A4;
-            margin: 0.5cm 1cm;
+            margin: 1cm;
 
             @frame footer_frame {
                 -pdf-frame-content: footer;
                 left: 1cm;
                 width: 19cm;
                 bottom: 0.5cm;
-                height: 2.5cm;
+                height: 3cm;
             }
         }
 
         body {
             font-family: "Helvetica", "Arial", sans-serif;
-            color: #2d3436;
+            color: #333;
             margin: 0;
             padding: 0;
             font-size: 10pt;
             line-height: 1.4;
         }
 
-        /* Helper Classes */
         .text-blue {
-            color: #2061e5;
+            color: #0056b3;
+        }
+
+        .text-grey {
+            color: #666;
+        }
+
+        .text-red {
+            color: #d63031;
         }
 
         .text-right {
@@ -42,195 +49,144 @@
 
         .header-table {
             width: 100%;
-            border-bottom: 2px solid #2061e5;
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
 
-        .logo {
-            max-width: 140px;
-            max-height: 50px;
+        .business-name {
+            font-size: 18pt;
+            font-weight: bold;
             margin-bottom: 5px;
         }
 
-        .business-info h2 {
-            margin: 0;
-            font-size: 16pt;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .business-info p {
-            margin: 2px 0;
+        .business-details {
             font-size: 9pt;
-            color: #636e72;
+            line-height: 1.2;
         }
 
-        .invoice-meta-title {
-            font-size: 24pt;
+        .invoice-title {
+            font-size: 28pt;
+            font-weight: bold;
+            color: #777;
             margin: 0;
             line-height: 1;
         }
 
-        .details-container {
-            width: 100%;
-            margin-bottom: 20px;
+        .bill-to-section {
+            margin: 20px 0;
         }
 
-        .bill-to-box {
-            background-color: #f8faff;
-            padding: 12px;
-            border-left: 3px solid #2061e5;
-        }
-
-        .bill-to-box h3 {
-            margin: 0 0 5px 0;
+        .bill-to-title {
+            font-weight: bold;
+            color: #555;
             font-size: 10pt;
-            text-transform: uppercase;
+            margin-bottom: 5px;
         }
 
         .items-table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 10px;
+            margin: 20px 0;
         }
 
         .items-table th {
-            background-color: #2061e5;
-            color: white;
+            background-color: #f2f2f2;
+            color: #000;
             text-align: left;
             padding: 8px 10px;
-            font-size: 9pt;
-            text-transform: uppercase;
+            font-size: 10pt;
+            border-bottom: 1px solid #ddd;
         }
 
         .items-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #dfe6e9;
-        }
-
-        .items-table tr:nth-child(even) {
-            background-color: #fcfcfc;
-        }
-
-        .summary-section {
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .payment-box {
-            width: 55%;
             padding: 10px;
-            border: 1px solid #dfe6e9;
-            border-radius: 4px;
+            border-bottom: 1px solid #eee;
         }
 
-        .payment-box h3 {
-            margin: 0 0 8px 0;
-            font-size: 9pt;
-            border-bottom: 1px solid #dfe6e9;
-            padding-bottom: 4px;
+        .totals-container {
+            width: 100%;
+            margin-top: 10px;
         }
 
         .totals-table {
+            float: right;
             width: 40%;
         }
 
         .totals-table td {
-            padding: 3px 0;
+            padding: 4px 0;
         }
 
-        .total-grand {
-            font-size: 14pt;
-            border-top: 2px solid #2061e5;
-            padding-top: 8px !important;
-            margin-top: 5px;
+        .grand-total-row {
+            font-size: 12pt;
+            font-weight: bold;
+        }
+
+        .payment-details-box {
+            margin-top: 40px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            width: 100%;
+        }
+
+        .payment-title {
+            font-weight: bold;
+            font-size: 10pt;
+            margin-bottom: 8px;
+            text-transform: uppercase;
         }
 
         #footer {
             text-align: center;
-            font-size: 8pt;
-            color: #95a5a6;
-            border-top: 1px solid #dfe6e9;
-            padding-top: 8px;
-        }
-
-        .qr-code {
-            width: 60px;
-            height: 60px;
-            float: right;
+            width: 100%;
         }
 
         .watermark {
             position: fixed;
-            top: 40%;
-            left: 15%;
-            transform: rotate(-35deg);
-            font-size: 70pt;
-            color: rgba(32, 97, 229, 0.05);
+            top: 35%;
+            left: 25%;
+            font-size: 200pt;
+            color: rgba(0, 86, 179, 0.03);
             z-index: -1000;
+            font-weight: bold;
         }
     </style>
 </head>
 
 <body>
-    {% if not data.is_premium %}
-    <div class="watermark">DAILYBACHAT</div>
-    {% endif %}
+    <div class="watermark">DB</div>
 
     <table class="header-table">
         <tr>
-            <td width="60%" style="vertical-align: bottom; padding-bottom: 10px;">
-                {% if data.is_premium and data.business.logo_url %}
-                <img src="{{ data.business.logo_url }}" class="logo">
-                {% else %}
-                <img src="https://dailybachat.serwex.in/static/logo.png" class="logo">
-                {% endif %}
-                <div class="business-info">
-                    <h2 class="text-blue">{{ data.business.name }}</h2>
-                    <p>{{ data.business.address }}</p>
-                    <p>Phone: {{ data.business.phone }} | Email: {{ data.business.email }}</p>
-                    {% if data.business.gst_number %}<p>GSTIN: <b>{{ data.business.gst_number }}</b></p>{% endif %}
+            <td width="65%" style="vertical-align: top;">
+                <div class="business-name text-blue">{{ data.business.name }}</div>
+                <div class="business-details">
+                    {{ data.business.address }}<br>
+                    Phone: {{ data.business.phone }}<br>
+                    Email: {{ data.business.email }}
                 </div>
             </td>
-            <td width="40%" class="text-right" style="vertical-align: bottom; padding-bottom: 10px;">
-                <h1 class="invoice-meta-title text-blue">INVOICE</h1>
-                <p style="margin: 5px 0 0 0; font-size: 12pt;">#<b>{{ data.invoice_number }}</b></p>
-                <p style="margin: 2px 0; font-size: 9pt; color: #636e72;">
-                    Date: {{ data.date }}<br>
-                    Due Date: {{ data.due_date }}
-                </p>
+            <td width="35%" class="text-right" style="vertical-align: top;">
+                <h1 class="invoice-title">INVOICE</h1>
+                <div style="margin-top: 10px; font-size: 11pt;">
+                    <b>No:</b> {{ data.invoice_number }}<br>
+                    <b>Date:</b> {{ data.date }}
+                </div>
             </td>
         </tr>
     </table>
 
-    <table class="details-container">
-        <tr>
-            <td width="50%" style="vertical-align: top; padding-right: 20px;">
-                <div class="bill-to-box">
-                    <h3 class="text-blue">Bill To</h3>
-                    <div class="font-bold" style="font-size: 11pt; margin-bottom: 4px;">{{ data.customer.name }}</div>
-                    <div style="color: #636e72; font-size: 9pt;">
-                        {{ data.customer.address }}<br>
-                        Phone: {{ data.customer.phone }}
-                    </div>
-                </div>
-            </td>
-            <td width="50%" class="text-right" style="vertical-align: top;">
-                <div style="padding: 10px;">
-                    <span
-                        style="display: inline-block; padding: 4px 12px; border-radius: 20px; background: #eef2ff; color: #2061e5; font-weight: bold; font-size: 9pt;">
-                        STATUS: {{ data.status|upper }}
-                    </span>
-                </div>
-            </td>
-        </tr>
-    </table>
+    <div class="bill-to-section">
+        <div class="bill-to-title">BILL TO:</div>
+        <div class="font-bold" style="font-size: 11pt;">{{ data.customer.name }}</div>
+        <div class="text-grey">Phone: {{ data.customer.phone }}</div>
+    </div>
 
     <table class="items-table">
         <thead>
             <tr>
-                <th width="50%">Description</th>
-                <th width="15%" class="text-right">Qty</th>
+                <th width="55%">Description</th>
+                <th width="10%" class="text-right">Qty</th>
                 <th width="15%" class="text-right">Unit Price</th>
                 <th width="20%" class="text-right">Amount</th>
             </tr>
@@ -240,72 +196,69 @@
             <tr>
                 <td>{{ item.description }}</td>
                 <td class="text-right">{{ item.quantity }}</td>
-                <td class="text-right">{{ item.unit_price }}</td>
-                <td class="text-right font-bold">{{ item.amount }}</td>
+                <td class="text-right">Rs {{ item.unit_price }}</td>
+                <td class="text-right font-bold">Rs {{ item.amount }}</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
 
-    <table class="summary-section">
-        <tr>
-            <td width="55%" style="vertical-align: top;">
-                <div class="payment-box">
-                    <h3 class="text-blue">Payment Details</h3>
-                    {% if data.payment.qr_code_url %}
-                    <img src="{{ data.payment.qr_code_url }}" class="qr-code">
+    <div class="totals-container">
+        <table class="totals-table">
+            <tr>
+                <td class="text-right" width="60%">Subtotal:</td>
+                <td class="text-right" width="40%">Rs {{ data.subtotal }}</td>
+            </tr>
+            <tr>
+                <td class="text-right">Tax (0%):</td>
+                <td class="text-right">Rs {{ data.tax }}</td>
+            </tr>
+            <tr class="grand-total-row">
+                <td class="text-right">Grand Total:</td>
+                <td class="text-right">Rs {{ data.total }}</td>
+            </tr>
+            <tr>
+                <td class="text-right">Paid Amount:</td>
+                <td class="text-right">Rs {{ data.paid_amount }}</td>
+            </tr>
+            <tr class="grand-total-row">
+                <td class="text-right">Balance Due:</td>
+                <td class="text-right text-red">Rs {{ data.total - data.paid_amount }}</td>
+            </tr>
+        </table>
+        <div style="clear: both;"></div>
+    </div>
+
+    <div class="payment-details-box">
+        <div class="payment-title">Payment Details</div>
+        <table width="100%">
+            <tr>
+                <td width="70%" style="vertical-align: top;">
+                    {% if data.payment.bank_name %}
+                    <b>Bank:</b> {{ data.payment.bank_name }}<br>
+                    <b>A/C No:</b> {{ data.payment.account_number }}<br>
+                    <b>IFSC:</b> {{ data.payment.ifsc }}
                     {% endif %}
-                    <div style="font-size: 8.5pt;">
-                        {% if data.payment.upi_id %}
-                        <div><b>UPI ID:</b> {{ data.payment.upi_id }}</div>
-                        {% endif %}
-                        {% if data.payment.bank_name %}
-                        <div style="margin-top: 4px;">
-                            <b>Bank:</b> {{ data.payment.bank_name }}<br>
-                            <b>A/C:</b> {{ data.payment.account_number }}<br>
-                            <b>IFSC:</b> {{ data.payment.ifsc }}
-                        </div>
-                        {% endif %}
-                    </div>
-                    <div style="clear: both;"></div>
-                </div>
-            </td>
-            <td width="45%" style="vertical-align: top;">
-                <table width="100%" class="totals-table">
-                    <tr>
-                        <td class="text-right">Subtotal</td>
-                        <td width="40%" class="text-right font-bold">{{ data.subtotal }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-right">Tax</td>
-                        <td class="text-right font-bold">{{ data.tax }}</td>
-                    </tr>
-                    <tr class="total-grand text-blue">
-                        <td class="text-right font-bold">Total Amount</td>
-                        <td class="text-right font-bold">{{ data.total }}</td>
-                    </tr>
-                    {% if data.paid_amount > 0 %}
-                    <tr>
-                        <td class="text-right" style="color: #00b894;">Amount Paid</td>
-                        <td class="text-right font-bold" style="color: #00b894;">{{ data.paid_amount }}</td>
-                    </tr>
-                    <tr>
-                        <td class="text-right" style="color: #d63031;">Balance Due</td>
-                        <td class="text-right font-bold" style="color: #d63031;">{{ data.total - data.paid_amount }}
-                        </td>
-                    </tr>
+                </td>
+                <td width="30%" class="text-right" style="vertical-align: bottom;">
+                    {% if data.payment.upi_id %}
+                    <b>UPI ID:</b> {{ data.payment.upi_id }}
                     {% endif %}
-                </table>
-            </td>
-        </tr>
-    </table>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <div id="footer">
-        <p style="margin-bottom: 5px; font-weight: bold; color: #2061e5;">Thank you for your business!</p>
-        <div style="padding: 8px; border-top: 1px dashed #b2bec3; margin-top: 5px;">
-            <p style="margin: 0; font-weight: bold; color: #636e72;">DailyBachat - Your Business Growth Partner</p>
-            <p style="margin: 3px 0 0 0; font-size: 7.5pt;">Manage invoices, expenses, and cashflow effortlessly. Search
-                'DailyBachat' on Play Store/App Store.</p>
+        <p style="font-style: italic; color: #888; margin-bottom: 10px;">Thank you for your business!</p>
+        <hr style="border: 0; border-top: 1px solid #eee; margin-bottom: 10px;">
+        <div style="font-size: 9pt;">
+            <span style="color: #0056b3; font-weight: bold;">
+                <img src="https://dailybachat.serwex.in/static/logo.png" style="height: 12px; vertical-align: middle;">
+                Powered by DailyBachat
+            </span>
+            <p style="color: #999; margin: 3px 0;">Create professional invoices and manage expenses easily with
+                DailyBachat.</p>
         </div>
     </div>
 </body>
