@@ -227,7 +227,25 @@ def send_invoice_created_notification(
     amount_str = f"{total:,.0f}"
     due_str = due_date if due_date else "N/A"
 
+    # Template 'dailybachat_invoice_created' REQUIRES a DOCUMENT header.
+    # If pdf_url is missing, we must provide a fallback or Meta will reject the request.
+    if not pdf_url:
+        logger.warning(f"WhatsApp: No pdf_url for invoice {invoice_number}. Using placeholder to avoid API error.")
+        pdf_url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+
     components = [
+        {
+            "type": "header",
+            "parameters": [
+                {
+                    "type": "document",
+                    "document": {
+                        "link": pdf_url,
+                        "filename": f"Invoice_{invoice_number}.pdf"
+                    }
+                }
+            ]
+        },
         {
             "type": "body",
             "parameters": [
@@ -240,20 +258,6 @@ def send_invoice_created_notification(
         }
     ]
     
-    if pdf_url:
-        components.insert(0, {
-            "type": "header",
-            "parameters": [
-                {
-                    "type": "document",
-                    "document": {
-                        "link": pdf_url,
-                        "filename": f"Invoice_{invoice_number}.pdf"
-                    }
-                }
-            ]
-        })
-        
     return _send_template(to_phone, "dailybachat_invoice_created", components=components)
 
 
@@ -280,7 +284,24 @@ def send_quotation_created_notification(
     amount_str = f"{total:,.0f}"
     expiry_str = expiry_date if expiry_date else "N/A"
 
+    # Template 'dailybachat_quotation_created' REQUIRES a DOCUMENT header.
+    if not pdf_url:
+        logger.warning(f"WhatsApp: No pdf_url for quotation {quotation_number}. Using placeholder.")
+        pdf_url = "https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf"
+
     components = [
+        {
+            "type": "header",
+            "parameters": [
+                {
+                    "type": "document",
+                    "document": {
+                        "link": pdf_url,
+                        "filename": f"Quotation_{quotation_number}.pdf"
+                    }
+                }
+            ]
+        },
         {
             "type": "body",
             "parameters": [
@@ -293,20 +314,6 @@ def send_quotation_created_notification(
         }
     ]
     
-    if pdf_url:
-        components.insert(0, {
-            "type": "header",
-            "parameters": [
-                {
-                    "type": "document",
-                    "document": {
-                        "link": pdf_url,
-                        "filename": f"Quotation_{quotation_number}.pdf"
-                    }
-                }
-            ]
-        })
-        
     return _send_template(to_phone, "dailybachat_quotation_created", components=components)
 
 
