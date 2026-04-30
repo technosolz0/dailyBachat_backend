@@ -193,9 +193,10 @@ def handle_invoice_addition_notification(db: Session, invoice: Invoice):
     
     if customer.phone and is_premium:
         try:
-            # ── Generate PDF if missing ──
-            if not invoice.pdf_url:
-                generate_invoice_pdf_url(db, invoice)
+            # ── Generate PDF ──
+            invoice_url = invoice.pdf_url
+            if not invoice_url:
+                invoice_url = generate_invoice_pdf_url(db, invoice)
 
             send_invoice_created_notification(
                 to_phone=customer.phone,
@@ -204,7 +205,7 @@ def handle_invoice_addition_notification(db: Session, invoice: Invoice):
                 invoice_number=invoice.invoice_number,
                 total=invoice.total,
                 due_date=due_str,
-                pdf_url=invoice.pdf_url,
+                pdf_url=invoice_url,
             )
         except Exception as exc:
             logger.error(f"WhatsApp invoice notification failed: {exc}")
@@ -251,9 +252,10 @@ def handle_quotation_addition_notification(db: Session, quotation: Quotation):
     
     if customer.phone and is_premium:
         try:
-            # ── Generate PDF if missing ──
-            if not quotation.pdf_url:
-                generate_quotation_pdf_url(db, quotation)
+            # ── Generate PDF ──
+            quotation_url = quotation.pdf_url
+            if not quotation_url:
+                quotation_url = generate_quotation_pdf_url(db, quotation)
 
             send_quotation_created_notification(
                 to_phone=customer.phone,
@@ -262,7 +264,7 @@ def handle_quotation_addition_notification(db: Session, quotation: Quotation):
                 quotation_number=quotation.quotation_number,
                 total=quotation.total,
                 expiry_date=expiry_str,
-                pdf_url=quotation.pdf_url,
+                pdf_url=quotation_url,
             )
         except Exception as exc:
             logger.error(f"WhatsApp quotation notification failed: {exc}")

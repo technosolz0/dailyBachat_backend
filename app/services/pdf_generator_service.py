@@ -8,13 +8,18 @@ import logging
 logger = logging.getLogger(__name__)
 
 # Base URL for static files - should be configured in .env
-BASE_URL = os.getenv("BASE_URL", "https://dailybachatapi.serwex.in") # Fallback to a sensible default
+BASE_URL = os.getenv("BASE_URL", "https://dailybachatapi.serwex.in").strip()
 
 def generate_invoice_pdf_url(db: Session, invoice: Invoice) -> str:
     """
     Generates a PDF for the invoice, saves it to disk, and returns the public URL.
     """
+    logger.info(f"Generating PDF URL for invoice {invoice.invoice_number}")
     try:
+        # Ensure relationships are loaded
+        if not invoice.business or not invoice.customer:
+            db.refresh(invoice)
+            
         # 1. Prepare data (Logic copied from invoice_router.py)
         data = {
             "invoice_number": invoice.invoice_number,
@@ -58,29 +63,34 @@ def generate_invoice_pdf_url(db: Session, invoice: Invoice) -> str:
         }
 
         # 2. Generate PDF bytes
+        logger.info(f"Rendering PDF template for invoice {invoice.invoice_number}")
         pdf_bytes = pdf_service.generate_invoice_pdf(data)
 
         # 3. Save to disk
         filename = f"invoice_{invoice.invoice_number}_{uuid.uuid4().hex[:8]}.pdf"
         directory = "uploads/pdfs"
         if not os.path.exists(directory):
+            logger.info(f"Creating directory {directory}")
             os.makedirs(directory)
         
         filepath = os.path.join(directory, filename)
+        logger.info(f"Saving PDF to {filepath}")
         with open(filepath, "wb") as f:
             f.write(pdf_bytes)
 
         # 4. Construct URL
         url = f"{BASE_URL}/uploads/pdfs/{filename}"
+        logger.info(f"Generated URL: {url}")
         
         # 5. Update invoice in DB
         invoice.pdf_url = url
         db.add(invoice)
         db.commit()
+        db.refresh(invoice)
         
         return url
     except Exception as e:
-        logger.error(f"Failed to generate invoice PDF URL: {e}")
+        logger.exception(f"Failed to generate invoice PDF URL for {invoice.invoice_number}: {e}")
         return ""
 
 def generate_quotation_pdf_url(db: Session, quotation: Quotation) -> str:
