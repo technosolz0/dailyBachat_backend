@@ -61,18 +61,15 @@
 
         .details-section {
             margin-top: 25px;
-            display: table;
             width: 100%;
         }
 
         .quote-to {
-            display: table-cell;
             width: 50%;
             vertical-align: top;
         }
 
         .quote-meta {
-            display: table-cell;
             width: 50%;
             text-align: right;
             vertical-align: top;
@@ -169,20 +166,22 @@
         </div>
     </div>
 
-    <div class="details-section">
-        <div class="quote-to">
-            <h3 style="color: #20e5bc; margin-bottom: 10px;">QUOTE TO:</h3>
-            <strong>{{ data.customer.name }}</strong><br>
-            {{ data.customer.address }}<br>
-            Phone: {{ data.customer.phone }}
-        </div>
-        <div class="quote-meta">
-            <p><strong>Date:</strong> {{ data.date }}<br>
-                <strong>Expiry Date:</strong> {{ data.expiry_date }}<br>
-                <strong>Status:</strong> {{ data.status|upper }}
-            </p>
-        </div>
-    </div>
+    <table class="details-section">
+        <tr>
+            <td class="quote-to">
+                <h3 style="color: #20e5bc; margin-bottom: 10px;">QUOTE TO:</h3>
+                <strong>{{ data.customer.name }}</strong><br>
+                {{ data.customer.address }}<br>
+                Phone: {{ data.customer.phone }}
+            </td>
+            <td class="quote-meta">
+                <p><strong>Date:</strong> {{ data.date }}<br>
+                    <strong>Expiry Date:</strong> {{ data.expiry_date }}<br>
+                    <strong>Status:</strong> {{ data.status|upper }}
+                </p>
+            </td>
+        </tr>
+    </table>
 
     <table class="items-table">
         <thead>

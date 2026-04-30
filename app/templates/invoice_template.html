@@ -61,18 +61,15 @@
 
         .details-section {
             margin-top: 25px;
-            display: table;
             width: 100%;
         }
 
         .bill-to {
-            display: table-cell;
             width: 50%;
             vertical-align: top;
         }
 
         .invoice-meta {
-            display: table-cell;
             width: 50%;
             text-align: right;
             vertical-align: top;
@@ -138,6 +135,7 @@
             height: 80px;
             margin-top: 5px;
         }
+
         .watermark {
             position: fixed;
             top: 45%;
@@ -174,20 +172,22 @@
         </div>
     </div>
 
-    <div class="details-section">
-        <div class="bill-to">
-            <h3 style="color: #2061e5; margin-bottom: 10px;">BILL TO:</h3>
-            <strong>{{ data.customer.name }}</strong><br>
-            {{ data.customer.address }}<br>
-            Phone: {{ data.customer.phone }}
-        </div>
-        <div class="invoice-meta">
-            <p><strong>Date:</strong> {{ data.date }}<br>
-                <strong>Due Date:</strong> {{ data.due_date }}<br>
-                <strong>Status:</strong> {{ data.status|upper }}
-            </p>
-        </div>
-    </div>
+    <table class="details-section">
+        <tr>
+            <td class="bill-to">
+                <h3 style="color: #2061e5; margin-bottom: 10px;">BILL TO:</h3>
+                <strong>{{ data.customer.name }}</strong><br>
+                {{ data.customer.address }}<br>
+                Phone: {{ data.customer.phone }}
+            </td>
+            <td class="invoice-meta">
+                <p><strong>Date:</strong> {{ data.date }}<br>
+                    <strong>Due Date:</strong> {{ data.due_date }}<br>
+                    <strong>Status:</strong> {{ data.status|upper }}
+                </p>
+            </td>
+        </tr>
+    </table>
 
     <table class="items-table">
         <thead>
