@@ -9,7 +9,7 @@ from app.models.invoice import Invoice
 from app.models.transaction import Transaction
 from app.models.system_settings import SystemSettings
 
-from app.schemas.user import UserInDB, AdminUserUpdate, AdminLoginRequest, Token as TokenSchema
+from app.schemas.user import UserInDB, AdminUserUpdate, AdminLoginRequest, Token as TokenSchema, UserCreate
 from app.schemas.feedback import Feedback as FeedbackSchema
 from app.schemas.loan import LoanInDB
 from app.schemas.business import BusinessProfile as BusinessProfileSchema
