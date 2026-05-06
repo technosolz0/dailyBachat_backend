@@ -158,6 +158,40 @@ async def delete_user(
     db.commit()
     return {"message": "User account deleted successfully"}
 
+@router.post("/users", response_model=UserInDB)
+async def create_user_admin(
+    user_data: UserCreate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Create a new user. Restricted to admins.
+    """
+    from app.core.security import get_password_hash
+    import uuid
+
+    # Check if user already exists
+    existing_user = db.query(User).filter(User.email == user_data.email).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Generate a unique ID if not provided (though Firebase UID is usually provided)
+    user_id = user_data.id if user_data.id else str(uuid.uuid4())
+    
+    db_user = User(
+        id=user_id,
+        email=user_data.email,
+        name=user_data.name,
+        phone_number=user_data.phone_number,
+        hashed_password=get_password_hash(user_data.password),
+        device_info=user_data.device_info,
+        is_active=True
+    )
+    db.add(db_user)
+    db.commit()
+    db.refresh(db_user)
+    return db_user
+
 @router.get("/feedback", response_model=List[FeedbackSchema])
 async def get_all_feedback(
     db: Session = Depends(get_db),
@@ -248,7 +282,7 @@ async def send_notifications(
     )
     failure_count = len(token_list) - success_count
 
-    return {"message": "Notifications processed. Success: {success_count}, Failure: {failure_count}", "success_count": success_count, "failure_count": failure_count}
+    return {"message": f"Notifications processed. Success: {success_count}, Failure: {failure_count}", "success_count": success_count, "failure_count": failure_count}
 
 @router.get("/dashboard")
 async def get_dashboard_stats(
@@ -258,10 +292,13 @@ async def get_dashboard_stats(
     """
     Get overview statistics for the admin dashboard.
     """
+    from datetime import datetime, timedelta
+    
     # User stats
     total_users = db.query(User).count()
     active_users = db.query(User).filter(User.is_active == True).count()
     admin_users = db.query(User).filter(User.is_admin == True).count()
+    premium_users = db.query(User).filter(User.is_premium == True).count()
     
     # Financial stats
     total_income = db.query(func.sum(Transaction.amount)).filter(Transaction.type == 'income').scalar() or 0
@@ -279,25 +316,43 @@ async def get_dashboard_stats(
     total_feedback = db.query(Feedback).count()
     avg_rating = db.query(func.avg(Feedback.rating)).scalar() or 0
 
+    # Growth Stats (Last 7 days)
+    today = datetime.now()
+    growth_data = []
+    for i in range(6, -1, -1):
+        day = today - timedelta(days=i)
+        day_str = day.strftime("%Y-%m-%d")
+        
+        user_count = db.query(User).filter(func.date(User.created_at) == day.date()).count()
+        trans_count = db.query(Transaction).filter(func.date(Transaction.created_at) == day.date()).count()
+        income = db.query(func.sum(Transaction.amount)).filter(
+            func.date(Transaction.created_at) == day.date(),
+            Transaction.type == 'income'
+        ).scalar() or 0
+        
+        growth_data.append({
+            "date": day_str,
+            "new_users": user_count,
+            "transactions": trans_count,
+            "income": income
+        })
+
     return {
-        "users": {
-            "total": total_users,
-            "active": active_users,
-            "admins": admin_users
-        },
-        "finances": {
+        "summary": {
+            "total_users": total_users,
+            "active_users": active_users,
+            "premium_users": premium_users,
+            "admin_users": admin_users,
             "total_income": total_income,
             "total_expense": total_expense,
-            "net_flow": total_income - total_expense
-        },
-        "platform": {
-            "businesses": total_businesses,
-            "invoices": total_invoices,
-            "loans": total_loans,
+            "total_businesses": total_businesses,
+            "total_invoices": total_invoices,
+            "total_loans": total_loans,
             "total_loan_volume": total_loan_amount,
             "feedback_count": total_feedback,
-            "average_feedback_rating": round(float(avg_rating), 2)
-        }
+            "average_rating": round(float(avg_rating), 2)
+        },
+        "growth": growth_data
     }
 
 @router.post("/settings/premium-amount")
