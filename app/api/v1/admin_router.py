@@ -35,6 +35,26 @@ security = HTTPBearer()
 ADMIN_EMAIL = os.getenv("ADMIN_EMAIL", "admin@dailybachat.com")
 ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "Admin@123")
 
+def apply_pagination_sorting(query, model, _start, _end, _sort, _order):
+    """
+    Applies pagination and sorting to a SQLAlchemy query based on React Admin parameters.
+    """
+    # Total count for header
+    total_count = query.count()
+    
+    # Sorting
+    if hasattr(model, _sort):
+        col = getattr(model, _sort)
+        if _order == "DESC":
+            query = query.order_by(col.desc())
+        else:
+            query = query.order_by(col.asc())
+            
+    # Pagination
+    items = query.offset(_start).limit(_end - _start).all()
+    
+    return items, total_count
+
 def get_current_admin(auth: HTTPAuthorizationCredentials = Depends(security), db: Session = Depends(get_db)):
     """
     Decodes JWT token and verifies admin privileges.
@@ -93,16 +113,27 @@ async def admin_login(
         
     raise HTTPException(status_code=401, detail="Invalid credentials or not an admin")
 
+from fastapi import Response
+
 @router.get("/users", response_model=List[UserInDB])
 async def get_all_users(
+    response: Response,
+    _start: int = 0,
+    _end: int = 10,
+    _sort: str = "id",
+    _order: str = "ASC",
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Fetch all registered users. Restricted to admins.
+    Fetch all registered users with pagination and sorting.
     """
-    users = db.query(User).all()
-    return users
+    query = db.query(User)
+    items, total_count = apply_pagination_sorting(query, User, _start, _end, _sort, _order)
+    
+    response.headers["X-Total-Count"] = str(total_count)
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
+    return items
 
 @router.get("/users/{user_id}", response_model=UserInDB)
 async def get_user_detail(
@@ -194,53 +225,98 @@ async def create_user_admin(
 
 @router.get("/feedback", response_model=List[FeedbackSchema])
 async def get_all_feedback(
+    response: Response,
+    _start: int = 0,
+    _end: int = 10,
+    _sort: str = "id",
+    _order: str = "ASC",
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all user feedback.
+    Get all user feedback with pagination.
     """
-    return db.query(Feedback).all()
+    query = db.query(Feedback)
+    items, total_count = apply_pagination_sorting(query, Feedback, _start, _end, _sort, _order)
+    response.headers["X-Total-Count"] = str(total_count)
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
+    return items
 
 @router.get("/transactions", response_model=List[TransactionInDB])
 async def get_all_transactions(
+    response: Response,
+    _start: int = 0,
+    _end: int = 10,
+    _sort: str = "id",
+    _order: str = "ASC",
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all transactions across the platform.
+    Get all transactions across the platform with pagination.
     """
-    return db.query(Transaction).all()
+    query = db.query(Transaction)
+    items, total_count = apply_pagination_sorting(query, Transaction, _start, _end, _sort, _order)
+    response.headers["X-Total-Count"] = str(total_count)
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
+    return items
 
 @router.get("/loans", response_model=List[LoanInDB])
 async def get_all_loans(
+    response: Response,
+    _start: int = 0,
+    _end: int = 10,
+    _sort: str = "id",
+    _order: str = "ASC",
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all loan applications and records.
+    Get all loan applications and records with pagination.
     """
-    return db.query(Loan).all()
+    query = db.query(Loan)
+    items, total_count = apply_pagination_sorting(query, Loan, _start, _end, _sort, _order)
+    response.headers["X-Total-Count"] = str(total_count)
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
+    return items
 
 @router.get("/businesses", response_model=List[BusinessProfileSchema])
 async def get_all_businesses(
+    response: Response,
+    _start: int = 0,
+    _end: int = 10,
+    _sort: str = "id",
+    _order: str = "ASC",
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all business profiles.
+    Get all business profiles with pagination.
     """
-    return db.query(BusinessProfile).all()
+    query = db.query(BusinessProfile)
+    items, total_count = apply_pagination_sorting(query, BusinessProfile, _start, _end, _sort, _order)
+    response.headers["X-Total-Count"] = str(total_count)
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
+    return items
 
 @router.get("/invoices", response_model=List[InvoiceSchema])
 async def get_all_invoices(
+    response: Response,
+    _start: int = 0,
+    _end: int = 10,
+    _sort: str = "id",
+    _order: str = "ASC",
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all invoices.
+    Get all invoices with pagination.
     """
-    return db.query(Invoice).all()
+    query = db.query(Invoice)
+    items, total_count = apply_pagination_sorting(query, Invoice, _start, _end, _sort, _order)
+    response.headers["X-Total-Count"] = str(total_count)
+    response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
+    return items
 
 @router.post("/notifications/send", response_model=NotificationResponse)
 async def send_notifications(
