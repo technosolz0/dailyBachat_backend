@@ -118,11 +118,14 @@ from fastapi import Response
 def _format_user(user):
     u_dict = user.__dict__.copy()
     if u_dict.get("phone_number"):
-        try:
-            if u_dict["phone_number"].startswith('gAAAAAB'):
-                u_dict["phone_number"] = decrypt_data(u_dict["phone_number"])
-        except Exception:
-            pass
+        phone = str(u_dict["phone_number"]).strip()
+        if phone.startswith('gAAAAAB'):
+            decrypted = decrypt_data(phone)
+            # If decryption fails, decrypt_data returns the original string
+            if decrypted == phone:
+                u_dict["phone_number"] = "N/A"
+            else:
+                u_dict["phone_number"] = decrypted
     else:
         u_dict["phone_number"] = "N/A"
     return u_dict
