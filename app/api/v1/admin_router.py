@@ -23,7 +23,7 @@ from sqlalchemy import func
 import os
 import json
 
-from app.core.security import create_access_token, verify_password
+from app.core.security import create_access_token, verify_password, decrypt_data
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 router = APIRouter()
@@ -131,9 +131,22 @@ async def get_all_users(
     query = db.query(User)
     items, total_count = apply_pagination_sorting(query, User, _start, _end, _sort, _order)
     
+    result = []
+    for u in items:
+        u_dict = u.__dict__.copy()
+        if u_dict.get("phone_number"):
+            try:
+                if u_dict["phone_number"].startswith('gAAAAAB'):
+                    u_dict["phone_number"] = decrypt_data(u_dict["phone_number"])
+            except Exception:
+                pass
+        else:
+            u_dict["phone_number"] = "N/A"
+        result.append(u_dict)
+    
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
-    return items
+    return result
 
 @router.get("/users/{user_id}", response_model=UserInDB)
 async def get_user_detail(
@@ -147,7 +160,18 @@ async def get_user_detail(
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
-    return user
+        
+    user_dict = user.__dict__.copy()
+    if user_dict.get("phone_number"):
+        try:
+            if user_dict["phone_number"].startswith('gAAAAAB'):
+                user_dict["phone_number"] = decrypt_data(user_dict["phone_number"])
+        except Exception:
+            pass
+    else:
+        user_dict["phone_number"] = "N/A"
+        
+    return user_dict
 
 @router.put("/users/{user_id}", response_model=UserInDB)
 @router.patch("/users/{user_id}", response_model=UserInDB)
