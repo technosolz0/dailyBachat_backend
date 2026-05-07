@@ -115,6 +115,18 @@ async def admin_login(
 
 from fastapi import Response
 
+def _format_user(user):
+    u_dict = user.__dict__.copy()
+    if u_dict.get("phone_number"):
+        try:
+            if u_dict["phone_number"].startswith('gAAAAAB'):
+                u_dict["phone_number"] = decrypt_data(u_dict["phone_number"])
+        except Exception:
+            pass
+    else:
+        u_dict["phone_number"] = "N/A"
+    return u_dict
+
 @router.get("/users", response_model=List[UserInDB])
 async def get_all_users(
     response: Response,
@@ -131,18 +143,7 @@ async def get_all_users(
     query = db.query(User)
     items, total_count = apply_pagination_sorting(query, User, _start, _end, _sort, _order)
     
-    result = []
-    for u in items:
-        u_dict = u.__dict__.copy()
-        if u_dict.get("phone_number"):
-            try:
-                if u_dict["phone_number"].startswith('gAAAAAB'):
-                    u_dict["phone_number"] = decrypt_data(u_dict["phone_number"])
-            except Exception:
-                pass
-        else:
-            u_dict["phone_number"] = "N/A"
-        result.append(u_dict)
+    result = [_format_user(u) for u in items]
     
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
@@ -161,17 +162,7 @@ async def get_user_detail(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
         
-    user_dict = user.__dict__.copy()
-    if user_dict.get("phone_number"):
-        try:
-            if user_dict["phone_number"].startswith('gAAAAAB'):
-                user_dict["phone_number"] = decrypt_data(user_dict["phone_number"])
-        except Exception:
-            pass
-    else:
-        user_dict["phone_number"] = "N/A"
-        
-    return user_dict
+    return _format_user(user)
 
 @router.put("/users/{user_id}", response_model=UserInDB)
 @router.patch("/users/{user_id}", response_model=UserInDB)
@@ -194,7 +185,7 @@ async def update_user(
     
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return _format_user(db_user)
 
 @router.delete("/users/{user_id}", response_model=UserInDB)
 async def delete_user(
@@ -249,9 +240,10 @@ async def delete_user(
         db.query(BusinessProfile).filter(BusinessProfile.id.in_(business_ids)).delete(synchronize_session=False)
 
     # 3. Delete user
+    user_dict = _format_user(db_user)
     db.delete(db_user)
     db.commit()
-    return db_user
+    return user_dict
 
 @router.post("/users", response_model=UserInDB)
 async def create_user_admin(
@@ -285,7 +277,7 @@ async def create_user_admin(
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
-    return db_user
+    return _format_user(db_user)
 
 @router.get("/feedback", response_model=List[FeedbackSchema])
 async def get_all_feedback(
