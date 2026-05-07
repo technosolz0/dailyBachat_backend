@@ -483,55 +483,69 @@ async def delete_account(
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     
-    # 1. Delete standalone related models
-    from app.models.business import BusinessProfile, PaymentDetail
-    from app.models.category import Category
-    from app.models.customer import Customer
-    from app.models.feedback import Feedback
-    from app.models.invoice import Invoice, InvoiceItem, Payment, ShareToken, Quotation, QuotationItem
-    from app.models.loan import Loan
-    from app.models.product import Product
-    from app.models.transaction import Transaction
-
-    db.query(Transaction).filter(Transaction.user_id == user_id).delete(synchronize_session=False)
-    db.query(Category).filter(Category.user_id == user_id).delete(synchronize_session=False)
-    db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)
-    db.query(Loan).filter(Loan.user_id == user_id).delete(synchronize_session=False)
-
-    # 2. Delete business and its cascade
-    businesses = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).all()
-    business_ids = [b.id for b in businesses]
-
-    if business_ids:
-        invoices = db.query(Invoice).filter(Invoice.business_id.in_(business_ids)).all()
-        invoice_ids = [i.id for i in invoices]
-        if invoice_ids:
-            db.query(InvoiceItem).filter(InvoiceItem.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
-            db.query(Payment).filter(Payment.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
-            db.query(ShareToken).filter(ShareToken.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
-            db.query(Invoice).filter(Invoice.id.in_(invoice_ids)).delete(synchronize_session=False)
-
-        quotations = db.query(Quotation).filter(Quotation.business_id.in_(business_ids)).all()
-        quotation_ids = [q.id for q in quotations]
-        if quotation_ids:
-            db.query(QuotationItem).filter(QuotationItem.quotation_id.in_(quotation_ids)).delete(synchronize_session=False)
-            db.query(Quotation).filter(Quotation.id.in_(quotation_ids)).delete(synchronize_session=False)
-
-        db.query(Product).filter(Product.business_id.in_(business_ids)).delete(synchronize_session=False)
-        db.query(Customer).filter(Customer.business_id.in_(business_ids)).delete(synchronize_session=False)
-        db.query(PaymentDetail).filter(PaymentDetail.business_id.in_(business_ids)).delete(synchronize_session=False)
-        db.query(BusinessProfile).filter(BusinessProfile.id.in_(business_ids)).delete(synchronize_session=False)
-
-    # Delete the user from the database
-    db.delete(db_user)
-    db.commit()
-    
-    # Try to delete the user from Firebase Auth
     try:
-        auth.delete_user(user_id)
-    except Exception as e:
-        # Log but don't fail if Firebase deletion fails (e.g. if user already deleted there)
-        print(f"Firebase deletion failed for {user_id}: {str(e)}")
+        # 1. Delete standalone related models
+        from app.models.business import BusinessProfile, PaymentDetail
+        from app.models.category import Category
+        from app.models.customer import Customer
+        from app.models.feedback import Feedback
+        from app.models.invoice import Invoice, InvoiceItem, Payment, ShareToken, Quotation, QuotationItem
+        from app.models.loan import Loan
+        from app.models.product import Product
+        from app.models.transaction import Transaction
 
-    return {"message": "Your account and all associated data have been permanently deleted."}
+        db.query(Transaction).filter(Transaction.user_id == user_id).delete(synchronize_session=False)
+        db.query(Category).filter(Category.user_id == user_id).delete(synchronize_session=False)
+        db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)
+        db.query(Loan).filter(Loan.user_id == user_id).delete(synchronize_session=False)
+
+        # 2. Delete business and its cascade
+        businesses = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).all()
+        business_ids = [b.id for b in businesses]
+
+        if business_ids:
+            # Handle Invoices
+            invoices = db.query(Invoice).filter(Invoice.business_id.in_(business_ids)).all()
+            invoice_ids = [i.id for i in invoices]
+            if invoice_ids:
+                db.query(InvoiceItem).filter(InvoiceItem.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
+                db.query(Payment).filter(Payment.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
+                db.query(ShareToken).filter(ShareToken.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
+                db.query(Invoice).filter(Invoice.id.in_(invoice_ids)).delete(synchronize_session=False)
+
+            # Handle Quotations
+            quotations = db.query(Quotation).filter(Quotation.business_id.in_(business_ids)).all()
+            quotation_ids = [q.id for q in quotations]
+            if quotation_ids:
+                db.query(ShareToken).filter(ShareToken.quotation_id.in_(quotation_ids)).delete(synchronize_session=False)
+                db.query(QuotationItem).filter(QuotationItem.quotation_id.in_(quotation_ids)).delete(synchronize_session=False)
+                db.query(Quotation).filter(Quotation.id.in_(quotation_ids)).delete(synchronize_session=False)
+
+            # Delete remaining business-related data
+            db.query(Product).filter(Product.business_id.in_(business_ids)).delete(synchronize_session=False)
+            db.query(Customer).filter(Customer.business_id.in_(business_ids)).delete(synchronize_session=False)
+            db.query(PaymentDetail).filter(PaymentDetail.business_id.in_(business_ids)).delete(synchronize_session=False)
+            db.query(BusinessProfile).filter(BusinessProfile.id.in_(business_ids)).delete(synchronize_session=False)
+
+        # 3. Delete user record
+        db.delete(db_user)
+        db.commit()
+
+        # 4. Attempt to delete from Firebase Auth
+        try:
+            auth.delete_user(user_id)
+        except Exception as fe:
+            # Log but don't fail if Firebase deletion fails
+            print(f"Firebase deletion warning for {user_id}: {str(fe)}")
+
+        return {"message": "Your account and all associated data have been permanently deleted."}
+
+    except Exception as e:
+        db.rollback()
+        import traceback
+        print(f"Error during account deletion for {user_id}: {str(e)}\n{traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to delete account: {str(e)}"
+        )
 
