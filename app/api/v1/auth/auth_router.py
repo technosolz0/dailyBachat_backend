@@ -137,7 +137,10 @@ async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)
         )
         db.add(db_user)
     else:
-        # User already exists, just update info
+        # User already exists, update all profile info from OTP record
+        db_user.name = db_otp.name or db_user.name
+        db_user.phone_number = db_otp.phone_number or db_user.phone_number
+        db_user.hashed_password = db_otp.hashed_password or db_user.hashed_password
         db_user.device_info = verification.device_info or db_otp.device_info
         db_user.fcm_token = verification.fcm_token or db_otp.fcm_token
         db_user.last_login = datetime.utcnow()

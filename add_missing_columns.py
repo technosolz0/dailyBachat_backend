@@ -7,6 +7,8 @@ def add_missing_columns():
         # 1. Update users table
         print("Checking users table...")
         cols_to_add_users = [
+            ("name", "VARCHAR"),
+            ("phone_number", "VARCHAR"),
             ("hashed_password", "VARCHAR"),
             ("device_info", "VARCHAR"),
             ("fcm_token", "VARCHAR"),
