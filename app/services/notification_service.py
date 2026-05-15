@@ -399,11 +399,11 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
 
     # Determine context string
     if loan.type == "lent":
-        context_for_person = f"Loan ({loan.user.name if loan.user else 'a DailyBachat user'})"
+        context_for_person = f"Loan (you owe {loan.user.name if loan.user else 'a DailyBachat user'})"
         context_for_owner = f"Loan lent to {loan.person_name}"
         recipient_name_person = loan.person_name
     else:
-        context_for_person = f"Loan ({loan.user.name if loan.user else 'a DailyBachat user'})
+        context_for_person = f"Loan ({loan.user.name if loan.user else 'a DailyBachat user'} owes you)"
         context_for_owner = f"Loan borrowed from {loan.person_name}"
         recipient_name_person = loan.person_name
 
@@ -417,7 +417,7 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
                 recipient_name=recipient_name_person,
                 amount=loan.amount,
                 due_date=due_str,
-                context_info=context_for_person,
+                # context_info=context_for_person,
             )
         elif window_key == "1day":
             send_reminder_1day_before(
@@ -425,7 +425,7 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
                 recipient_name=recipient_name_person,
                 amount=loan.amount,
                 due_date=due_str,
-                context_info=context_for_person,
+                # context_info=context_for_person,
             )
         elif window_key == "duedate":
             send_reminder_on_due_date(
@@ -433,7 +433,7 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
                 recipient_name=recipient_name_person,
                 amount=loan.amount,
                 due_date=due_str,
-                context_info=context_for_person,
+                # context_info=context_for_person,
             )
     except Exception as exc:
         logger.error(f"WhatsApp loan reminder ({window_key}) to {loan.person_phone}: {exc}")
@@ -448,7 +448,7 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
                     recipient_name=owner_name,
                     amount=loan.amount,
                     due_date=due_str,
-                    context_info=context_for_owner,
+                    # context_info=context_for_owner,
                 )
             elif window_key == "1day":
                 send_reminder_1day_before(
@@ -456,7 +456,7 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
                     recipient_name=owner_name,
                     amount=loan.amount,
                     due_date=due_str,
-                    context_info=context_for_owner,
+                    # context_info=context_for_owner,
                 )
             elif window_key == "duedate":
                 send_reminder_on_due_date(
@@ -464,7 +464,7 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
                     recipient_name=owner_name,
                     amount=loan.amount,
                     due_date=due_str,
-                    context_info=context_for_owner,
+                    # context_info=context_for_owner,
                 )
         except Exception as exc:
             logger.error(f"WhatsApp loan reminder ({window_key}) to owner {owner.phone_number}: {exc}")
