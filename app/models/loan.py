@@ -20,4 +20,9 @@ class Loan(Base):
     expected_return_date = Column(DateTime(timezone=True))
     payment_history = Column(JSON, default=[]) # Storing history as JSON for simplicity, matching Firestore
 
+    # Reminder tracking
+    reminder_2days_sent = Column(Boolean, default=False)
+    reminder_1day_sent = Column(Boolean, default=False)
+    reminder_duedate_sent = Column(Boolean, default=False)
+
     user = relationship("User", backref="loans")

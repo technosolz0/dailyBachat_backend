@@ -318,17 +318,39 @@ def process_reminders(db: Session):
 
 def _process_loan_reminders(db: Session, windows: dict):
     for window_key, (w_start, w_end) in windows.items():
-        unpaid_loans = (
-            db.query(Loan)
-            .filter(
-                Loan.status != "paid",           # ← only unpaid
-                Loan.expected_return_date >= w_start,
-                Loan.expected_return_date <= w_end,
-            )
-            .all()
+        # Map window_key to the corresponding sent flag column
+        sent_col = None
+        if window_key == "2days":
+            sent_col = Loan.reminder_2days_sent
+        elif window_key == "1day":
+            sent_col = Loan.reminder_1day_sent
+        elif window_key == "duedate":
+            sent_col = Loan.reminder_duedate_sent
+
+        query = db.query(Loan).filter(
+            Loan.status != "paid",
+            Loan.expected_return_date >= w_start,
+            Loan.expected_return_date <= w_end,
         )
+        
+        # Only include if not already sent for this window
+        if sent_col is not None:
+            query = query.filter(sent_col == False)
+
+        unpaid_loans = query.all()
 
         for loan in unpaid_loans:
+            # We mark as sent BEFORE sending to avoid race conditions if the job runs overlapping
+            # or if we want to ensure we don't retry on the same run if something hangs.
+            if window_key == "2days":
+                loan.reminder_2days_sent = True
+            elif window_key == "1day":
+                loan.reminder_1day_sent = True
+            elif window_key == "duedate":
+                loan.reminder_duedate_sent = True
+            
+            db.commit()
+
             _send_loan_reminder_whatsapp(db, loan, window_key)
             _send_loan_reminder_fcm(db, loan, window_key)
 
@@ -377,11 +399,11 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
 
     # Determine context string
     if loan.type == "lent":
-        context_for_person = f"Loan (you owe {loan.user.name if loan.user else 'a DailyBachat user'})"
+        context_for_person = f"Loan ({loan.user.name if loan.user else 'a DailyBachat user'})"
         context_for_owner = f"Loan lent to {loan.person_name}"
         recipient_name_person = loan.person_name
     else:
-        context_for_person = f"Loan ({loan.user.name if loan.user else 'a DailyBachat user'} owes you)"
+        context_for_person = f"Loan ({loan.user.name if loan.user else 'a DailyBachat user'})
         context_for_owner = f"Loan borrowed from {loan.person_name}"
         recipient_name_person = loan.person_name
 
@@ -454,17 +476,37 @@ def _send_loan_reminder_whatsapp(db: Session, loan: Loan, window_key: str):
 
 def _process_invoice_reminders(db: Session, windows: dict):
     for window_key, (w_start, w_end) in windows.items():
-        pending_invoices = (
-            db.query(Invoice)
-            .filter(
-                Invoice.status != "paid",        # ← only unpaid / partially paid
-                Invoice.due_date >= w_start,
-                Invoice.due_date <= w_end,
-            )
-            .all()
+        # Map window_key to the corresponding sent flag column
+        sent_col = None
+        if window_key == "2days":
+            sent_col = Invoice.reminder_2days_sent
+        elif window_key == "1day":
+            sent_col = Invoice.reminder_1day_sent
+        elif window_key == "duedate":
+            sent_col = Invoice.reminder_duedate_sent
+
+        query = db.query(Invoice).filter(
+            Invoice.status != "paid",
+            Invoice.due_date >= w_start,
+            Invoice.due_date <= w_end,
         )
 
+        if sent_col is not None:
+            query = query.filter(sent_col == False)
+
+        pending_invoices = query.all()
+
         for inv in pending_invoices:
+            # Mark as sent before actual notification to prevent duplicates
+            if window_key == "2days":
+                inv.reminder_2days_sent = True
+            elif window_key == "1day":
+                inv.reminder_1day_sent = True
+            elif window_key == "duedate":
+                inv.reminder_duedate_sent = True
+            
+            db.commit()
+
             _send_invoice_reminder_whatsapp(db, inv, window_key)
             _send_invoice_reminder_fcm(db, inv, window_key)
 

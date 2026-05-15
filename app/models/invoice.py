@@ -69,6 +69,11 @@ class Invoice(Base):
     status = Column(String, default=InvoiceStatus.pending)
     pdf_url = Column(String)
 
+    # Reminder tracking
+    reminder_2days_sent = Column(Boolean, default=False)
+    reminder_1day_sent = Column(Boolean, default=False)
+    reminder_duedate_sent = Column(Boolean, default=False)
+
     business = relationship("BusinessProfile", back_populates="invoices")
     customer = relationship("Customer", back_populates="invoices")
     items = relationship("InvoiceItem", back_populates="invoice", cascade="all, delete-orphan")

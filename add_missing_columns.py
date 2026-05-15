@@ -56,7 +56,10 @@ def add_missing_columns():
             ("creator_name", "VARCHAR"),
             ("payment_history", "JSON DEFAULT '[]'::json"),
             ("reason", "VARCHAR"),
-            ("expected_return_date", "TIMESTAMP WITH TIME ZONE")
+            ("expected_return_date", "TIMESTAMP WITH TIME ZONE"),
+            ("reminder_2days_sent", "BOOLEAN DEFAULT FALSE"),
+            ("reminder_1day_sent", "BOOLEAN DEFAULT FALSE"),
+            ("reminder_duedate_sent", "BOOLEAN DEFAULT FALSE")
         ]
         
         for col_name, col_type in cols_to_add_loans:
@@ -97,7 +100,10 @@ def add_missing_columns():
             ("tax_percent", "FLOAT DEFAULT 0.0"),
             ("paid_amount", "FLOAT DEFAULT 0.0"),
             ("status", "VARCHAR DEFAULT 'pending'"),
-            ("pdf_url", "VARCHAR")
+            ("pdf_url", "VARCHAR"),
+            ("reminder_2days_sent", "BOOLEAN DEFAULT FALSE"),
+            ("reminder_1day_sent", "BOOLEAN DEFAULT FALSE"),
+            ("reminder_duedate_sent", "BOOLEAN DEFAULT FALSE")
         ]
         for col_name, col_type in cols_to_add_invoices:
             try:
