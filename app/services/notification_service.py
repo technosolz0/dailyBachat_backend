@@ -591,38 +591,3 @@ def _send_invoice_reminder_whatsapp(db: Session, inv: Invoice, window_key: str):
             f"WhatsApp invoice reminder ({window_key}) to {inv.customer.phone}: {exc}"
         )
 
-    # Also remind business owner via their phone
-    if inv.business and inv.business.user:
-        owner = inv.business.user
-        if owner.phone_number:
-            owner_context = f"Invoice {inv.invoice_number} – {customer_name}"
-            try:
-                if window_key == "2days":
-                    send_reminder_2days_before(
-                        to_phone=owner.phone_number,
-                        recipient_name=owner.name or "You",
-                        amount=remaining,
-                        due_date=due_str,
-                        context_info=owner_context,
-                    )
-                elif window_key == "1day":
-                    send_reminder_1day_before(
-                        to_phone=owner.phone_number,
-                        recipient_name=owner.name or "You",
-                        amount=remaining,
-                        due_date=due_str,
-                        context_info=owner_context,
-                    )
-                elif window_key == "duedate":
-                    send_reminder_on_due_date(
-                        to_phone=owner.phone_number,
-                        recipient_name=owner.name or "You",
-                        amount=remaining,
-                        due_date=due_str,
-                        context_info=owner_context,
-                    )
-            except Exception as exc:
-                logger.error(
-                    f"WhatsApp invoice reminder ({window_key}) to owner "
-                    f"{owner.phone_number}: {exc}"
-                )
