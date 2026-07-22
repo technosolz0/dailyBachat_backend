@@ -23,6 +23,7 @@ from app.services.whatsapp_service import (
     send_loan_lent_notification,
     send_loan_borrowed_notification,
     send_invoice_created_notification,
+    send_reminder_on_due_date,
 )
 from app.services.pdf_generator_service import generate_invoice_pdf_url
 from app.models.invoice import Invoice
@@ -49,6 +50,15 @@ class InvoiceWARequest(BaseModel):
     total: float
     due_date: Optional[str] = None
     pdf_url: Optional[str] = None
+
+
+class GroupSplitWARequest(BaseModel):
+    phone: str
+    recipient_name: str
+    amount: float
+    title: str
+    creator_name: str
+    due_date: Optional[str] = None
 
 
 # ── Routes ─────────────────────────────────────────────────────────────────────
@@ -117,5 +127,32 @@ async def trigger_invoice_whatsapp(
         total=payload.total,
         due_date=payload.due_date,
         pdf_url=url,
+    )
+    return {"success": success}
+
+
+@router.post("/group-split")
+async def trigger_group_split_whatsapp(
+    payload: GroupSplitWARequest,
+    db: Session = Depends(get_db),
+    user_id: str = Depends(get_current_user_id),
+):
+    """
+    Send a WhatsApp reminder template for group split contributions.
+    """
+    # Check premium status
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user or not user.is_premium:
+        return {"success": False, "message": "WhatsApp notifications are a premium feature"}
+
+    due_str = payload.due_date if payload.due_date else "N/A"
+    context = f"split '{payload.title}' by {payload.creator_name}"
+
+    success = send_reminder_on_due_date(
+        to_phone=payload.phone,
+        recipient_name=payload.recipient_name,
+        amount=payload.amount,
+        due_date=due_str,
+        context_info=context,
     )
     return {"success": success}

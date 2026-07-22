@@ -13,7 +13,7 @@ from app.api.v1.loans import loan_router
 from app.api.v1 import (
     business_router, invoice_router, product_router, 
     feedback_router, notification_router, admin_router,
-    payment_router
+    payment_router, group_splits
 )
 from app.api.v1.whatsapp_router import router as whatsapp_router
 from app.core.firebase_config import initialize_firebase
@@ -76,6 +76,7 @@ app.include_router(auth_router.router, prefix="/api/v1/auth", tags=["auth"])
 app.include_router(transaction_router.router, prefix="/api/v1/transactions", tags=["transactions"])
 app.include_router(category_router.router, prefix="/api/v1/categories", tags=["categories"])
 app.include_router(loan_router.router, prefix="/api/v1/loans", tags=["loans"])
+app.include_router(group_splits.router, prefix="/api/v1/group-splits", tags=["group-splits"])
 app.include_router(business_router.router, prefix="/api/v1/business", tags=["business"])
 app.include_router(invoice_router.router, prefix="/api/v1/business", tags=["billing"])
 app.include_router(product_router.router, prefix="/api/v1/business/inventory", tags=["inventory"])
