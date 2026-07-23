@@ -20,7 +20,11 @@ def initialize_firebase():
             if service_account_path and os.path.exists(service_account_path):
                 cred = credentials.Certificate(service_account_path)
                 firebase_admin.initialize_app(cred)
-                logger.info("Firebase Admin SDK initialized with service account.")
+                logger.info(f"Firebase Admin SDK initialized with service account from env: {service_account_path}")
+            elif os.path.exists("firebase_key.json"):
+                cred = credentials.Certificate("firebase_key.json")
+                firebase_admin.initialize_app(cred)
+                logger.info("Firebase Admin SDK initialized with local firebase_key.json service account.")
             else:
                 # Try default credentials
                 firebase_admin.initialize_app()

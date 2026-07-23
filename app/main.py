@@ -22,7 +22,11 @@ from app.services.notification_service import process_reminders
 from app.core.database import SessionLocal
 
 # Create database tables
-Base.metadata.create_all(bind=engine)
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception as e:
+    import logging
+    logging.getLogger(__name__).warning(f"Database initialization warning (likely concurrent table creation): {e}")
 
 # Initialize Firebase
 initialize_firebase()
@@ -39,7 +43,20 @@ def scheduled_reminders():
 
 # Run once every hour for timely reminder delivery (2-day, 1-day, due-date windows)
 scheduler.add_job(scheduled_reminders, 'interval', hours=1)
-scheduler.start()
+
+# Ensure only one Gunicorn worker starts the scheduler to prevent duplicate messages
+scheduler_lock_file = None
+try:
+    import fcntl
+    scheduler_lock_file = open("scheduler.lock", "w")
+    # Try to acquire an exclusive lock on the file without blocking (LOCK_NB)
+    fcntl.flock(scheduler_lock_file, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    scheduler.start()
+    import logging
+    logging.getLogger(__name__).info("Scheduler started successfully in this worker process.")
+except (ImportError, IOError, OSError) as e:
+    import logging
+    logging.getLogger(__name__).info(f"Scheduler start skipped (running in another worker or platform not supported): {e}")
 
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
