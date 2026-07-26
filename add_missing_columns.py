@@ -13,7 +13,9 @@ def add_missing_columns():
             ("device_info", "VARCHAR"),
             ("fcm_token", "VARCHAR"),
             ("is_premium", "BOOLEAN DEFAULT FALSE"),
-            ("is_admin", "BOOLEAN DEFAULT FALSE")
+            ("is_admin", "BOOLEAN DEFAULT FALSE"),
+            ("referral_code", "VARCHAR"),
+            ("referred_by_id", "VARCHAR")
         ]
         
         for col_name, col_type in cols_to_add_users:
@@ -29,6 +31,15 @@ def add_missing_columns():
                 else:
                     print(f"Error adding {col_name} to users: {e}")
 
+        # Create unique index for referral_code
+        try:
+            conn.execute(text("CREATE UNIQUE INDEX IF NOT EXISTS ix_users_referral_code ON users (referral_code);"))
+            conn.commit()
+            print("Created unique index on users.referral_code.")
+        except Exception as e:
+            conn.rollback()
+            print(f"Error creating unique index on users.referral_code: {e}")
+
         # 2. Update otps table
         print("Checking otps table...")
         cols_to_add_otps = [
@@ -36,7 +47,8 @@ def add_missing_columns():
             ("phone_number", "VARCHAR"),
             ("hashed_password", "VARCHAR"),
             ("device_info", "VARCHAR"),
-            ("fcm_token", "VARCHAR")
+            ("fcm_token", "VARCHAR"),
+            ("referred_by_code", "VARCHAR")
         ]
         
         for col_name, col_type in cols_to_add_otps:
@@ -140,6 +152,23 @@ def add_missing_columns():
                     pass
                 else:
                     print(f"Error adding {col_name} to quotations: {e}")
+
+        # 7. Update group_splits table
+        print("Checking group_splits table...")
+        cols_to_add_splits = [
+            ("expenses", "JSON DEFAULT '[]'::json")
+        ]
+        for col_name, col_type in cols_to_add_splits:
+            try:
+                conn.execute(text(f"ALTER TABLE group_splits ADD COLUMN {col_name} {col_type};"))
+                conn.commit()
+                print(f"Added {col_name} to group_splits.")
+            except Exception as e:
+                conn.rollback()
+                if "already exists" in str(e).lower():
+                    pass
+                else:
+                    print(f"Error adding {col_name} to group_splits: {e}")
 
         print("Migration check complete.")
 

@@ -15,3 +15,4 @@ class OTP(Base):
     fcm_token = Column(String)
     expires_at = Column(DateTime, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
+    referred_by_code = Column(String, nullable=True)

@@ -12,6 +12,7 @@ class GroupSplit(Base):
     split_type = Column(String, default="equal") # "equal", "unequal", "percentage"
     date = Column(DateTime(timezone=True), server_default=func.now())
     members = Column(JSON, default=[]) # list of member objects
+    expenses = Column(JSON, default=[]) # list of individual expense items (name, amount)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     user = relationship("User", backref="group_splits")

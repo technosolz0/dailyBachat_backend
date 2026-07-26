@@ -23,6 +23,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
+    referred_by_code: Optional[str] = None
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
@@ -39,6 +40,9 @@ class UserInDB(UserBase):
     premium_expiry: Optional[datetime] = None
     is_active: bool = True
     last_login: Optional[datetime] = None
+    referral_code: Optional[str] = None
+    referred_by_id: Optional[str] = None
+    referral_count: int = 0
 
 class FCMUpdate(BaseModel):
     fcm_token: str
@@ -66,6 +70,7 @@ class RegisterRequest(BaseModel):
     password: str
     device_info: Optional[str] = None
     fcm_token: Optional[str] = None
+    referred_by_code: Optional[str] = None
 
 class OTPVerify(BaseModel):
     email: EmailStr

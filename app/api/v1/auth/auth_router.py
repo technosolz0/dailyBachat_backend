@@ -45,6 +45,26 @@ def find_user_by_phone(db: Session, phone: str):
                 continue
     return None
 
+import random
+import string
+
+def generate_referral_code(name: str = None) -> str:
+    prefix = "DB"
+    if name:
+        # Keep only alphanumeric uppercase characters
+        clean_name = "".join(c for c in name if c.isalnum()).upper()
+        if clean_name:
+            prefix = clean_name[:4]
+    suffix = "".join(random.choices(string.digits, k=4))
+    return f"{prefix}{suffix}"
+
+def get_unique_referral_code(db: Session, name: str = None) -> str:
+    for _ in range(10):
+        code = generate_referral_code(name)
+        if not db.query(User).filter(User.referral_code == code).first():
+            return code
+    return "".join(random.choices(string.ascii_uppercase + string.digits, k=8))
+
 router = APIRouter()
 
 @router.post("/register/request")
@@ -58,6 +78,14 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
     # Encrypt sensitive data
     encrypted_phone = encrypt_data(user_data.phone_number)
     
+    # Validate referral code if provided
+    ref_code = None
+    if user_data.referred_by_code:
+        ref_code = user_data.referred_by_code.strip().upper()
+        referrer = db.query(User).filter(User.referral_code == ref_code).first()
+        if not referrer:
+            raise HTTPException(status_code=400, detail="Invalid referral code")
+
     # Generate OTP
     otp_code = str(random.randint(100000, 999999))
     
@@ -74,6 +102,7 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
         db_otp.fcm_token = user_data.fcm_token
         db_otp.expires_at = expires_at
         db_otp.created_at = datetime.utcnow()
+        db_otp.referred_by_code = ref_code
     else:
         db_otp = OTP(
             email=email, 
@@ -83,7 +112,8 @@ async def register_request(user_data: RegisterRequest, db: Session = Depends(get
             hashed_password=hashed_password,
             device_info=user_data.device_info,
             fcm_token=user_data.fcm_token,
-            expires_at=expires_at
+            expires_at=expires_at,
+            referred_by_code=ref_code
         )
         db.add(db_otp)
     
@@ -135,6 +165,24 @@ async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)
             fcm_token=verification.fcm_token or db_otp.fcm_token,
             last_login=datetime.utcnow()
         )
+        # Generate unique referral code for the new user
+        db_user.referral_code = get_unique_referral_code(db, db_user.name)
+        
+        # Process referral reward
+        if db_otp.referred_by_code:
+            referrer = db.query(User).filter(User.referral_code == db_otp.referred_by_code).first()
+            if referrer:
+                db_user.referred_by_id = referrer.id
+                db_user.is_premium = True
+                db_user.premium_expiry = datetime.utcnow() + timedelta(days=15)
+                
+                # Reward referrer: 30 days of Premium
+                referrer.is_premium = True
+                if referrer.premium_expiry and referrer.premium_expiry.replace(tzinfo=None) > datetime.utcnow():
+                    referrer.premium_expiry = referrer.premium_expiry + timedelta(days=30)
+                else:
+                    referrer.premium_expiry = datetime.utcnow() + timedelta(days=30)
+        
         db.add(db_user)
     else:
         # User already exists, update all profile info from OTP record
@@ -144,6 +192,8 @@ async def register_verify(verification: OTPVerify, db: Session = Depends(get_db)
         db_user.device_info = verification.device_info or db_otp.device_info
         db_user.fcm_token = verification.fcm_token or db_otp.fcm_token
         db_user.last_login = datetime.utcnow()
+        if not db_user.referral_code:
+            db_user.referral_code = get_unique_referral_code(db, db_user.name)
 
     # Step 5: Generate Auth Tokens (Login user immediately after verification)
     access_token = create_access_token(data={"sub": db_user.id})
@@ -343,6 +393,8 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
             if user.fcm_token:
                 db_user.fcm_token = user.fcm_token
             db_user.last_login = datetime.utcnow()
+            if not db_user.referral_code:
+                db_user.referral_code = get_unique_referral_code(db, db_user.name)
         else:
             # Register new phone user
             user_dict = user.dict()
@@ -357,9 +409,32 @@ async def sync_user(user: UserCreate, db: Session = Depends(get_db)):
             # Remove the raw password field before creating model
             if 'password' in user_dict:
                 del user_dict['password']
+            # Remove schema fields not stored directly in Model
+            if 'referred_by_code' in user_dict:
+                del user_dict['referred_by_code']
             
             db_user = User(**user_dict)
             db_user.last_login = datetime.utcnow()
+            
+            # Generate unique referral code for the new user
+            db_user.referral_code = get_unique_referral_code(db, db_user.name)
+            
+            # Process referral reward
+            if user.referred_by_code:
+                ref_code = user.referred_by_code.strip().upper()
+                referrer = db.query(User).filter(User.referral_code == ref_code).first()
+                if referrer:
+                    db_user.referred_by_id = referrer.id
+                    db_user.is_premium = True
+                    db_user.premium_expiry = datetime.utcnow() + timedelta(days=15)
+                    
+                    # Reward referrer: 30 days of Premium
+                    referrer.is_premium = True
+                    if referrer.premium_expiry and referrer.premium_expiry.replace(tzinfo=None) > datetime.utcnow():
+                        referrer.premium_expiry = referrer.premium_expiry + timedelta(days=30)
+                    else:
+                        referrer.premium_expiry = datetime.utcnow() + timedelta(days=30)
+            
             db.add(db_user)
         
         db.commit()
@@ -454,6 +529,12 @@ async def read_users_me(
             db_user.is_premium = False
             db.commit()
             db.refresh(db_user)
+            
+    # Auto-generate referral code if missing (backfill)
+    if not db_user.referral_code:
+        db_user.referral_code = get_unique_referral_code(db, db_user.name)
+        db.commit()
+        db.refresh(db_user)
             
     return db_user
 

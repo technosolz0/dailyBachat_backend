@@ -9,6 +9,10 @@ class MemberSchema(BaseModel):
     paid_amount: float = 0.0
     is_paid: bool = False
 
+class TripExpenseSchema(BaseModel):
+    name: str
+    amount: float
+
 class GroupSplitBase(BaseModel):
     id: Optional[str] = None
     title: str
@@ -16,6 +20,7 @@ class GroupSplitBase(BaseModel):
     split_type: str = "equal" # "equal", "unequal", "percentage"
     date: Optional[datetime] = None
     members: List[MemberSchema] = []
+    expenses: List[TripExpenseSchema] = []
 
 class GroupSplitCreate(GroupSplitBase):
     pass
@@ -26,6 +31,7 @@ class GroupSplitUpdate(BaseModel):
     split_type: Optional[str] = None
     date: Optional[datetime] = None
     members: Optional[List[MemberSchema]] = None
+    expenses: Optional[List[TripExpenseSchema]] = None
 
 class GroupSplitInDB(GroupSplitBase):
     id: str

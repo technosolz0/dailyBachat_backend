@@ -1,4 +1,5 @@
-from sqlalchemy import Column, String, DateTime, Boolean, func
+from sqlalchemy import Column, String, DateTime, Boolean, func, ForeignKey
+from sqlalchemy.orm import relationship, backref
 from app.core.database import Base
 
 class User(Base):
@@ -21,3 +22,13 @@ class User(Base):
     premium_expiry = Column(DateTime(timezone=True), nullable=True)
     is_active = Column(Boolean, default=True)
     last_login = Column(DateTime(timezone=True))
+
+    referral_code = Column(String, unique=True, index=True, nullable=True)
+    referred_by_id = Column(String, ForeignKey("users.id"), nullable=True)
+    
+    referrals = relationship("User", backref=backref("referred_by", remote_side=[id]))
+
+    @property
+    def referral_count(self) -> int:
+        return len(self.referrals) if self.referrals else 0
+
