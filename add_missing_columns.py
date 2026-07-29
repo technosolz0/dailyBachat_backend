@@ -42,6 +42,36 @@ def add_missing_columns():
 
         # 2. Update otps table
         print("Checking otps table...")
+        # Drop NOT NULL constraint on email to make it nullable
+        try:
+            conn.execute(text("ALTER TABLE otps ALTER COLUMN email DROP NOT NULL;"))
+            conn.commit()
+            print("Dropped NOT NULL constraint from otps.email.")
+        except Exception as e:
+            conn.rollback()
+            print(f"Note on otps.email NOT NULL removal: {e}")
+
+        # Drop old primary key constraint if it exists
+        try:
+            conn.execute(text("ALTER TABLE otps DROP CONSTRAINT IF EXISTS otps_pkey;"))
+            conn.commit()
+            print("Dropped primary key constraint otps_pkey.")
+        except Exception as e:
+            conn.rollback()
+            print(f"Note on dropping otps_pkey: {e}")
+
+        # Add id column as serial primary key
+        try:
+            conn.execute(text("ALTER TABLE otps ADD COLUMN id SERIAL PRIMARY KEY;"))
+            conn.commit()
+            print("Added id SERIAL PRIMARY KEY to otps.")
+        except Exception as e:
+            conn.rollback()
+            if "already exists" in str(e).lower():
+                pass
+            else:
+                print(f"Error adding id to otps: {e}")
+
         cols_to_add_otps = [
             ("name", "VARCHAR"),
             ("phone_number", "VARCHAR"),
