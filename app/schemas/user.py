@@ -5,7 +5,7 @@ from app.core.security import decrypt_data
 
 class UserBase(BaseModel):
     id: str # Firebase UID
-    email: EmailStr
+    email: Optional[str] = None
     name: Optional[str] = None
     phone_number: Optional[str] = None
     device_info: Optional[str] = None
@@ -17,8 +17,11 @@ class UserBase(BaseModel):
     @field_validator('phone_number', mode='before')
     @classmethod
     def decrypt_phone(cls, v):
-        if v:
-            return decrypt_data(v)
+        if v and v != "N/A":
+            try:
+                return decrypt_data(v)
+            except Exception:
+                return v
         return v
 
 class UserCreate(UserBase):
@@ -27,13 +30,13 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     name: Optional[str] = None
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     phone_number: Optional[str] = None
     device_info: Optional[str] = None
     fcm_token: Optional[str] = None
 
 class UserInDB(UserBase):
-    created_at: datetime
+    created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
     is_admin: bool = False
     is_premium: bool = False

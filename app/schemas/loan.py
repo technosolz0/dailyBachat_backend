@@ -5,16 +5,16 @@ from datetime import datetime
 class LoanBase(BaseModel):
     id: Optional[str] = None
     user_id: str
-    person_name: str
+    person_name: Optional[str] = "Unknown"
     person_phone: Optional[str] = None # Added for notifications
-    amount: float
+    amount: float = 0.0
     paid_amount: float = 0.0
     status: Optional[str] = "unpaid"
-    type: str # 'lent' or 'borrowed'
+    type: Optional[str] = "lent" # 'lent' or 'borrowed'
     payment_mode: Optional[str] = None
     creator_name: Optional[str] = None
     reason: Optional[str] = None
-    date: datetime
+    date: Optional[datetime] = None
     expected_return_date: Optional[datetime] = None
     payment_history: List[Any] = []
 

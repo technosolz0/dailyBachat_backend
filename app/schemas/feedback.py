@@ -5,7 +5,7 @@ from typing import Optional
 class FeedbackBase(BaseModel):
     rating: Optional[int] = None
     category: Optional[str] = "General"
-    message: str
+    message: Optional[str] = ""
 
 class FeedbackCreate(FeedbackBase):
     user_id: str
@@ -13,7 +13,7 @@ class FeedbackCreate(FeedbackBase):
 class Feedback(FeedbackBase):
     id: int
     user_id: str
-    created_at: datetime
+    created_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

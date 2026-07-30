@@ -44,7 +44,7 @@ def apply_pagination_sorting(query, model, _start, _end, _sort, _order):
     total_count = query.count()
     
     # Sorting
-    if hasattr(model, _sort):
+    if _sort and hasattr(model, _sort):
         col = getattr(model, _sort)
         if _order == "DESC":
             query = query.order_by(col.desc())
@@ -52,7 +52,8 @@ def apply_pagination_sorting(query, model, _start, _end, _sort, _order):
             query = query.order_by(col.asc())
             
     # Pagination
-    items = query.offset(_start).limit(_end - _start).all()
+    limit_val = max(1, _end - _start)
+    items = query.offset(_start).limit(limit_val).all()
     
     return items, total_count
 
@@ -82,6 +83,33 @@ def get_current_admin(auth: HTTPAuthorizationCredentials = Depends(security), db
     if not user.is_admin:
         raise HTTPException(status_code=403, detail="Not authorized. Admin privileges required.")
     return user
+
+from fastapi import Response
+
+def _format_user(user):
+    if not user:
+        return None
+    phone_val = "N/A"
+    if user.phone_number:
+        try:
+            phone_val = decrypt_data(user.phone_number)
+        except Exception:
+            phone_val = user.phone_number
+    return {
+        "id": str(user.id),
+        "email": user.email,
+        "name": user.name or "User",
+        "phone_number": phone_val,
+        "device_info": user.device_info,
+        "fcm_token": user.fcm_token,
+        "is_admin": user.is_admin if user.is_admin is not None else False,
+        "is_premium": user.is_premium if user.is_premium is not None else False,
+        "premium_expiry": user.premium_expiry,
+        "is_active": user.is_active if user.is_active is not None else True,
+        "created_at": user.created_at,
+        "updated_at": user.updated_at,
+        "last_login": user.last_login
+    }
 
 @router.post("/login", response_model=TokenSchema)
 async def admin_login(
@@ -113,27 +141,6 @@ async def admin_login(
         }
         
     raise HTTPException(status_code=401, detail="Invalid credentials or not an admin")
-
-from fastapi import Response
-
-def _format_user(user):
-    if not user:
-        return None
-    return {
-        "id": user.id,
-        "email": user.email,
-        "name": user.name,
-        "phone_number": decrypt_data(user.phone_number) if user.phone_number else "N/A",
-        "device_info": user.device_info,
-        "fcm_token": user.fcm_token,
-        "is_admin": user.is_admin,
-        "is_premium": user.is_premium,
-        "premium_expiry": user.premium_expiry,
-        "is_active": user.is_active,
-        "created_at": user.created_at,
-        "updated_at": user.updated_at,
-        "last_login": user.last_login
-    }
 
 @router.get("/users", response_model=List[UserInDB])
 async def get_all_users(

@@ -21,8 +21,8 @@ class InvoiceItem(InvoiceItemBase):
         from_attributes = True
 
 class InvoiceBase(BaseModel):
-    customer_id: str
-    invoice_number: str
+    customer_id: Optional[str] = None
+    invoice_number: Optional[str] = None
     due_date: Optional[datetime] = None
     subtotal: float = 0.0
     tax: float = 0.0

@@ -1441,6 +1441,11 @@
                 const res = await fetch(`${API_URL}/admin/dashboard`, {
                     headers: getHeaders()
                 });
+                if (res.status === 401) {
+                    handleLogout();
+                    showToast('Session expired. Please log in again.', 'warning');
+                    return;
+                }
                 if (!res.ok) throw new Error();
                 const data = await res.json();
 
@@ -1448,7 +1453,7 @@
                 document.getElementById('stat-total-users').textContent = data.summary.total_users;
                 document.getElementById('stat-premium-users').textContent = data.summary.premium_users;
                 document.getElementById('stat-businesses').textContent = data.summary.total_businesses;
-                document.getElementById('stat-loans').textContent = `₹${data.summary.total_loan_volume.toLocaleString()}`;
+                document.getElementById('stat-loans').textContent = `₹${(data.summary.total_loan_volume || 0).toLocaleString()}`;
 
                 // Populate charts
                 renderGrowthChart(data.growth);
@@ -1478,10 +1483,10 @@
                 widgetList.innerHTML = items.map(fb => `
                     <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
                         <div class="flex justify-between align-center" style="margin-bottom: 0.4rem;">
-                            <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">User: ${fb.user_id.substring(0, 8)}...</span>
-                            <span class="badge badge-warning" style="padding: 0.15rem 0.5rem; font-size: 0.7rem;">⭐ ${fb.rating}</span>
+                            <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">User: ${(fb.user_id || '').substring(0, 8)}...</span>
+                            <span class="badge badge-warning" style="padding: 0.15rem 0.5rem; font-size: 0.7rem;">⭐ ${fb.rating || 0}</span>
                         </div>
-                        <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-primary);">${fb.comment || 'No comments'}</p>
+                        <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-primary);">${fb.message || fb.comment || 'No comments'}</p>
                     </div>
                 `).join('');
             } catch (e) { }
@@ -1547,6 +1552,12 @@
                     headers: getHeaders()
                 });
 
+                if (res.status === 401) {
+                    handleLogout();
+                    showToast('Session expired. Please log in again.', 'warning');
+                    return;
+                }
+
                 if (!res.ok) throw new Error();
                 const totalCountHeader = res.headers.get('X-Total-Count');
                 state.total = totalCountHeader ? parseInt(totalCountHeader) : state.limit; // fallback
@@ -1554,7 +1565,7 @@
                 const items = await res.json();
                 const tableBody = document.getElementById(tableBodyId);
 
-                if (items.length === 0) {
+                if (!items || items.length === 0) {
                     tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No logs found</td></tr>`;
                 } else {
                     tableBody.innerHTML = items.map(renderRowFunc).join('');
@@ -1683,17 +1694,19 @@
         function loadLoans() {
             fetchPaginatedList('loans', 'loans', 'loans-table-body', ln => {
                 const returnDate = ln.expected_return_date ? new Date(ln.expected_return_date).toLocaleDateString() : 'N/A';
+                const isLend = ln.type === 'lend' || ln.type === 'lent';
+                const amt = (ln.amount || 0).toLocaleString();
                 return `
                     <tr>
                         <td>
                             <div class="flex flex-col">
-                                <span style="font-weight:600;">${ln.person_name}</span>
+                                <span style="font-weight:600;">${ln.person_name || 'Unknown'}</span>
                                 <span style="font-size:0.75rem; color:var(--text-secondary);">${ln.person_phone || 'No phone'}</span>
                             </div>
                         </td>
-                        <td>${ln.user_id.substring(0, 8)}...</td>
-                        <td style="font-weight:700; color:${ln.type === 'lend' ? 'var(--success)' : 'var(--danger)'}">
-                            ${ln.type === 'lend' ? '+' : '-'} ₹${ln.amount.toLocaleString()}
+                        <td>${(ln.user_id || '').substring(0, 8)}...</td>
+                        <td style="font-weight:700; color:${isLend ? 'var(--success)' : 'var(--danger)'}">
+                            ${isLend ? '+' : '-'} ₹${amt}
                         </td>
                         <td>${returnDate}</td>
                         <td>
@@ -1709,13 +1722,17 @@
         // Businesses module
         function loadBusinesses() {
             fetchPaginatedList('businesses', 'businesses', 'businesses-table-body', biz => {
+                const name = biz.name || biz.business_name || 'Unnamed';
+                const email = biz.email || biz.business_email || 'N/A';
+                const phone = biz.phone || biz.business_phone || 'N/A';
+                const address = biz.address || biz.business_address || 'N/A';
                 return `
                     <tr>
-                        <td style="font-weight:600;">${biz.business_name}</td>
-                        <td>${biz.user_id.substring(0, 8)}...</td>
-                        <td>${biz.business_email || 'N/A'}</td>
-                        <td>${biz.business_phone || 'N/A'}</td>
-                        <td style="font-size:0.8rem; color:var(--text-secondary);">${biz.business_address || 'N/A'}</td>
+                        <td style="font-weight:600;">${name}</td>
+                        <td>${(biz.user_id || '').substring(0, 8)}...</td>
+                        <td>${email}</td>
+                        <td>${phone}</td>
+                        <td style="font-size:0.8rem; color:var(--text-secondary);">${address}</td>
                     </tr>
                 `;
             });
@@ -1724,19 +1741,21 @@
         // Invoices module
         function loadInvoices() {
             fetchPaginatedList('invoices', 'invoices', 'invoices-table-body', inv => {
-                const date = new Date(inv.date).toLocaleDateString();
+                const date = inv.date ? new Date(inv.date).toLocaleDateString() : 'N/A';
                 const statusBadge = inv.status === 'paid' ? `<span class="badge badge-success">Paid</span>` : `<span class="badge badge-warning">Unpaid</span>`;
                 const actionButton = inv.pdf_url ? `
                     <a href="${inv.pdf_url}" target="_blank" class="action-icon-btn" style="text-decoration:none;" title="Download PDF">
                         <i data-lucide="download" style="width:14px; height:14px; margin-top:9px;"></i>
                     </a>` : 'N/A';
+                const totalAmt = (inv.total !== undefined ? inv.total : (inv.total_amount || 0)).toLocaleString();
+                const paidAmt = (inv.paid_amount || 0).toLocaleString();
                 return `
                     <tr>
-                        <td style="font-weight:600;">${inv.invoice_number}</td>
-                        <td>${inv.business_id}</td>
+                        <td style="font-weight:600;">${inv.invoice_number || 'N/A'}</td>
+                        <td>${inv.business_id || 'N/A'}</td>
                         <td>${inv.creator_name || 'System'}</td>
-                        <td style="font-weight:700;">₹${inv.total_amount.toLocaleString()}</td>
-                        <td>₹${inv.paid_amount.toLocaleString()}</td>
+                        <td style="font-weight:700;">₹${totalAmt}</td>
+                        <td>₹${paidAmt}</td>
                         <td>${statusBadge}</td>
                         <td>${actionButton}</td>
                     </tr>
@@ -1747,12 +1766,12 @@
         // Feedback module
         function loadFeedback() {
             fetchPaginatedList('feedback', 'feedback', 'feedback-table-body', fb => {
-                const date = new Date(fb.created_at).toLocaleDateString();
+                const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : 'N/A';
                 return `
                     <tr>
-                        <td>${fb.user_id}</td>
-                        <td style="color:var(--warning); font-weight:700;">⭐ ${fb.rating}/5</td>
-                        <td>${fb.comment || 'N/A'}</td>
+                        <td>${fb.user_id || 'N/A'}</td>
+                        <td style="color:var(--warning); font-weight:700;">⭐ ${fb.rating || 0}/5</td>
+                        <td>${fb.message || fb.comment || 'N/A'}</td>
                         <td>${date}</td>
                     </tr>
                 `;
@@ -1798,6 +1817,16 @@
                 const resUpdate = await fetch(`${API_URL}/admin/settings/app-config`, {
                     headers: getHeaders()
                 });
+                const resPremium = await fetch(`${API_URL}/admin/settings/premium-amount`, {
+                    headers: getHeaders()
+                });
+
+                if (resUpdate.status === 401 || resPremium.status === 401) {
+                    handleLogout();
+                    showToast('Session expired. Please log in again.', 'warning');
+                    return;
+                }
+
                 if (resUpdate.ok) {
                     const updateConfig = await resUpdate.json();
                     document.getElementById('setting-min-version').value = updateConfig.min_version;
@@ -1805,10 +1834,6 @@
                     document.getElementById('setting-force-update').checked = updateConfig.force_update;
                 }
 
-                // Load premium pricing settings
-                const resPremium = await fetch(`${API_URL}/admin/settings/premium-amount`, {
-                    headers: getHeaders()
-                });
                 if (resPremium.ok) {
                     const premConfig = await resPremium.json();
                     document.getElementById('setting-premium-amount').value = premConfig.amount;

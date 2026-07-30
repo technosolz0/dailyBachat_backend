@@ -19,7 +19,7 @@ class PaymentDetail(PaymentDetailBase):
         from_attributes = True
 
 class BusinessProfileBase(BaseModel):
-    name: str
+    name: Optional[str] = "Unnamed Business"
     address: Optional[str] = None
     phone: Optional[str] = None
     email: Optional[str] = None
