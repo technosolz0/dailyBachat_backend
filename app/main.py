@@ -73,6 +73,7 @@ async def delete_account_page(request: Request):
 @app.get("/admin", response_class=HTMLResponse)
 async def admin_panel_page(request: Request):
     return templates.TemplateResponse("admin_panel.html", {"request": request})
+    #python3 create_admin.py "Admin Name1" "admin@db.in" "Admin@db123"
 
 # Ensure uploads directory exists
 UPLOAD_DIR = "uploads"
