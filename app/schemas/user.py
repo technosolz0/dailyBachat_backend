@@ -14,7 +14,7 @@ class UserBase(BaseModel):
     class Config:
         from_attributes = True
 
-    @field_validator('phone_number')
+    @field_validator('phone_number', mode='before')
     @classmethod
     def decrypt_phone(cls, v):
         if v:

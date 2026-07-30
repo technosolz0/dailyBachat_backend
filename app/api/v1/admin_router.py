@@ -24,7 +24,7 @@ from sqlalchemy import func
 import os
 import json
 
-from app.core.security import create_access_token, verify_password, decrypt_data
+from app.core.security import create_access_token, verify_password, decrypt_data, encrypt_data
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 router = APIRouter()
@@ -301,7 +301,7 @@ async def create_user_admin(
         id=user_id,
         email=user_data.email,
         name=user_data.name,
-        phone_number=user_data.phone_number,
+        phone_number=encrypt_data(user_data.phone_number) if user_data.phone_number else None,
         hashed_password=get_password_hash(user_data.password),
         device_info=user_data.device_info,
         is_active=True
