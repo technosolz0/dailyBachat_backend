@@ -70,6 +70,10 @@ templates = Jinja2Templates(directory="app/templates")
 async def delete_account_page(request: Request):
     return templates.TemplateResponse("delete_account.html", {"request": request})
 
+@app.get("/admin", response_class=HTMLResponse)
+async def admin_panel_page(request: Request):
+    return templates.TemplateResponse("admin_panel.html", {"request": request})
+
 # Ensure uploads directory exists
 UPLOAD_DIR = "uploads"
 for subdir in ["", "business_logos", "pdfs"]:

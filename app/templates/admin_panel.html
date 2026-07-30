@@ -1,0 +1,1897 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DailyBachat - Admin Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        :root {
+            --bg-primary: #0b0f19;
+            --bg-secondary: #131b2e;
+            --bg-card: rgba(20, 29, 51, 0.7);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --primary: #6366f1;
+            --primary-glow: rgba(99, 102, 241, 0.15);
+            --primary-hover: #4f46e5;
+            --success: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.1);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.1);
+            --warning: #f59e0b;
+            --info: #06b6d4;
+            --sidebar-width: 260px;
+            --glass-blur: blur(12px);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4,
+        .font-outfit {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        /* Utility classes */
+        .flex {
+            display: flex;
+        }
+
+        .flex-col {
+            flex-direction: column;
+        }
+
+        .align-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-2 {
+            gap: 0.5rem;
+        }
+
+        .gap-4 {
+            gap: 1rem;
+        }
+
+        .w-full {
+            width: 100%;
+        }
+
+        /* Login Screen */
+        #login-screen {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at top right, #1e1b4b, var(--bg-primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .login-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            backdrop-filter: var(--glass-blur);
+            border-radius: 24px;
+            padding: 3rem 2.5rem;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .logo-container {
+            margin-bottom: 2rem;
+        }
+
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            border-radius: 16px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-shadow: 0 8px 24px var(--primary-glow);
+            margin-bottom: 1rem;
+        }
+
+        .login-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(to right, #ffffff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .login-subtitle {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .input-group {
+            margin-bottom: 1.5rem;
+            text-align: left;
+        }
+
+        .input-label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.8rem 1rem 0.8rem 2.8rem;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+
+        .input-field:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px var(--primary-glow);
+            outline: none;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-secondary);
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn {
+            background: linear-gradient(to right, var(--primary), var(--primary-hover));
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 0.9rem 2rem;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+        }
+
+        .btn-full {
+            width: 100%;
+            margin-top: 1rem;
+        }
+
+        /* Dashboard Main Layout */
+        #app-layout {
+            display: none;
+            min-height: 100vh;
+        }
+
+        /* Sidebar styling */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border-color);
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            padding: 2rem 1.5rem;
+        }
+
+        .sidebar-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            margin-bottom: 3rem;
+        }
+
+        .sidebar-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--primary), #a855f7);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+        }
+
+        .brand-name {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .sidebar-menu {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            flex-grow: 1;
+        }
+
+        .menu-item a {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.8rem 1rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .menu-item.active a,
+        .menu-item a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .menu-item.active a {
+            background: var(--primary);
+            box-shadow: 0 4px 12px var(--primary-glow);
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--border-color);
+            padding-top: 1.5rem;
+        }
+
+        /* Main Content Container */
+        .main-wrapper {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header styling */
+        .header {
+            height: 70px;
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            background: rgba(11, 15, 25, 0.8);
+            backdrop-filter: var(--glass-blur);
+            z-index: 90;
+        }
+
+        .header-title {
+            font-size: 1.4rem;
+            font-weight: 700;
+        }
+
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            border: 1px solid var(--border-color);
+        }
+
+        .avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .username {
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        /* Content Area */
+        .content-body {
+            padding: 2.5rem;
+            flex-grow: 1;
+        }
+
+        .view-panel {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .view-panel.active {
+            display: block;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.2rem;
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+
+        .stat-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .stat-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 0.2rem;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            font-weight: 600;
+        }
+
+        /* Charts Layout */
+        .charts-row {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .charts-row {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        /* Custom Table Design */
+        .table-responsive {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+        }
+
+        th {
+            padding: 1rem 1.2rem;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 1.2rem;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        tr:hover td {
+            background: rgba(255, 255, 255, 0.01);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: var(--success-glow);
+            color: var(--success);
+        }
+
+        .badge-danger {
+            background: var(--danger-glow);
+            color: var(--danger);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .badge-info {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--info);
+        }
+
+        /* Settings Forms */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .form-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            padding: 2rem;
+        }
+
+        .form-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 0.8rem;
+        }
+
+        /* Toggle Switch */
+        .switch-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+            padding: 0.5rem 0;
+        }
+
+        .switch-label {
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background-color: rgba(15, 23, 42, 0.8);
+            transition: .4s;
+            border-radius: 34px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--primary);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        /* Modals */
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            width: 100%;
+            max-width: 500px;
+            padding: 2rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.3s;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+
+        .modal-footer {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        /* Toasts */
+        #toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--primary);
+            border-radius: 12px;
+            padding: 1rem 1.5rem;
+            color: white;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            min-width: 300px;
+            animation: slideInRight 0.3s, fadeOut 0.5s 4.5s forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+            }
+
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeOut {
+            to {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Table Pagination controls */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-top: 1.5rem;
+        }
+
+        .page-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: 0.3s;
+        }
+
+        .page-btn:hover:not(:disabled) {
+            background: var(--primary);
+        }
+
+        .page-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .page-info {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Mini action button */
+        .action-icon-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: white;
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.3s;
+            margin-right: 0.4rem;
+        }
+
+        .action-icon-btn:hover {
+            background: var(--primary);
+        }
+
+        .action-icon-btn.delete:hover {
+            background: var(--danger);
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toast-container"></div>
+
+    <!-- Login Screen -->
+    <div id="login-screen">
+        <div class="login-card">
+            <div class="logo-container">
+                <div class="logo-icon">
+                    <i data-lucide="shield-check" style="width: 32px; height: 32px;"></i>
+                </div>
+                <h1 class="login-title">DailyBachat Admin</h1>
+                <p class="login-subtitle">Secure administrative authentication portal</p>
+            </div>
+
+            <form id="login-form">
+                <div class="input-group">
+                    <label class="input-label">Email Address</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="mail" class="input-icon"></i>
+                        <input type="email" id="email" class="input-field" placeholder="admin@dailybachat.com" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Password</label>
+                    <div class="input-wrapper">
+                        <i data-lucide="lock" class="input-icon"></i>
+                        <input type="password" id="password" class="input-field" placeholder="••••••••" required>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-full">
+                    <span class="btn-text">Authenticate</span>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Layout -->
+    <div id="app-layout">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-logo">DB</div>
+                <span class="brand-name">DailyBachat</span>
+            </div>
+
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-tab="dashboard">
+                    <a href="#"><i data-lucide="layout-dashboard"></i>Dashboard</a>
+                </li>
+                <li class="menu-item" data-tab="users">
+                    <a href="#"><i data-lucide="users"></i>Users</a>
+                </li>
+                <li class="menu-item" data-tab="transactions">
+                    <a href="#"><i data-lucide="arrow-left-right"></i>Transactions</a>
+                </li>
+                <li class="menu-item" data-tab="loans">
+                    <a href="#"><i data-lucide="landmark"></i>Loans</a>
+                </li>
+                <li class="menu-item" data-tab="businesses">
+                    <a href="#"><i data-lucide="briefcase"></i>Businesses</a>
+                </li>
+                <li class="menu-item" data-tab="invoices">
+                    <a href="#"><i data-lucide="file-text"></i>Invoices</a>
+                </li>
+                <li class="menu-item" data-tab="feedback">
+                    <a href="#"><i data-lucide="message-square"></i>Feedback</a>
+                </li>
+                <li class="menu-item" data-tab="settings">
+                    <a href="#"><i data-lucide="settings"></i>Settings</a>
+                </li>
+            </ul>
+
+            <div class="sidebar-footer">
+                <li class="menu-item" id="logout-btn" style="list-style: none;">
+                    <a href="#" style="color: var(--danger);"><i data-lucide="log-out"></i>Logout</a>
+                </li>
+            </div>
+        </div>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Header -->
+            <div class="header">
+                <div class="header-title" id="page-title">Dashboard Overview</div>
+                <div class="user-profile">
+                    <div class="avatar">A</div>
+                    <span class="username">Static Admin</span>
+                </div>
+            </div>
+
+            <!-- Content Body -->
+            <div class="content-body">
+
+                <!-- DASHBOARD VIEW -->
+                <div id="dashboard-view" class="view-panel active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background-color: var(--primary);"><i data-lucide="users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Users</span>
+                                <span class="stat-value" id="stat-total-users">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background-color: var(--success);"><i
+                                    data-lucide="sparkles"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Premium Users</span>
+                                <span class="stat-value" id="stat-premium-users">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background-color: var(--info);"><i
+                                    data-lucide="briefcase"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Businesses</span>
+                                <span class="stat-value" id="stat-businesses">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background-color: var(--warning);"><i
+                                    data-lucide="landmark"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Loan Volume</span>
+                                <span class="stat-value" id="stat-loans">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="charts-row">
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Daily Platform Activity (Last 7 Days)</span>
+                            </div>
+                            <canvas id="growthChart" height="200"></canvas>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <span class="card-title">Recent Feedback</span>
+                            </div>
+                            <div id="recent-feedback-list" class="flex flex-col gap-4">
+                                <!-- Populated dynamically -->
+                                <p style="color: var(--text-secondary); font-size: 0.9rem;">No recent feedback found</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- USERS VIEW -->
+                <div id="users-view" class="view-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">All Registered Users</span>
+                            <div class="flex gap-2">
+                                <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;"
+                                    onclick="openNotificationModal()">
+                                    <i data-lucide="bell"
+                                        style="width: 16px; height: 16px; margin-right: 6px; vertical-align: middle;"></i>Push
+                                    Notification
+                                </button>
+                            </div>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Premium</th>
+                                        <th>Status</th>
+                                        <th>Created At</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" id="users-prev-btn" disabled>Previous</button>
+                            <span class="page-info" id="users-page-info">Page 1 of 1</span>
+                            <button class="page-btn" id="users-next-btn" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TRANSACTIONS VIEW -->
+                <div id="transactions-view" class="view-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Transaction Ledger Logs</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>User ID</th>
+                                        <th>Type</th>
+                                        <th>Category</th>
+                                        <th>Amount</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactions-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" id="transactions-prev-btn" disabled>Previous</button>
+                            <span class="page-info" id="transactions-page-info">Page 1 of 1</span>
+                            <button class="page-btn" id="transactions-next-btn" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOANS VIEW -->
+                <div id="loans-view" class="view-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Loans & Splits Logs</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Borrower</th>
+                                        <th>User ID</th>
+                                        <th>Amount</th>
+                                        <th>Expected Date</th>
+                                        <th>Reminder Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="loans-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" id="loans-prev-btn" disabled>Previous</button>
+                            <span class="page-info" id="loans-page-info">Page 1 of 1</span>
+                            <button class="page-btn" id="loans-next-btn" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BUSINESSES VIEW -->
+                <div id="businesses-view" class="view-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Registered Business Profiles</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Business Name</th>
+                                        <th>User ID</th>
+                                        <th>Email</th>
+                                        <th>Phone</th>
+                                        <th>Address</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="businesses-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" id="businesses-prev-btn" disabled>Previous</button>
+                            <span class="page-info" id="businesses-page-info">Page 1 of 1</span>
+                            <button class="page-btn" id="businesses-next-btn" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- INVOICES VIEW -->
+                <div id="invoices-view" class="view-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">Generated Invoices</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Invoice #</th>
+                                        <th>Business ID</th>
+                                        <th>Creator</th>
+                                        <th>Total</th>
+                                        <th>Paid</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="invoices-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" id="invoices-prev-btn" disabled>Previous</button>
+                            <span class="page-info" id="invoices-page-info">Page 1 of 1</span>
+                            <button class="page-btn" id="invoices-next-btn" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- FEEDBACK VIEW -->
+                <div id="feedback-view" class="view-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <span class="card-title">User Feedback</span>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>User ID</th>
+                                        <th>Rating</th>
+                                        <th>Comment</th>
+                                        <th>Created At</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="feedback-table-body">
+                                    <!-- Populated dynamically -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="pagination">
+                            <button class="page-btn" id="feedback-prev-btn" disabled>Previous</button>
+                            <span class="page-info" id="feedback-page-info">Page 1 of 1</span>
+                            <button class="page-btn" id="feedback-next-btn" disabled>Next</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SETTINGS VIEW -->
+                <div id="settings-view" class="view-panel">
+                    <div class="form-grid">
+                        <!-- App System configuration -->
+                        <div class="form-card">
+                            <h3 class="form-title">Application Configuration</h3>
+                            <form id="app-config-form">
+                                <div class="input-group">
+                                    <label class="input-label">Minimum SemVer version</label>
+                                    <div class="input-wrapper">
+                                        <input type="text" id="setting-min-version" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="1.0.0" required>
+                                    </div>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Application store URL</label>
+                                    <div class="input-wrapper">
+                                        <input type="url" id="setting-store-url" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="https://play.google.com/..."
+                                            required>
+                                    </div>
+                                </div>
+                                <div class="switch-container">
+                                    <span class="switch-label">Enforce mandatory update</span>
+                                    <label class="switch">
+                                        <input type="checkbox" id="setting-force-update">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <button type="submit" class="btn btn-full" style="margin-top: 2rem;">Save
+                                    Configurations</button>
+                            </form>
+                        </div>
+
+                        <!-- Premium configuration -->
+                        <div class="form-card">
+                            <h3 class="form-title">Premium Settings</h3>
+                            <form id="premium-amount-form">
+                                <div class="input-group">
+                                    <label class="input-label">Premium Pricing (INR)</label>
+                                    <div class="input-wrapper">
+                                        <input type="number" id="setting-premium-amount" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="999" required>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-full" style="margin-top: 1rem;">Update Premium
+                                    Pricing</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALS -->
+    <!-- Edit User Status Modal -->
+    <div id="edit-user-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="card-title">Edit User Privileges</h3>
+                <button class="close-btn" onclick="closeUserModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form id="edit-user-form">
+                <input type="hidden" id="edit-user-id">
+
+                <div class="switch-container">
+                    <span class="switch-label">Active / Unblocked Account</span>
+                    <label class="switch">
+                        <input type="checkbox" id="edit-user-active">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-container">
+                    <span class="switch-label">Admin Privileges</span>
+                    <label class="switch">
+                        <input type="checkbox" id="edit-user-admin">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="switch-container">
+                    <span class="switch-label">Premium Subscription</span>
+                    <label class="switch">
+                        <input type="checkbox" id="edit-user-premium">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn"
+                        style="background: rgba(255,255,255,0.05); color: white; box-shadow: none;"
+                        onclick="closeUserModal()">Cancel</button>
+                    <button type="submit" class="btn">Save changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Push Notification Modal -->
+    <div id="notification-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 class="card-title">Send Global Push Notification</h3>
+                <button class="close-btn" onclick="closeNotificationModal()"><i data-lucide="x"></i></button>
+            </div>
+            <form id="notification-form">
+                <div class="input-group">
+                    <label class="input-label">Notification Title</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="notify-title" class="input-field" style="padding-left: 1rem;"
+                            placeholder="Announcement" required>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <label class="input-label">Message Body</label>
+                    <div class="input-wrapper">
+                        <textarea id="notify-body" class="input-field"
+                            style="padding-left: 1rem; height: 100px; resize: none;"
+                            placeholder="Enter message text here..." required></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn"
+                        style="background: rgba(255,255,255,0.05); color: white; box-shadow: none;"
+                        onclick="closeNotificationModal()">Cancel</button>
+                    <button type="submit" class="btn">Broadcast Push</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        // API Base URL (relative to path)
+        const API_URL = '/api/v1';
+        let AUTH_TOKEN = localStorage.getItem('admin_token');
+        let activeTab = 'dashboard';
+
+        // Pagination states
+        let paginations = {
+            users: { page: 1, limit: 10, total: 0 },
+            transactions: { page: 1, limit: 10, total: 0 },
+            loans: { page: 1, limit: 10, total: 0 },
+            businesses: { page: 1, limit: 10, total: 0 },
+            invoices: { page: 1, limit: 10, total: 0 },
+            feedback: { page: 1, limit: 10, total: 0 }
+        };
+
+        // Charts
+        let growthChartInstance = null;
+
+        // Initialize Lucide Icons
+        document.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            checkAuth();
+            setupMenuNavigation();
+
+            // Forms hooks
+            document.getElementById('login-form').addEventListener('submit', handleLogin);
+            document.getElementById('app-config-form').addEventListener('submit', handleAppConfigSubmit);
+            document.getElementById('premium-amount-form').addEventListener('submit', handlePremiumAmountSubmit);
+            document.getElementById('edit-user-form').addEventListener('submit', handleUserEditSubmit);
+            document.getElementById('notification-form').addEventListener('submit', handleNotificationSubmit);
+            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+
+            // Pagination button event listeners
+            setupPaginationButtons();
+        });
+
+        // Setup toast helper
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast`;
+            if (type === 'error') toast.style.borderLeftColor = 'var(--danger)';
+            else if (type === 'warning') toast.style.borderLeftColor = 'var(--warning)';
+            else toast.style.borderLeftColor = 'var(--success)';
+
+            let iconName = type === 'error' ? 'alert-triangle' : (type === 'warning' ? 'alert-circle' : 'check-circle');
+            toast.innerHTML = `<i data-lucide="${iconName}"></i> <span>${message}</span>`;
+            container.appendChild(toast);
+            lucide.createIcons();
+
+            setTimeout(() => {
+                toast.remove();
+            }, 5000);
+        }
+
+        // Authenticated headers helper
+        function getHeaders() {
+            return {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${AUTH_TOKEN}`
+            };
+        }
+
+        // Check authentication token
+        function checkAuth() {
+            if (AUTH_TOKEN) {
+                document.getElementById('login-screen').style.display = 'none';
+                document.getElementById('app-layout').style.display = 'flex';
+                loadTabContent('dashboard');
+            } else {
+                document.getElementById('login-screen').style.display = 'flex';
+                document.getElementById('app-layout').style.display = 'none';
+            }
+        }
+
+        // Login authentication
+        async function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch(`${API_URL}/admin/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    AUTH_TOKEN = data.access_token;
+                    localStorage.setItem('admin_token', AUTH_TOKEN);
+                    showToast('Successfully authenticated!');
+                    checkAuth();
+                } else {
+                    const err = await response.json();
+                    showToast(err.detail || 'Authentication failed', 'error');
+                }
+            } catch (e) {
+                showToast('Unable to connect to FastAPI backend server', 'error');
+            }
+        }
+
+        // Logout
+        function handleLogout() {
+            localStorage.removeItem('admin_token');
+            AUTH_TOKEN = null;
+            showToast('Logged out successfully');
+            checkAuth();
+        }
+
+        // Setup Sidebar menu navigation
+        function setupMenuNavigation() {
+            const menuItems = document.querySelectorAll('.menu-item[data-tab]');
+            menuItems.forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    menuItems.forEach(i => i.classList.remove('active'));
+                    item.classList.add('active');
+
+                    const tab = item.getAttribute('data-tab');
+                    activeTab = tab;
+
+                    // Update header title
+                    const titles = {
+                        dashboard: 'Dashboard Overview',
+                        users: 'Users Management',
+                        transactions: 'Transactions logs',
+                        loans: 'Loans ledger logs',
+                        businesses: 'Business profiles',
+                        invoices: 'Invoice history',
+                        feedback: 'User reviews and rating',
+                        settings: 'System configuration settings'
+                    };
+                    document.getElementById('page-title').textContent = titles[tab] || 'Admin Dashboard';
+
+                    // Show panel
+                    const panels = document.querySelectorAll('.view-panel');
+                    panels.forEach(p => p.classList.remove('active'));
+                    document.getElementById(`${tab}-view`).classList.add('active');
+
+                    loadTabContent(tab);
+                });
+            });
+        }
+
+        // Load tab information based on dynamic routing
+        function loadTabContent(tab) {
+            switch (tab) {
+                case 'dashboard':
+                    loadDashboardStats();
+                    break;
+                case 'users':
+                    loadUsers();
+                    break;
+                case 'transactions':
+                    loadTransactions();
+                    break;
+                case 'loans':
+                    loadLoans();
+                    break;
+                case 'businesses':
+                    loadBusinesses();
+                    break;
+                case 'invoices':
+                    loadInvoices();
+                    break;
+                case 'feedback':
+                    loadFeedback();
+                    break;
+                case 'settings':
+                    loadSettings();
+                    break;
+            }
+        }
+
+        // Fetch dashboard statistics
+        async function loadDashboardStats() {
+            try {
+                const res = await fetch(`${API_URL}/admin/dashboard`, {
+                    headers: getHeaders()
+                });
+                if (!res.ok) throw new Error();
+                const data = await res.json();
+
+                // Populate metrics
+                document.getElementById('stat-total-users').textContent = data.summary.total_users;
+                document.getElementById('stat-premium-users').textContent = data.summary.premium_users;
+                document.getElementById('stat-businesses').textContent = data.summary.total_businesses;
+                document.getElementById('stat-loans').textContent = `₹${data.summary.total_loan_volume.toLocaleString()}`;
+
+                // Populate charts
+                renderGrowthChart(data.growth);
+
+                // Populate recent feedback list (limit to 3 items)
+                loadRecentFeedbackWidget();
+            } catch (err) {
+                showToast('Failed to retrieve dashboard stats', 'error');
+            }
+        }
+
+        // Mini feedback widget on dashboard
+        async function loadRecentFeedbackWidget() {
+            try {
+                const res = await fetch(`${API_URL}/admin/feedback?_start=0&_end=3&_sort=id&_order=DESC`, {
+                    headers: getHeaders()
+                });
+                if (!res.ok) return;
+                const items = await res.json();
+
+                const widgetList = document.getElementById('recent-feedback-list');
+                if (items.length === 0) {
+                    widgetList.innerHTML = `<p style="color: var(--text-secondary); font-size: 0.9rem;">No recent feedback found</p>`;
+                    return;
+                }
+
+                widgetList.innerHTML = items.map(fb => `
+                    <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
+                        <div class="flex justify-between align-center" style="margin-bottom: 0.4rem;">
+                            <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">User: ${fb.user_id.substring(0, 8)}...</span>
+                            <span class="badge badge-warning" style="padding: 0.15rem 0.5rem; font-size: 0.7rem;">⭐ ${fb.rating}</span>
+                        </div>
+                        <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-primary);">${fb.comment || 'No comments'}</p>
+                    </div>
+                `).join('');
+            } catch (e) { }
+        }
+
+        // Render growth line chart
+        function renderGrowthChart(growthData) {
+            const ctx = document.getElementById('growthChart').getContext('2d');
+            const labels = growthData.map(g => g.date);
+            const userCounts = growthData.map(g => g.new_users);
+            const transCounts = growthData.map(g => g.transactions);
+
+            if (growthChartInstance) {
+                growthChartInstance.destroy();
+            }
+
+            growthChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'New Registrations',
+                            data: userCounts,
+                            borderColor: '#6366f1',
+                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        },
+                        {
+                            label: 'Total Transactions',
+                            data: transCounts,
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            fill: true,
+                            tension: 0.3,
+                            borderWidth: 2
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { labels: { color: '#94a3b8' } }
+                    },
+                    scales: {
+                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+
+        // Setup dynamic list fetch utility
+        async function fetchPaginatedList(endpoint, tabName, tableBodyId, renderRowFunc) {
+            const state = paginations[tabName];
+            const start = (state.page - 1) * state.limit;
+            const end = start + state.limit;
+
+            try {
+                const res = await fetch(`${API_URL}/admin/${endpoint}?_start=${start}&_end=${end}&_sort=id&_order=DESC`, {
+                    headers: getHeaders()
+                });
+
+                if (!res.ok) throw new Error();
+                const totalCountHeader = res.headers.get('X-Total-Count');
+                state.total = totalCountHeader ? parseInt(totalCountHeader) : state.limit; // fallback
+
+                const items = await res.json();
+                const tableBody = document.getElementById(tableBodyId);
+
+                if (items.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No logs found</td></tr>`;
+                } else {
+                    tableBody.innerHTML = items.map(renderRowFunc).join('');
+                }
+
+                updatePaginationControls(tabName);
+                lucide.createIcons();
+            } catch (err) {
+                showToast(`Failed to load ${tabName} data`, 'error');
+            }
+        }
+
+        // Users module
+        function loadUsers() {
+            fetchPaginatedList('users', 'users', 'users-table-body', user => {
+                const date = new Date(user.created_at).toLocaleDateString();
+                const premiumBadge = user.is_premium ? `<span class="badge badge-success">Premium</span>` : `<span class="badge badge-danger">Standard</span>`;
+                const activeBadge = user.is_active ? `<span class="badge badge-success">Active</span>` : `<span class="badge badge-danger">Blocked</span>`;
+                return `
+                    <tr>
+                        <td>
+                            <div class="flex flex-col">
+                                <span style="font-weight:600;">${user.name || 'User'}</span>
+                                <span style="font-size:0.75rem; color:var(--text-secondary);">${user.id}</span>
+                            </div>
+                        </td>
+                        <td>${user.email}</td>
+                        <td>${user.phone_number || 'N/A'}</td>
+                        <td>${premiumBadge}</td>
+                        <td>${activeBadge}</td>
+                        <td>${date}</td>
+                        <td>
+                            <button class="action-icon-btn" onclick="openUserModal('${user.id}', ${user.is_active}, ${user.is_premium}, ${user.is_admin})" title="Edit status">
+                                <i data-lucide="edit-3" style="width:14px; height:14px;"></i>
+                            </button>
+                            <button class="action-icon-btn delete" onclick="handleUserDelete('${user.id}')" title="Delete account">
+                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // User edit action
+        function openUserModal(id, isActive, isPremium, isAdmin) {
+            document.getElementById('edit-user-id').value = id;
+            document.getElementById('edit-user-active').checked = isActive;
+            document.getElementById('edit-user-premium').checked = isPremium;
+            document.getElementById('edit-user-admin').checked = isAdmin;
+            document.getElementById('edit-user-modal').style.display = 'flex';
+        }
+
+        function closeUserModal() {
+            document.getElementById('edit-user-modal').style.display = 'none';
+        }
+
+        async function handleUserEditSubmit(e) {
+            e.preventDefault();
+            const id = document.getElementById('edit-user-id').value;
+            const is_active = document.getElementById('edit-user-active').checked;
+            const is_premium = document.getElementById('edit-user-premium').checked;
+            const is_admin = document.getElementById('edit-user-admin').checked;
+
+            try {
+                const response = await fetch(`${API_URL}/admin/users/${id}`, {
+                    method: 'PUT',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ is_active, is_premium, is_admin })
+                });
+
+                if (response.ok) {
+                    showToast('User preferences updated successfully');
+                    closeUserModal();
+                    loadUsers();
+                } else {
+                    const err = await response.json();
+                    showToast(err.detail || 'Could not update user', 'error');
+                }
+            } catch (err) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        async function handleUserDelete(id) {
+            if (!confirm(`Are you absolutely sure you want to permanently delete user ${id}? This action will wipe all their splits, categories, businesses and transaction ledgers!`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/users/${id}`, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+
+                if (response.ok) {
+                    showToast('User account successfully deleted');
+                    loadUsers();
+                } else {
+                    showToast('Could not delete user', 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // Transactions module
+        function loadTransactions() {
+            fetchPaginatedList('transactions', 'transactions', 'transactions-table-body', tx => {
+                const date = new Date(tx.created_at).toLocaleDateString();
+                const typeBadge = tx.type === 'income' ? `<span class="badge badge-success">Income</span>` : `<span class="badge badge-danger">Expense</span>`;
+                return `
+                    <tr>
+                        <td style="font-family:monospace; font-size:0.8rem;">${tx.id.substring(0, 8)}...</td>
+                        <td>${tx.user_id.substring(0, 8)}...</td>
+                        <td>${typeBadge}</td>
+                        <td>${tx.category_id || 'Global'}</td>
+                        <td style="font-weight:700;">₹${tx.amount.toLocaleString()}</td>
+                        <td>${date}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Loans module
+        function loadLoans() {
+            fetchPaginatedList('loans', 'loans', 'loans-table-body', ln => {
+                const returnDate = ln.expected_return_date ? new Date(ln.expected_return_date).toLocaleDateString() : 'N/A';
+                return `
+                    <tr>
+                        <td>
+                            <div class="flex flex-col">
+                                <span style="font-weight:600;">${ln.person_name}</span>
+                                <span style="font-size:0.75rem; color:var(--text-secondary);">${ln.person_phone || 'No phone'}</span>
+                            </div>
+                        </td>
+                        <td>${ln.user_id.substring(0, 8)}...</td>
+                        <td style="font-weight:700; color:${ln.type === 'lend' ? 'var(--success)' : 'var(--danger)'}">
+                            ${ln.type === 'lend' ? '+' : '-'} ₹${ln.amount.toLocaleString()}
+                        </td>
+                        <td>${returnDate}</td>
+                        <td>
+                            <span class="badge ${ln.reminder_duedate_sent ? 'badge-success' : 'badge-warning'}">
+                                Due Alert: ${ln.reminder_duedate_sent ? 'Sent' : 'Pending'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Businesses module
+        function loadBusinesses() {
+            fetchPaginatedList('businesses', 'businesses', 'businesses-table-body', biz => {
+                return `
+                    <tr>
+                        <td style="font-weight:600;">${biz.business_name}</td>
+                        <td>${biz.user_id.substring(0, 8)}...</td>
+                        <td>${biz.business_email || 'N/A'}</td>
+                        <td>${biz.business_phone || 'N/A'}</td>
+                        <td style="font-size:0.8rem; color:var(--text-secondary);">${biz.business_address || 'N/A'}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Invoices module
+        function loadInvoices() {
+            fetchPaginatedList('invoices', 'invoices', 'invoices-table-body', inv => {
+                const date = new Date(inv.date).toLocaleDateString();
+                const statusBadge = inv.status === 'paid' ? `<span class="badge badge-success">Paid</span>` : `<span class="badge badge-warning">Unpaid</span>`;
+                const actionButton = inv.pdf_url ? `
+                    <a href="${inv.pdf_url}" target="_blank" class="action-icon-btn" style="text-decoration:none;" title="Download PDF">
+                        <i data-lucide="download" style="width:14px; height:14px; margin-top:9px;"></i>
+                    </a>` : 'N/A';
+                return `
+                    <tr>
+                        <td style="font-weight:600;">${inv.invoice_number}</td>
+                        <td>${inv.business_id}</td>
+                        <td>${inv.creator_name || 'System'}</td>
+                        <td style="font-weight:700;">₹${inv.total_amount.toLocaleString()}</td>
+                        <td>₹${inv.paid_amount.toLocaleString()}</td>
+                        <td>${statusBadge}</td>
+                        <td>${actionButton}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Feedback module
+        function loadFeedback() {
+            fetchPaginatedList('feedback', 'feedback', 'feedback-table-body', fb => {
+                const date = new Date(fb.created_at).toLocaleDateString();
+                return `
+                    <tr>
+                        <td>${fb.user_id}</td>
+                        <td style="color:var(--warning); font-weight:700;">⭐ ${fb.rating}/5</td>
+                        <td>${fb.comment || 'N/A'}</td>
+                        <td>${date}</td>
+                    </tr>
+                `;
+            });
+        }
+
+        // Global Push Notifications Modals
+        function openNotificationModal() {
+            document.getElementById('notification-modal').style.display = 'flex';
+        }
+
+        function closeNotificationModal() {
+            document.getElementById('notification-modal').style.display = 'none';
+        }
+
+        async function handleNotificationSubmit(e) {
+            e.preventDefault();
+            const title = document.getElementById('notify-title').value;
+            const body = document.getElementById('notify-body').value;
+
+            try {
+                const res = await fetch(`${API_URL}/admin/notifications/send`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ title, body })
+                });
+
+                if (res.ok) {
+                    showToast('Push notification broadcast queued!');
+                    closeNotificationModal();
+                } else {
+                    showToast('Failed to queue push alerts', 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // System Settings module
+        async function loadSettings() {
+            try {
+                // Load App update settings
+                const resUpdate = await fetch(`${API_URL}/admin/settings/app-config`, {
+                    headers: getHeaders()
+                });
+                if (resUpdate.ok) {
+                    const updateConfig = await resUpdate.json();
+                    document.getElementById('setting-min-version').value = updateConfig.min_version;
+                    document.getElementById('setting-store-url').value = updateConfig.store_url;
+                    document.getElementById('setting-force-update').checked = updateConfig.force_update;
+                }
+
+                // Load premium pricing settings
+                const resPremium = await fetch(`${API_URL}/admin/settings/premium-amount`, {
+                    headers: getHeaders()
+                });
+                if (resPremium.ok) {
+                    const premConfig = await resPremium.json();
+                    document.getElementById('setting-premium-amount').value = premConfig.amount;
+                }
+            } catch (err) {
+                showToast('Failed to fetch system configurations', 'error');
+            }
+        }
+
+        async function handleAppConfigSubmit(e) {
+            e.preventDefault();
+            const min_version = document.getElementById('setting-min-version').value;
+            const store_url = document.getElementById('setting-store-url').value;
+            const force_update = document.getElementById('setting-force-update').checked;
+
+            try {
+                const res = await fetch(`${API_URL}/admin/settings/app-config`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ min_version, store_url, force_update })
+                });
+
+                if (res.ok) {
+                    showToast('App update specifications saved');
+                } else {
+                    showToast('Error saving configurations', 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        async function handlePremiumAmountSubmit(e) {
+            e.preventDefault();
+            const amount = parseInt(document.getElementById('setting-premium-amount').value);
+
+            try {
+                const res = await fetch(`${API_URL}/admin/settings/premium-amount`, {
+                    method: 'POST',
+                    headers: getHeaders(),
+                    body: JSON.stringify({ amount })
+                });
+
+                if (res.ok) {
+                    showToast('Premium pricing updated');
+                } else {
+                    showToast('Error updating price', 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+
+        // Pagination buttons configurations
+        function setupPaginationButtons() {
+            const tabs = ['users', 'transactions', 'loans', 'businesses', 'invoices', 'feedback'];
+            tabs.forEach(tab => {
+                document.getElementById(`${tab}-prev-btn`).addEventListener('click', () => {
+                    if (paginations[tab].page > 1) {
+                        paginations[tab].page--;
+                        loadTabContent(tab);
+                    }
+                });
+                document.getElementById(`${tab}-next-btn`).addEventListener('click', () => {
+                    const maxPage = Math.ceil(paginations[tab].total / paginations[tab].limit);
+                    if (paginations[tab].page < maxPage) {
+                        paginations[tab].page++;
+                        loadTabContent(tab);
+                    }
+                });
+            });
+        }
+
+        function updatePaginationControls(tab) {
+            const state = paginations[tab];
+            const maxPage = Math.ceil(state.total / state.limit) || 1;
+
+            document.getElementById(`${tab}-page-info`).textContent = `Page ${state.page} of ${maxPage}`;
+            document.getElementById(`${tab}-prev-btn`).disabled = state.page <= 1;
+            document.getElementById(`${tab}-next-btn`).disabled = state.page >= maxPage;
+        }
+
+    </script>
+</body>
+
+</html>

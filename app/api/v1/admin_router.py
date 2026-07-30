@@ -17,7 +17,7 @@ from app.schemas.business import BusinessProfile as BusinessProfileSchema
 from app.schemas.invoice import Invoice as InvoiceSchema
 from app.schemas.transaction import TransactionInDB
 from app.schemas.notification import NotificationSend, NotificationResponse
-from app.schemas.system_settings import PremiumAmountUpdate, PremiumFeaturesUpdate
+from app.schemas.system_settings import PremiumAmountUpdate, PremiumFeaturesUpdate, AppConfigUpdate
 from app.core.firebase_config import send_push_notification, send_multicast_notification
 from typing import List
 from sqlalchemy import func
@@ -559,3 +559,73 @@ async def update_premium_features(
     
     db.commit()
     return {"message": "Premium features updated successfully", "features": data.features}
+
+@router.get("/settings/app-config")
+async def get_admin_app_config(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Get app config settings for admin.
+    """
+    min_version_setting = db.query(SystemSettings).filter(SystemSettings.key == "app_min_version").first()
+    store_url_setting = db.query(SystemSettings).filter(SystemSettings.key == "app_store_url").first()
+    force_update_setting = db.query(SystemSettings).filter(SystemSettings.key == "app_force_update").first()
+
+    return {
+        "min_version": min_version_setting.value if min_version_setting else "1.0.0",
+        "store_url": store_url_setting.value if store_url_setting else "https://play.google.com/store/apps/details?id=com.technosolz.dailybachat",
+        "force_update": force_update_setting.value.lower() == "true" if force_update_setting else True
+    }
+
+@router.post("/settings/app-config")
+async def update_app_config(
+    data: AppConfigUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Update app config settings. Restricted to admins.
+    """
+    settings = {
+        "app_min_version": data.min_version,
+        "app_store_url": data.store_url,
+        "app_force_update": str(data.force_update).lower()
+    }
+
+    for key, val in settings.items():
+        setting = db.query(SystemSettings).filter(SystemSettings.key == key).first()
+        if not setting:
+            setting = SystemSettings(key=key, value=val)
+            db.add(setting)
+        else:
+            setting.value = val
+
+    db.commit()
+    return {"message": "App configuration updated successfully", "config": data}
+
+@router.get("/settings/premium-amount")
+async def get_premium_amount(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Get the premium feature price. Restricted to admins.
+    """
+    setting = db.query(SystemSettings).filter(SystemSettings.key == "premium_amount").first()
+    return {"amount": int(setting.value) if setting else 999}
+
+@router.get("/settings/premium-features")
+async def get_premium_features(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Get the premium features list. Restricted to admins.
+    """
+    setting = db.query(SystemSettings).filter(SystemSettings.key == "premium_features").first()
+    if setting:
+        return {"features": json.loads(setting.value)}
+    return {"features": []}
+
+

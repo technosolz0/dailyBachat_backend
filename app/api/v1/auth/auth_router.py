@@ -19,6 +19,8 @@ import uuid
 
 from app.core.email_service import email_service
 from app.models.otp import OTP
+from app.models.system_settings import SystemSettings
+
 
 def find_user_by_phone(db: Session, phone: str):
     """
@@ -632,4 +634,20 @@ async def delete_account(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to delete account: {str(e)}"
         )
+
+@router.get("/app-config")
+async def get_app_config(db: Session = Depends(get_db)):
+    """
+    Get application update configuration (min_version, store_url, force_update).
+    """
+    min_version_setting = db.query(SystemSettings).filter(SystemSettings.key == "app_min_version").first()
+    store_url_setting = db.query(SystemSettings).filter(SystemSettings.key == "app_store_url").first()
+    force_update_setting = db.query(SystemSettings).filter(SystemSettings.key == "app_force_update").first()
+
+    return {
+        "min_version": min_version_setting.value if min_version_setting else "1.0.0",
+        "store_url": store_url_setting.value if store_url_setting else "https://play.google.com/store/apps/details?id=com.technosolz.dailybachat",
+        "force_update": force_update_setting.value.lower() == "true" if force_update_setting else True
+    }
+
 

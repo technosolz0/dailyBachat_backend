@@ -20,3 +20,10 @@ class PremiumFeature(BaseModel):
 class PremiumFeaturesUpdate(BaseModel):
     features: List[PremiumFeature]
 
+
+class AppConfigUpdate(BaseModel):
+    min_version: str
+    store_url: str
+    force_update: bool
+
+
