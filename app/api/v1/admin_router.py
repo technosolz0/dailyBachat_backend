@@ -94,7 +94,21 @@ def _format_user(user):
         try:
             phone_val = decrypt_data(user.phone_number)
         except Exception:
-            phone_val = user.phone_number
+            phone_val = "N/A"
+
+    # Fallback: If phone is missing/N/A or a residual Fernet token starting with "gAAAAA"
+    if not phone_val or phone_val == "N/A" or phone_val.startswith("gAAAAA"):
+        if user.email and "@dailybachat.com" in user.email:
+            prefix = user.email.split("@")[0]
+            if prefix.isdigit():
+                phone_val = f"+{prefix}"
+            elif prefix.startswith("+") and prefix[1:].isdigit():
+                phone_val = prefix
+            else:
+                phone_val = "N/A"
+        else:
+            phone_val = "N/A"
+
     return {
         "id": str(user.id),
         "email": user.email,
@@ -337,6 +351,20 @@ async def get_all_feedback(
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
     return items
 
+@router.delete("/feedback/{feedback_id}")
+async def delete_feedback(
+    feedback_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Delete a feedback entry."""
+    fb = db.query(Feedback).filter(Feedback.id == feedback_id).first()
+    if not fb:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    db.delete(fb)
+    db.commit()
+    return {"message": "Feedback deleted successfully"}
+
 @router.get("/transactions", response_model=List[TransactionInDB])
 async def get_all_transactions(
     response: Response,
@@ -355,6 +383,20 @@ async def get_all_transactions(
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
     return items
+
+@router.delete("/transactions/{transaction_id}")
+async def delete_transaction(
+    transaction_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Delete a transaction record."""
+    tx = db.query(Transaction).filter(Transaction.id == transaction_id).first()
+    if not tx:
+        raise HTTPException(status_code=404, detail="Transaction not found")
+    db.delete(tx)
+    db.commit()
+    return {"message": "Transaction deleted successfully"}
 
 @router.get("/loans", response_model=List[LoanInDB])
 async def get_all_loans(
@@ -375,6 +417,20 @@ async def get_all_loans(
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
     return items
 
+@router.delete("/loans/{loan_id}")
+async def delete_loan(
+    loan_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Delete a loan record."""
+    ln = db.query(Loan).filter(Loan.id == loan_id).first()
+    if not ln:
+        raise HTTPException(status_code=404, detail="Loan record not found")
+    db.delete(ln)
+    db.commit()
+    return {"message": "Loan record deleted successfully"}
+
 @router.get("/businesses", response_model=List[BusinessProfileSchema])
 async def get_all_businesses(
     response: Response,
@@ -394,6 +450,49 @@ async def get_all_businesses(
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
     return items
 
+@router.delete("/businesses/{business_id}")
+async def delete_business(
+    business_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Delete a business profile and its cascade records."""
+    biz = db.query(BusinessProfile).filter(BusinessProfile.id == business_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Business profile not found")
+    
+    try:
+        from app.models.customer import Customer
+        from app.models.invoice import Invoice, InvoiceItem, Payment, ShareToken, Quotation, QuotationItem
+        from app.models.product import Product
+        from app.models.business import PaymentDetail
+
+        invoices = db.query(Invoice).filter(Invoice.business_id == business_id).all()
+        inv_ids = [i.id for i in invoices]
+        if inv_ids:
+            db.query(InvoiceItem).filter(InvoiceItem.invoice_id.in_(inv_ids)).delete(synchronize_session=False)
+            db.query(Payment).filter(Payment.invoice_id.in_(inv_ids)).delete(synchronize_session=False)
+            db.query(ShareToken).filter(ShareToken.invoice_id.in_(inv_ids)).delete(synchronize_session=False)
+            db.query(Invoice).filter(Invoice.id.in_(inv_ids)).delete(synchronize_session=False)
+
+        quotations = db.query(Quotation).filter(Quotation.business_id == business_id).all()
+        q_ids = [q.id for q in quotations]
+        if q_ids:
+            db.query(ShareToken).filter(ShareToken.quotation_id.in_(q_ids)).delete(synchronize_session=False)
+            db.query(QuotationItem).filter(QuotationItem.quotation_id.in_(q_ids)).delete(synchronize_session=False)
+            db.query(Quotation).filter(Quotation.id.in_(q_ids)).delete(synchronize_session=False)
+
+        db.query(Product).filter(Product.business_id == business_id).delete(synchronize_session=False)
+        db.query(Customer).filter(Customer.business_id == business_id).delete(synchronize_session=False)
+        db.query(PaymentDetail).filter(PaymentDetail.business_id == business_id).delete(synchronize_session=False)
+        
+        db.delete(biz)
+        db.commit()
+        return {"message": "Business profile deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete business: {str(e)}")
+
 @router.get("/invoices", response_model=List[InvoiceSchema])
 async def get_all_invoices(
     response: Response,
@@ -412,6 +511,29 @@ async def get_all_invoices(
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
     return items
+
+@router.delete("/invoices/{invoice_id}")
+async def delete_invoice(
+    invoice_id: str,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """Delete an invoice and its items."""
+    inv = db.query(Invoice).filter(Invoice.id == invoice_id).first()
+    if not inv:
+        raise HTTPException(status_code=404, detail="Invoice not found")
+
+    try:
+        from app.models.invoice import InvoiceItem, Payment, ShareToken
+        db.query(InvoiceItem).filter(InvoiceItem.invoice_id == invoice_id).delete(synchronize_session=False)
+        db.query(Payment).filter(Payment.invoice_id == invoice_id).delete(synchronize_session=False)
+        db.query(ShareToken).filter(ShareToken.invoice_id == invoice_id).delete(synchronize_session=False)
+        db.delete(inv)
+        db.commit()
+        return {"message": "Invoice deleted successfully"}
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=500, detail=f"Failed to delete invoice: {str(e)}")
 
 @router.post("/notifications/send", response_model=NotificationResponse)
 async def send_notifications(

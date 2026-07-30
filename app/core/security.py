@@ -29,15 +29,32 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256", "bcrypt"], deprecated="auto
 def encrypt_data(data: str) -> str:
     if not data:
         return data
-    return cipher_suite.encrypt(data.encode()).decode()
+    # Store plaintext phone numbers directly
+    return data
 
 def decrypt_data(encrypted_data: str) -> str:
     if not encrypted_data:
         return encrypted_data
+    # If not a Fernet ciphertext, return as-is (plaintext)
+    if not encrypted_data.startswith("gAAAAA"):
+        return encrypted_data
     try:
         return cipher_suite.decrypt(encrypted_data.encode()).decode()
     except Exception:
-        return encrypted_data # Return as is if decryption fails (might be unencrypted)
+        pass
+
+    # Try additional candidate keys if present in ENCRYPTION_KEYS env
+    candidate_keys = os.getenv("ENCRYPTION_KEYS", "").split(",")
+    for key in candidate_keys:
+        key = key.strip()
+        if key:
+            try:
+                return Fernet(key.encode()).decrypt(encrypted_data.encode()).decode()
+            except Exception:
+                pass
+
+    # If decryption fails for a stale Fernet token, fallback to N/A instead of raw ciphertext
+    return "N/A"
 
 def verify_password(plain_password: str, hashed_password: str):
     if not plain_password:

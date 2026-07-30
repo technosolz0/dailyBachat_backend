@@ -19,9 +19,12 @@ class UserBase(BaseModel):
     def decrypt_phone(cls, v):
         if v and v != "N/A":
             try:
-                return decrypt_data(v)
+                res = decrypt_data(v)
+                if res and res.startswith("gAAAAA"):
+                    return "N/A"
+                return res
             except Exception:
-                return v
+                return "N/A"
         return v
 
 class UserCreate(UserBase):

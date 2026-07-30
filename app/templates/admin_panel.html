@@ -985,6 +985,7 @@
                                         <th>Category</th>
                                         <th>Amount</th>
                                         <th>Date</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="transactions-table-body">
@@ -1015,6 +1016,7 @@
                                         <th>Amount</th>
                                         <th>Expected Date</th>
                                         <th>Reminder Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="loans-table-body">
@@ -1045,6 +1047,7 @@
                                         <th>Email</th>
                                         <th>Phone</th>
                                         <th>Address</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="businesses-table-body">
@@ -1106,6 +1109,7 @@
                                         <th>Rating</th>
                                         <th>Comment</th>
                                         <th>Created At</th>
+                                        <th>Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody id="feedback-table-body">
@@ -1672,19 +1676,49 @@
             }
         }
 
+        // Generic item delete handler
+        async function handleItemDelete(resource, id) {
+            const singularName = resource.endsWith('es') ? resource.slice(0, -2) : resource.slice(0, -1);
+            if (!confirm(`Are you sure you want to permanently delete this ${singularName} entry?`)) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/admin/${resource}/${id}`, {
+                    method: 'DELETE',
+                    headers: getHeaders()
+                });
+
+                if (response.ok) {
+                    showToast(`${singularName} deleted successfully`);
+                    loadTabContent(resource);
+                } else {
+                    const err = await response.json().catch(() => ({}));
+                    showToast(err.detail || `Could not delete ${singularName}`, 'error');
+                }
+            } catch (e) {
+                showToast('Connection error', 'error');
+            }
+        }
+
         // Transactions module
         function loadTransactions() {
             fetchPaginatedList('transactions', 'transactions', 'transactions-table-body', tx => {
-                const date = new Date(tx.created_at).toLocaleDateString();
+                const date = tx.date ? new Date(tx.date).toLocaleDateString() : (tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'N/A');
                 const typeBadge = tx.type === 'income' ? `<span class="badge badge-success">Income</span>` : `<span class="badge badge-danger">Expense</span>`;
                 return `
                     <tr>
-                        <td style="font-family:monospace; font-size:0.8rem;">${tx.id.substring(0, 8)}...</td>
-                        <td>${tx.user_id.substring(0, 8)}...</td>
+                        <td style="font-family:monospace; font-size:0.8rem;">${(tx.id || '').substring(0, 8)}...</td>
+                        <td>${(tx.user_id || '').substring(0, 8)}...</td>
                         <td>${typeBadge}</td>
-                        <td>${tx.category_id || 'Global'}</td>
-                        <td style="font-weight:700;">₹${tx.amount.toLocaleString()}</td>
+                        <td>${tx.category || tx.category_id || 'Global'}</td>
+                        <td style="font-weight:700;">₹${(tx.amount || 0).toLocaleString()}</td>
                         <td>${date}</td>
+                        <td>
+                            <button class="action-icon-btn delete" onclick="handleItemDelete('transactions', '${tx.id}')" title="Delete transaction">
+                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
@@ -1714,6 +1748,11 @@
                                 Due Alert: ${ln.reminder_duedate_sent ? 'Sent' : 'Pending'}
                             </span>
                         </td>
+                        <td>
+                            <button class="action-icon-btn delete" onclick="handleItemDelete('loans', '${ln.id}')" title="Delete loan">
+                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
@@ -1733,6 +1772,11 @@
                         <td>${email}</td>
                         <td>${phone}</td>
                         <td style="font-size:0.8rem; color:var(--text-secondary);">${address}</td>
+                        <td>
+                            <button class="action-icon-btn delete" onclick="handleItemDelete('businesses', '${biz.id}')" title="Delete business profile">
+                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
@@ -1743,10 +1787,10 @@
             fetchPaginatedList('invoices', 'invoices', 'invoices-table-body', inv => {
                 const date = inv.date ? new Date(inv.date).toLocaleDateString() : 'N/A';
                 const statusBadge = inv.status === 'paid' ? `<span class="badge badge-success">Paid</span>` : `<span class="badge badge-warning">Unpaid</span>`;
-                const actionButton = inv.pdf_url ? `
+                const pdfButton = inv.pdf_url ? `
                     <a href="${inv.pdf_url}" target="_blank" class="action-icon-btn" style="text-decoration:none;" title="Download PDF">
                         <i data-lucide="download" style="width:14px; height:14px; margin-top:9px;"></i>
-                    </a>` : 'N/A';
+                    </a>` : '';
                 const totalAmt = (inv.total !== undefined ? inv.total : (inv.total_amount || 0)).toLocaleString();
                 const paidAmt = (inv.paid_amount || 0).toLocaleString();
                 return `
@@ -1757,7 +1801,12 @@
                         <td style="font-weight:700;">₹${totalAmt}</td>
                         <td>₹${paidAmt}</td>
                         <td>${statusBadge}</td>
-                        <td>${actionButton}</td>
+                        <td>
+                            ${pdfButton}
+                            <button class="action-icon-btn delete" onclick="handleItemDelete('invoices', '${inv.id}')" title="Delete invoice">
+                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
@@ -1773,6 +1822,11 @@
                         <td style="color:var(--warning); font-weight:700;">⭐ ${fb.rating || 0}/5</td>
                         <td>${fb.message || fb.comment || 'N/A'}</td>
                         <td>${date}</td>
+                        <td>
+                            <button class="action-icon-btn delete" onclick="handleItemDelete('feedback', '${fb.id}')" title="Delete feedback">
+                                <i data-lucide="trash-2" style="width:14px; height:14px;"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             });
