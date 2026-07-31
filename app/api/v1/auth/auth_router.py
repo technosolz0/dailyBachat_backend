@@ -20,6 +20,7 @@ import uuid
 from app.core.email_service import email_service
 from app.models.otp import OTP
 from app.models.system_settings import SystemSettings
+from app.core.firebase_config import delete_firebase_user_account
 
 
 def find_user_by_phone(db: Session, phone: str):
@@ -613,15 +614,17 @@ async def delete_account(
             db.query(PaymentDetail).filter(PaymentDetail.business_id.in_(business_ids)).delete(synchronize_session=False)
             db.query(BusinessProfile).filter(BusinessProfile.id.in_(business_ids)).delete(synchronize_session=False)
 
+        user_email = db_user.email
+        user_phone = db_user.phone_number
+
         # 3. Delete user record
         db.delete(db_user)
         db.commit()
 
-        # 4. Attempt to delete from Firebase Auth
+        # 4. Permanently delete from Firebase Auth (by UID, Email, or Phone)
         try:
-            auth.delete_user(user_id)
+            delete_firebase_user_account(user_id=user_id, email=user_email, phone_number=user_phone)
         except Exception as fe:
-            # Log but don't fail if Firebase deletion fails
             print(f"Firebase deletion warning for {user_id}: {str(fe)}")
 
         return {"message": "Your account and all associated data have been permanently deleted."}

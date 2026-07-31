@@ -1,6 +1,6 @@
 import os
 import firebase_admin
-from firebase_admin import credentials, messaging
+from firebase_admin import credentials, messaging, auth as firebase_auth
 import logging
 
 logger = logging.getLogger(__name__)
@@ -75,3 +75,49 @@ def send_multicast_notification(tokens: list, title: str, body: str, data: dict 
     except Exception as e:
         logger.error(f"Error sending multicast message: {e}")
         return 0
+
+def delete_firebase_user_account(user_id: str = None, email: str = None, phone_number: str = None) -> bool:
+    """
+    Safely deletes a user from Firebase Authentication by UID, Email, or Phone Number.
+    """
+    deleted = False
+
+    # 1. Attempt deletion by UID
+    if user_id:
+        try:
+            firebase_auth.delete_user(user_id)
+            logger.info(f"Successfully deleted Firebase user by UID: {user_id}")
+            deleted = True
+        except firebase_auth.UserNotFoundError:
+            logger.info(f"Firebase user UID {user_id} not found.")
+        except Exception as e:
+            logger.warning(f"Error deleting Firebase user by UID {user_id}: {e}")
+
+    # 2. Attempt deletion by Email if not deleted yet
+    if not deleted and email:
+        try:
+            fb_user = firebase_auth.get_user_by_email(email)
+            if fb_user:
+                firebase_auth.delete_user(fb_user.uid)
+                logger.info(f"Successfully deleted Firebase user by email: {email} (UID: {fb_user.uid})")
+                deleted = True
+        except firebase_auth.UserNotFoundError:
+            logger.info(f"Firebase user email {email} not found.")
+        except Exception as e:
+            logger.warning(f"Error deleting Firebase user by email {email}: {e}")
+
+    # 3. Attempt deletion by Phone Number if not deleted yet
+    if not deleted and phone_number:
+        try:
+            formatted_phone = phone_number if phone_number.startswith("+") else f"+91{phone_number}"
+            fb_user = firebase_auth.get_user_by_phone_number(formatted_phone)
+            if fb_user:
+                firebase_auth.delete_user(fb_user.uid)
+                logger.info(f"Successfully deleted Firebase user by phone: {formatted_phone} (UID: {fb_user.uid})")
+                deleted = True
+        except firebase_auth.UserNotFoundError:
+            logger.info(f"Firebase user phone {phone_number} not found.")
+        except Exception as e:
+            logger.warning(f"Error deleting Firebase user by phone {phone_number}: {e}")
+
+    return deleted

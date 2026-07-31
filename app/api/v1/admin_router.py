@@ -18,7 +18,7 @@ from app.schemas.invoice import Invoice as InvoiceSchema
 from app.schemas.transaction import TransactionInDB
 from app.schemas.notification import NotificationSend, NotificationResponse
 from app.schemas.system_settings import PremiumAmountUpdate, PremiumFeaturesUpdate, AppConfigUpdate
-from app.core.firebase_config import send_push_notification, send_multicast_notification
+from app.core.firebase_config import send_push_notification, send_multicast_notification, delete_firebase_user_account
 from typing import List
 from sqlalchemy import func
 import os
@@ -276,15 +276,17 @@ async def delete_user(
             db.query(PaymentDetail).filter(PaymentDetail.business_id.in_(business_ids)).delete(synchronize_session=False)
             db.query(BusinessProfile).filter(BusinessProfile.id.in_(business_ids)).delete(synchronize_session=False)
 
+        user_email = db_user.email
+        user_phone = db_user.phone_number
+
         # 3. Delete user record
         db.delete(db_user)
         db.commit()
 
-        # 4. Attempt to delete from Firebase Auth
+        # 4. Permanently delete from Firebase Auth (by UID, Email, or Phone)
         try:
-            firebase_auth.delete_user(user_id)
+            delete_firebase_user_account(user_id=user_id, email=user_email, phone_number=user_phone)
         except Exception as fe:
-            # Log but don't fail the request if Firebase user is already gone
             print(f"Firebase deletion warning for {user_id}: {str(fe)}")
 
         return user_dict
