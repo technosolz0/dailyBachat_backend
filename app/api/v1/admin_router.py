@@ -8,6 +8,20 @@ from app.models.business import BusinessProfile
 from app.models.invoice import Invoice
 from app.models.transaction import Transaction
 from app.models.system_settings import SystemSettings
+from app.models.website import WebsiteContent, ContactSubmission, Testimonial, BlogPostModel
+from app.schemas.website import (
+    WebsiteContentResponse,
+    WebsiteContentUpdate,
+    WebsiteContentCreate,
+    ContactSubmissionResponse,
+    ContactSubmissionUpdateStatus,
+    TestimonialResponse,
+    TestimonialCreate,
+    TestimonialUpdate,
+    BlogPostResponse,
+    BlogPostCreate,
+    BlogPostUpdate
+)
 from firebase_admin import auth as firebase_auth
 
 from app.schemas.user import UserInDB, AdminUserUpdate, AdminLoginRequest, Token as TokenSchema, UserCreate
@@ -758,5 +772,263 @@ async def get_premium_features(
     if setting:
         return {"features": json.loads(setting.value)}
     return {"features": []}
+
+# --- Website Content & Contact Submissions Admin Endpoints ---
+
+@router.get("/website/content", response_model=List[WebsiteContentResponse])
+def admin_get_website_contents(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    List all custom website sections stored in database.
+    """
+    return db.query(WebsiteContent).all()
+
+@router.post("/website/content", response_model=WebsiteContentResponse)
+def admin_create_or_update_website_content(
+    data: WebsiteContentCreate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Create or update website dynamic section content (e.g. hero, features, contact_info).
+    """
+    existing = db.query(WebsiteContent).filter(WebsiteContent.section_key == data.section_key).first()
+    if existing:
+        if data.title is not None:
+            existing.title = data.title
+        if data.subtitle is not None:
+            existing.subtitle = data.subtitle
+        if data.content_json is not None:
+            existing.content_json = data.content_json
+        db.commit()
+        db.refresh(existing)
+        return existing
+
+    new_content = WebsiteContent(
+        section_key=data.section_key,
+        title=data.title,
+        subtitle=data.subtitle,
+        content_json=data.content_json
+    )
+    db.add(new_content)
+    db.commit()
+    db.refresh(new_content)
+    return new_content
+
+@router.put("/website/content/{section_key}", response_model=WebsiteContentResponse)
+def admin_update_website_content_by_key(
+    section_key: str,
+    data: WebsiteContentUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Update a specific website section by section_key.
+    """
+    existing = db.query(WebsiteContent).filter(WebsiteContent.section_key == section_key).first()
+    if not existing:
+        existing = WebsiteContent(
+            section_key=section_key,
+            title=data.title,
+            subtitle=data.subtitle,
+            content_json=data.content_json
+        )
+        db.add(existing)
+    else:
+        if data.title is not None:
+            existing.title = data.title
+        if data.subtitle is not None:
+            existing.subtitle = data.subtitle
+        if data.content_json is not None:
+            existing.content_json = data.content_json
+    
+    db.commit()
+    db.refresh(existing)
+    return existing
+
+@router.get("/website/contacts", response_model=List[ContactSubmissionResponse])
+def admin_get_contact_submissions(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin),
+    status: str = None
+):
+    """
+    Fetch submitted contact form inquiries from website visitors.
+    """
+    query = db.query(ContactSubmission)
+    if status:
+        query = query.filter(ContactSubmission.status == status)
+    return query.order_by(ContactSubmission.created_at.desc()).all()
+
+@router.put("/website/contacts/{contact_id}", response_model=ContactSubmissionResponse)
+def admin_update_contact_submission_status(
+    contact_id: int,
+    payload: ContactSubmissionUpdateStatus,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Update contact submission status (pending, read, replied, resolved).
+    """
+    submission = db.query(ContactSubmission).filter(ContactSubmission.id == contact_id).first()
+    if not submission:
+        raise HTTPException(status_code=404, detail="Contact submission not found")
+    submission.status = payload.status
+    db.commit()
+    db.refresh(submission)
+    return submission
+
+@router.delete("/website/contacts/{contact_id}")
+def admin_delete_contact_submission(
+    contact_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    """
+    Delete a contact submission entry.
+    """
+    submission = db.query(ContactSubmission).filter(ContactSubmission.id == contact_id).first()
+    if not submission:
+        raise HTTPException(status_code=404, detail="Contact submission not found")
+    db.delete(submission)
+    db.commit()
+    return {"message": "Contact submission deleted successfully"}
+
+# --- Testimonials Management ---
+
+@router.get("/website/testimonials", response_model=List[TestimonialResponse])
+def admin_get_testimonials(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    return db.query(Testimonial).order_by(Testimonial.id.desc()).all()
+
+@router.post("/website/testimonials", response_model=TestimonialResponse)
+def admin_create_testimonial(
+    data: TestimonialCreate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    testimonial = Testimonial(
+        author_name=data.author_name,
+        author_role=data.author_role,
+        avatar_url=data.avatar_url,
+        quote=data.quote,
+        rating=data.rating or 5,
+        is_active=data.is_active if data.is_active is not None else 1
+    )
+    db.add(testimonial)
+    db.commit()
+    db.refresh(testimonial)
+    return testimonial
+
+@router.put("/website/testimonials/{testimonial_id}", response_model=TestimonialResponse)
+def admin_update_testimonial(
+    testimonial_id: int,
+    data: TestimonialUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    t = db.query(Testimonial).filter(Testimonial.id == testimonial_id).first()
+    if not t:
+        raise HTTPException(status_code=404, detail="Testimonial not found")
+    if data.author_name is not None: t.author_name = data.author_name
+    if data.author_role is not None: t.author_role = data.author_role
+    if data.quote is not None: t.quote = data.quote
+    if data.rating is not None: t.rating = data.rating
+    if data.is_active is not None: t.is_active = data.is_active
+    db.commit()
+    db.refresh(t)
+    return t
+
+@router.delete("/website/testimonials/{testimonial_id}")
+def admin_delete_testimonial(
+    testimonial_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    t = db.query(Testimonial).filter(Testimonial.id == testimonial_id).first()
+    if not t:
+        raise HTTPException(status_code=404, detail="Testimonial not found")
+    db.delete(t)
+    db.commit()
+    return {"message": "Testimonial deleted"}
+
+# --- Blog Posts Management ---
+
+@router.get("/website/blogs", response_model=List[BlogPostResponse])
+def admin_get_blogs(
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    return db.query(BlogPostModel).order_by(BlogPostModel.id.desc()).all()
+
+@router.post("/website/blogs", response_model=BlogPostResponse)
+def admin_create_blog(
+    data: BlogPostCreate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    existing = db.query(BlogPostModel).filter(BlogPostModel.slug == data.slug).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="Blog post with this slug already exists")
+    
+    post = BlogPostModel(
+        title=data.title,
+        slug=data.slug,
+        excerpt=data.excerpt,
+        category=data.category or "General",
+        read_time=data.read_time or "5 min read",
+        author_name=data.author_name or "DailyBachat Team",
+        author_role=data.author_role or "Financial Writer",
+        content=data.content,
+        is_published=data.is_published if data.is_published is not None else 1,
+        published_date=data.published_date
+    )
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+    return post
+
+@router.put("/website/blogs/{blog_id}", response_model=BlogPostResponse)
+def admin_update_blog(
+    blog_id: int,
+    data: BlogPostUpdate,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    b = db.query(BlogPostModel).filter(BlogPostModel.id == blog_id).first()
+    if not b:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+    
+    if data.title is not None: b.title = data.title
+    if data.slug is not None: b.slug = data.slug
+    if data.excerpt is not None: b.excerpt = data.excerpt
+    if data.category is not None: b.category = data.category
+    if data.read_time is not None: b.read_time = data.read_time
+    if data.author_name is not None: b.author_name = data.author_name
+    if data.author_role is not None: b.author_role = data.author_role
+    if data.content is not None: b.content = data.content
+    if data.is_published is not None: b.is_published = data.is_published
+    if data.published_date is not None: b.published_date = data.published_date
+    
+    db.commit()
+    db.refresh(b)
+    return b
+
+@router.delete("/website/blogs/{blog_id}")
+def admin_delete_blog(
+    blog_id: int,
+    db: Session = Depends(get_db),
+    admin: User = Depends(get_current_admin)
+):
+    b = db.query(BlogPostModel).filter(BlogPostModel.id == blog_id).first()
+    if not b:
+        raise HTTPException(status_code=404, detail="Blog post not found")
+    db.delete(b)
+    db.commit()
+    return {"message": "Blog post deleted"}
 
 

@@ -846,6 +846,21 @@
                 <li class="menu-item" data-tab="feedback">
                     <a href="#"><i data-lucide="message-square"></i>Feedback</a>
                 </li>
+                <li class="menu-item" data-tab="website">
+                    <a href="#"><i data-lucide="globe"></i>Website Content</a>
+                </li>
+                <li class="menu-item" data-tab="testimonials">
+                    <a href="#"><i data-lucide="star"></i>Testimonials</a>
+                </li>
+                <li class="menu-item" data-tab="blogs">
+                    <a href="#"><i data-lucide="file-text"></i>Blog Posts</a>
+                </li>
+                <li class="menu-item" data-tab="contacts">
+                    <a href="#"><i data-lucide="mail"></i>Contact Enquiries</a>
+                </li>
+                <li class="menu-item" data-tab="notifications">
+                    <a href="#"><i data-lucide="bell"></i>Custom Notifications</a>
+                </li>
                 <li class="menu-item" data-tab="settings">
                     <a href="#"><i data-lucide="settings"></i>Settings</a>
                 </li>
@@ -1177,314 +1192,625 @@
                     </div>
                 </div>
 
-            </div>
-        </div>
-    </div>
+                <!-- 8. WEBSITE CONTENT PANEL -->
+                <div id="website-view" class="view-panel">
+                    <div class="table-card" style="margin-bottom: 2rem;">
+                        <div class="table-header">
+                            <h3 class="card-title">Manage Dynamic Website Hero & Information</h3>
+                        </div>
+                        <form id="website-content-form" style="padding: 1.5rem;"
+                            onsubmit="handleWebsiteContentSubmit(event)">
+                            <div class="input-group" style="margin-bottom: 1rem;">
+                                <label class="input-label">Select Website Section</label>
+                                <div class="input-wrapper">
+                                    <select id="web-section-key" class="input-field" style="padding-left: 1rem;"
+                                        onchange="onWebsiteSectionChange()">
+                                        <option value="hero">Hero Section (Title & Subtitle)</option>
+                                        <option value="features">Features Overview</option>
+                                        <option value="contact_info">Contact Details & Social Links</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 1rem;">
+                                <label class="input-label">Section Title</label>
+                                <div class="input-wrapper">
+                                    <input type="text" id="web-section-title" class="input-field"
+                                        style="padding-left: 1rem;" placeholder="Headline title text..." required>
+                                </div>
+                            </div>
+                            <div class="input-group" style="margin-bottom: 1rem;">
+                                <label class="input-label">Section Subtitle / Description</label>
+                                <div class="input-wrapper">
+                                    <textarea id="web-section-subtitle" class="input-field"
+                                        style="padding-left: 1rem; height: 90px; resize: vertical;"
+                                        placeholder="Detailed section paragraph text..."></textarea>
+                                </div>
+                            </div>
 
-    <!-- MODALS -->
-    <!-- Edit User Status Modal -->
-    <div id="edit-user-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="card-title">Edit User Privileges</h3>
-                <button class="close-btn" onclick="closeUserModal()"><i data-lucide="x"></i></button>
-            </div>
-            <form id="edit-user-form">
-                <input type="hidden" id="edit-user-id">
+                            <!-- Additional Contact Details Fields -->
+                            <div id="contact-fields-container"
+                                style="display: none; border-top: 1px solid var(--border-color); padding-top: 1rem; margin-top: 1rem;">
+                                <h4 style="margin-bottom: 1rem; color: var(--primary);">Contact Information & Social
+                                    Links</h4>
+                                <div class="form-grid">
+                                    <div class="input-group">
+                                        <label class="input-label">Support Email</label>
+                                        <input type="email" id="contact-email" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="support@dailybachat.in">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">Phone Number</label>
+                                        <input type="text" id="contact-phone" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="+91 75587 26131">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">Headquarters Address</label>
+                                        <input type="text" id="contact-address" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="Mumbai, Maharashtra, India">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">Working Hours</label>
+                                        <input type="text" id="contact-hours" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="Mon - Sun: 9:00 AM - 9:00 PM IST">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">Facebook URL</label>
+                                        <input type="url" id="contact-facebook" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="https://facebook.com/...">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">Instagram URL</label>
+                                        <input type="url" id="contact-instagram" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="https://instagram.com/...">
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">LinkedIn URL</label>
+                                        <input type="url" id="contact-linkedin" class="input-field"
+                                            style="padding-left: 1rem;" placeholder="https://linkedin.com/...">
+                                    </div>
+                                </div>
+                            </div>
 
-                <div class="switch-container">
-                    <span class="switch-label">Active / Unblocked Account</span>
-                    <label class="switch">
-                        <input type="checkbox" id="edit-user-active">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-container">
-                    <span class="switch-label">Admin Privileges</span>
-                    <label class="switch">
-                        <input type="checkbox" id="edit-user-admin">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="switch-container">
-                    <span class="switch-label">Premium Subscription</span>
-                    <label class="switch">
-                        <input type="checkbox" id="edit-user-premium">
-                        <span class="slider"></span>
-                    </label>
-                </div>
-
-                <div class="modal-footer">
-                    <button type="button" class="btn"
-                        style="background: rgba(255,255,255,0.05); color: white; box-shadow: none;"
-                        onclick="closeUserModal()">Cancel</button>
-                    <button type="submit" class="btn">Save changes</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Push Notification Modal -->
-    <div id="notification-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="card-title">Send Global Push Notification</h3>
-                <button class="close-btn" onclick="closeNotificationModal()"><i data-lucide="x"></i></button>
-            </div>
-            <form id="notification-form">
-                <div class="input-group">
-                    <label class="input-label">Notification Title</label>
-                    <div class="input-wrapper">
-                        <input type="text" id="notify-title" class="input-field" style="padding-left: 1rem;"
-                            placeholder="Announcement" required>
+                            <button type="submit" class="btn btn-full" style="margin-top: 1rem;">Save Website
+                                Content</button>
+                        </form>
                     </div>
                 </div>
 
-                <div class="input-group">
-                    <label class="input-label">Message Body</label>
-                    <div class="input-wrapper">
-                        <textarea id="notify-body" class="input-field"
-                            style="padding-left: 1rem; height: 100px; resize: none;"
-                            placeholder="Enter message text here..." required></textarea>
+                <!-- 9. TESTIMONIALS PANEL -->
+                <div id="testimonials-view" class="view-panel">
+                    <div class="table-card" style="margin-bottom: 2rem;">
+                        <div class="table-header">
+                            <h3 class="card-title">Add / Edit User Testimonial</h3>
+                        </div>
+                        <form id="testimonial-form" style="padding: 1.5rem;" onsubmit="handleTestimonialSubmit(event)">
+                            <input type="hidden" id="testimonial-id">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label class="input-label">Author Name</label>
+                                    <input type="text" id="testi-author-name" class="input-field"
+                                        style="padding-left: 1rem;" placeholder="e.g. Aditya Sharma" required>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Role & Location</label>
+                                    <input type="text" id="testi-author-role" class="input-field"
+                                        style="padding-left: 1rem;" placeholder="e.g. Small Business Owner, Mumbai">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Star Rating (1-5)</label>
+                                    <input type="number" min="1" max="5" id="testi-rating" class="input-field"
+                                        style="padding-left: 1rem;" value="5" required>
+                                </div>
+                            </div>
+                            <div class="input-group" style="margin-top: 1rem;">
+                                <label class="input-label">Quote Review</label>
+                                <textarea id="testi-quote" class="input-field"
+                                    style="padding-left: 1rem; height: 80px; resize: vertical;"
+                                    placeholder="Enter customer feedback quote..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-full" style="margin-top: 1rem;">Save
+                                Testimonial</button>
+                        </form>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3 class="card-title">Published Testimonials</h3>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Author</th>
+                                    <th>Role</th>
+                                    <th>Quote</th>
+                                    <th>Rating</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="testimonials-table-body">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-secondary);">Loading
+                                        testimonials...</td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 
-                <div class="modal-footer">
-                    <button type="button" class="btn"
-                        style="background: rgba(255,255,255,0.05); color: white; box-shadow: none;"
-                        onclick="closeNotificationModal()">Cancel</button>
-                    <button type="submit" class="btn">Broadcast Push</button>
+                <!-- 10. BLOG POSTS PANEL -->
+                <div id="blogs-view" class="view-panel">
+                    <div class="table-card" style="margin-bottom: 2rem;">
+                        <div class="table-header">
+                            <h3 class="card-title">Create / Edit Blog Post</h3>
+                        </div>
+                        <form id="blog-form" style="padding: 1.5rem;" onsubmit="handleBlogSubmit(event)">
+                            <input type="hidden" id="blog-id">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label class="input-label">Post Title</label>
+                                    <input type="text" id="blog-title" class="input-field" style="padding-left: 1rem;"
+                                        placeholder="Title..." required onkeyup="autoGenerateBlogSlug()">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">URL Slug</label>
+                                    <input type="text" id="blog-slug" class="input-field" style="padding-left: 1rem;"
+                                        placeholder="url-friendly-slug" required>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Category</label>
+                                    <input type="text" id="blog-category" class="input-field"
+                                        style="padding-left: 1rem;" placeholder="e.g. Savings, Personal Finance"
+                                        value="Savings">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Read Time</label>
+                                    <input type="text" id="blog-read-time" class="input-field"
+                                        style="padding-left: 1rem;" placeholder="e.g. 5 min read" value="5 min read">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Author Name</label>
+                                    <input type="text" id="blog-author-name" class="input-field"
+                                        style="padding-left: 1rem;" placeholder="Amit Sen" value="DailyBachat Team">
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Author Role</label>
+                                    <input type="text" id="blog-author-role" class="input-field"
+                                        style="padding-left: 1rem;" placeholder="Financial Writer"
+                                        value="Financial Advisor">
+                                </div>
+                            </div>
+                            <div class="input-group" style="margin-top: 1rem;">
+                                <label class="input-label">Excerpt / Summary</label>
+                                <textarea id="blog-excerpt" class="input-field"
+                                    style="padding-left: 1rem; height: 60px; resize: vertical;"
+                                    placeholder="Brief summary for blog cards..."></textarea>
+                            </div>
+                            <div class="input-group" style="margin-top: 1rem;">
+                                <label class="input-label">Article Body Content (HTML allowed)</label>
+                                <textarea id="blog-content" class="input-field"
+                                    style="padding-left: 1rem; height: 160px; resize: vertical;"
+                                    placeholder="Write blog post content HTML or plain text..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-full" style="margin-top: 1rem;">Publish Blog
+                                Post</button>
+                        </form>
+                    </div>
+
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3 class="card-title">Blog Articles List</h3>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Category</th>
+                                    <th>Author</th>
+                                    <th>Published Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="blogs-table-body">
+                                <tr>
+                                    <td colspan="6" style="text-align: center; color: var(--text-secondary);">Loading
+                                        blog articles...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
-            </form>
+
+                <!-- 9. CONTACT ENQUIRIES PANEL -->
+                <div id="contacts-view" class="view-panel">
+                    <div class="table-card">
+                        <div class="table-header">
+                            <h3 class="card-title">Website Contact Form Messages</h3>
+                        </div>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Visitor Name</th>
+                                    <th>Email / Phone</th>
+                                    <th>Subject</th>
+                                    <th>Message</th>
+                                    <th>Status</th>
+                                    <th>Submitted Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="contacts-table-body">
+                                <tr>
+                                    <td colspan="8" style="text-align: center; color: var(--text-secondary);">Loading
+                                        messages...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 11. CUSTOM NOTIFICATIONS PANEL -->
+                    <div id="notifications-view" class="view-panel">
+                        <div class="table-card">
+                            <div class="table-header">
+                                <h3 class="card-title">Send Custom Push Notification</h3>
+                            </div>
+                            <form id="standalone-notification-form" style="padding: 1.5rem;"
+                                onsubmit="handleCustomNotificationSubmit(event)">
+                                <div class="form-grid">
+                                    <div class="input-group">
+                                        <label class="input-label">Notification Title</label>
+                                        <input type="text" id="custom-notify-title" class="input-field"
+                                            style="padding-left: 1rem;"
+                                            placeholder="e.g. Special Offer or Ledger Reminder" required>
+                                    </div>
+                                    <div class="input-group">
+                                        <label class="input-label">Target User ID (Optional)</label>
+                                        <input type="text" id="custom-notify-user-id" class="input-field"
+                                            style="padding-left: 1rem;"
+                                            placeholder="Leave empty for ALL users (Broadcast)">
+                                    </div>
+                                </div>
+                                <div class="input-group" style="margin-top: 1rem;">
+                                    <label class="input-label">Message Body</label>
+                                    <textarea id="custom-notify-body" class="input-field"
+                                        style="padding-left: 1rem; height: 110px; resize: vertical;"
+                                        placeholder="Type your notification message content..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-full" style="margin-top: 1rem;">Send
+                                    Notification</button>
+                            </form>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
-    </div>
 
-    <!-- SCRIPT LOGIC -->
-    <script>
-        // API Base URL (relative to path)
-        const API_URL = '/api/v1';
-        let AUTH_TOKEN = localStorage.getItem('admin_token');
-        let activeTab = 'dashboard';
+        <!-- MODALS -->
+        <!-- Edit User Status Modal -->
+        <div id="edit-user-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="card-title">Edit User Privileges</h3>
+                    <button class="close-btn" onclick="closeUserModal()"><i data-lucide="x"></i></button>
+                </div>
+                <form id="edit-user-form">
+                    <input type="hidden" id="edit-user-id">
 
-        // Pagination states
-        let paginations = {
-            users: { page: 1, limit: 10, total: 0 },
-            transactions: { page: 1, limit: 10, total: 0 },
-            loans: { page: 1, limit: 10, total: 0 },
-            businesses: { page: 1, limit: 10, total: 0 },
-            invoices: { page: 1, limit: 10, total: 0 },
-            feedback: { page: 1, limit: 10, total: 0 }
-        };
+                    <div class="switch-container">
+                        <span class="switch-label">Active / Unblocked Account</span>
+                        <label class="switch">
+                            <input type="checkbox" id="edit-user-active">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-        // Charts
-        let growthChartInstance = null;
+                    <div class="switch-container">
+                        <span class="switch-label">Admin Privileges</span>
+                        <label class="switch">
+                            <input type="checkbox" id="edit-user-admin">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-        // Initialize Lucide Icons
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            checkAuth();
-            setupMenuNavigation();
+                    <div class="switch-container">
+                        <span class="switch-label">Premium Subscription</span>
+                        <label class="switch">
+                            <input type="checkbox" id="edit-user-premium">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
 
-            // Forms hooks
-            document.getElementById('login-form').addEventListener('submit', handleLogin);
-            document.getElementById('app-config-form').addEventListener('submit', handleAppConfigSubmit);
-            document.getElementById('premium-amount-form').addEventListener('submit', handlePremiumAmountSubmit);
-            document.getElementById('edit-user-form').addEventListener('submit', handleUserEditSubmit);
-            document.getElementById('notification-form').addEventListener('submit', handleNotificationSubmit);
-            document.getElementById('logout-btn').addEventListener('click', handleLogout);
+                    <div class="modal-footer">
+                        <button type="button" class="btn"
+                            style="background: rgba(255,255,255,0.05); color: white; box-shadow: none;"
+                            onclick="closeUserModal()">Cancel</button>
+                        <button type="submit" class="btn">Save changes</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            // Pagination button event listeners
-            setupPaginationButtons();
-        });
+        <!-- Push Notification Modal -->
+        <div id="notification-modal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="card-title">Send Global Push Notification</h3>
+                    <button class="close-btn" onclick="closeNotificationModal()"><i data-lucide="x"></i></button>
+                </div>
+                <form id="notification-form">
+                    <div class="input-group">
+                        <label class="input-label">Notification Title</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="notify-title" class="input-field" style="padding-left: 1rem;"
+                                placeholder="Announcement" required>
+                        </div>
+                    </div>
 
-        // Setup toast helper
-        function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast`;
-            if (type === 'error') toast.style.borderLeftColor = 'var(--danger)';
-            else if (type === 'warning') toast.style.borderLeftColor = 'var(--warning)';
-            else toast.style.borderLeftColor = 'var(--success)';
+                    <div class="input-group">
+                        <label class="input-label">Message Body</label>
+                        <div class="input-wrapper">
+                            <textarea id="notify-body" class="input-field"
+                                style="padding-left: 1rem; height: 100px; resize: none;"
+                                placeholder="Enter message text here..." required></textarea>
+                        </div>
+                    </div>
 
-            let iconName = type === 'error' ? 'alert-triangle' : (type === 'warning' ? 'alert-circle' : 'check-circle');
-            toast.innerHTML = `<i data-lucide="${iconName}"></i> <span>${message}</span>`;
-            container.appendChild(toast);
-            lucide.createIcons();
+                    <div class="modal-footer">
+                        <button type="button" class="btn"
+                            style="background: rgba(255,255,255,0.05); color: white; box-shadow: none;"
+                            onclick="closeNotificationModal()">Cancel</button>
+                        <button type="submit" class="btn">Broadcast Push</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-            setTimeout(() => {
-                toast.remove();
-            }, 5000);
-        }
+        <!-- SCRIPT LOGIC -->
+        <script>
+            // API Base URL (relative to path)
+            const API_URL = '/api/v1';
+            let AUTH_TOKEN = localStorage.getItem('admin_token');
+            let activeTab = 'dashboard';
 
-        // Authenticated headers helper
-        function getHeaders() {
-            return {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${AUTH_TOKEN}`
+            // Pagination states
+            let paginations = {
+                users: { page: 1, limit: 10, total: 0 },
+                transactions: { page: 1, limit: 10, total: 0 },
+                loans: { page: 1, limit: 10, total: 0 },
+                businesses: { page: 1, limit: 10, total: 0 },
+                invoices: { page: 1, limit: 10, total: 0 },
+                feedback: { page: 1, limit: 10, total: 0 }
             };
-        }
 
-        // Check authentication token
-        function checkAuth() {
-            if (AUTH_TOKEN) {
-                document.getElementById('login-screen').style.display = 'none';
-                document.getElementById('app-layout').style.display = 'flex';
-                loadTabContent('dashboard');
-            } else {
-                document.getElementById('login-screen').style.display = 'flex';
-                document.getElementById('app-layout').style.display = 'none';
-            }
-        }
+            // Charts
+            let growthChartInstance = null;
 
-        // Login authentication
-        async function handleLogin(e) {
-            e.preventDefault();
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
+            // Initialize Lucide Icons
+            document.addEventListener('DOMContentLoaded', () => {
+                lucide.createIcons();
+                checkAuth();
+                setupMenuNavigation();
 
-            try {
-                const response = await fetch(`${API_URL}/admin/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
+                // Forms hooks
+                document.getElementById('login-form').addEventListener('submit', handleLogin);
+                document.getElementById('app-config-form').addEventListener('submit', handleAppConfigSubmit);
+                document.getElementById('premium-amount-form').addEventListener('submit', handlePremiumAmountSubmit);
+                document.getElementById('edit-user-form').addEventListener('submit', handleUserEditSubmit);
+                document.getElementById('notification-form').addEventListener('submit', handleNotificationSubmit);
+                document.getElementById('logout-btn').addEventListener('click', handleLogout);
 
-                if (response.ok) {
-                    const data = await response.json();
-                    AUTH_TOKEN = data.access_token;
-                    localStorage.setItem('admin_token', AUTH_TOKEN);
-                    showToast('Successfully authenticated!');
-                    checkAuth();
-                } else {
-                    const err = await response.json();
-                    showToast(err.detail || 'Authentication failed', 'error');
-                }
-            } catch (e) {
-                showToast('Unable to connect to FastAPI backend server', 'error');
-            }
-        }
-
-        // Logout
-        function handleLogout() {
-            localStorage.removeItem('admin_token');
-            AUTH_TOKEN = null;
-            showToast('Logged out successfully');
-            checkAuth();
-        }
-
-        // Setup Sidebar menu navigation
-        function setupMenuNavigation() {
-            const menuItems = document.querySelectorAll('.menu-item[data-tab]');
-            menuItems.forEach(item => {
-                item.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    menuItems.forEach(i => i.classList.remove('active'));
-                    item.classList.add('active');
-
-                    const tab = item.getAttribute('data-tab');
-                    activeTab = tab;
-
-                    // Update header title
-                    const titles = {
-                        dashboard: 'Dashboard Overview',
-                        users: 'Users Management',
-                        transactions: 'Transactions logs',
-                        loans: 'Loans ledger logs',
-                        businesses: 'Business profiles',
-                        invoices: 'Invoice history',
-                        feedback: 'User reviews and rating',
-                        settings: 'System configuration settings'
-                    };
-                    document.getElementById('page-title').textContent = titles[tab] || 'Admin Dashboard';
-
-                    // Show panel
-                    const panels = document.querySelectorAll('.view-panel');
-                    panels.forEach(p => p.classList.remove('active'));
-                    document.getElementById(`${tab}-view`).classList.add('active');
-
-                    loadTabContent(tab);
-                });
+                // Pagination button event listeners
+                setupPaginationButtons();
             });
-        }
 
-        // Load tab information based on dynamic routing
-        function loadTabContent(tab) {
-            switch (tab) {
-                case 'dashboard':
-                    loadDashboardStats();
-                    break;
-                case 'users':
-                    loadUsers();
-                    break;
-                case 'transactions':
-                    loadTransactions();
-                    break;
-                case 'loans':
-                    loadLoans();
-                    break;
-                case 'businesses':
-                    loadBusinesses();
-                    break;
-                case 'invoices':
-                    loadInvoices();
-                    break;
-                case 'feedback':
-                    loadFeedback();
-                    break;
-                case 'settings':
-                    loadSettings();
-                    break;
+            // Setup toast helper
+            function showToast(message, type = 'success') {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = `toast`;
+                if (type === 'error') toast.style.borderLeftColor = 'var(--danger)';
+                else if (type === 'warning') toast.style.borderLeftColor = 'var(--warning)';
+                else toast.style.borderLeftColor = 'var(--success)';
+
+                let iconName = type === 'error' ? 'alert-triangle' : (type === 'warning' ? 'alert-circle' : 'check-circle');
+                toast.innerHTML = `<i data-lucide="${iconName}"></i> <span>${message}</span>`;
+                container.appendChild(toast);
+                lucide.createIcons();
+
+                setTimeout(() => {
+                    toast.remove();
+                }, 5000);
             }
-        }
 
-        // Fetch dashboard statistics
-        async function loadDashboardStats() {
-            try {
-                const res = await fetch(`${API_URL}/admin/dashboard`, {
-                    headers: getHeaders()
-                });
-                if (res.status === 401) {
-                    handleLogout();
-                    showToast('Session expired. Please log in again.', 'warning');
-                    return;
-                }
-                if (!res.ok) throw new Error();
-                const data = await res.json();
-
-                // Populate metrics
-                document.getElementById('stat-total-users').textContent = data.summary.total_users;
-                document.getElementById('stat-premium-users').textContent = data.summary.premium_users;
-                document.getElementById('stat-businesses').textContent = data.summary.total_businesses;
-                document.getElementById('stat-loans').textContent = `₹${(data.summary.total_loan_volume || 0).toLocaleString()}`;
-
-                // Populate charts
-                renderGrowthChart(data.growth);
-
-                // Populate recent feedback list (limit to 3 items)
-                loadRecentFeedbackWidget();
-            } catch (err) {
-                showToast('Failed to retrieve dashboard stats', 'error');
+            // Authenticated headers helper
+            function getHeaders() {
+                return {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${AUTH_TOKEN}`
+                };
             }
-        }
 
-        // Mini feedback widget on dashboard
-        async function loadRecentFeedbackWidget() {
-            try {
-                const res = await fetch(`${API_URL}/admin/feedback?_start=0&_end=3&_sort=id&_order=DESC`, {
-                    headers: getHeaders()
-                });
-                if (!res.ok) return;
-                const items = await res.json();
-
-                const widgetList = document.getElementById('recent-feedback-list');
-                if (items.length === 0) {
-                    widgetList.innerHTML = `<p style="color: var(--text-secondary); font-size: 0.9rem;">No recent feedback found</p>`;
-                    return;
+            // Check authentication token
+            function checkAuth() {
+                if (AUTH_TOKEN) {
+                    document.getElementById('login-screen').style.display = 'none';
+                    document.getElementById('app-layout').style.display = 'flex';
+                    loadTabContent('dashboard');
+                } else {
+                    document.getElementById('login-screen').style.display = 'flex';
+                    document.getElementById('app-layout').style.display = 'none';
                 }
+            }
 
-                widgetList.innerHTML = items.map(fb => `
+            // Login authentication
+            async function handleLogin(e) {
+                e.preventDefault();
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+
+                try {
+                    const response = await fetch(`${API_URL}/admin/login`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        AUTH_TOKEN = data.access_token;
+                        localStorage.setItem('admin_token', AUTH_TOKEN);
+                        showToast('Successfully authenticated!');
+                        checkAuth();
+                    } else {
+                        const err = await response.json();
+                        showToast(err.detail || 'Authentication failed', 'error');
+                    }
+                } catch (e) {
+                    showToast('Unable to connect to FastAPI backend server', 'error');
+                }
+            }
+
+            // Logout
+            function handleLogout() {
+                localStorage.removeItem('admin_token');
+                AUTH_TOKEN = null;
+                showToast('Logged out successfully');
+                checkAuth();
+            }
+
+            // Setup Sidebar menu navigation
+            function setupMenuNavigation() {
+                const menuItems = document.querySelectorAll('.menu-item[data-tab]');
+                menuItems.forEach(item => {
+                    item.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        menuItems.forEach(i => i.classList.remove('active'));
+                        item.classList.add('active');
+
+                        const tab = item.getAttribute('data-tab');
+                        activeTab = tab;
+
+                        // Update header title
+                        const titles = {
+                            dashboard: 'Dashboard Overview',
+                            users: 'Users Management',
+                            transactions: 'Transactions logs',
+                            loans: 'Loans ledger logs',
+                            businesses: 'Business profiles',
+                            invoices: 'Invoice history',
+                            feedback: 'User reviews and rating',
+                            website: 'Dynamic Website Content & Social Links',
+                            testimonials: 'Website User Testimonials',
+                            blogs: 'Website Blog Posts & Articles',
+                            contacts: 'Website Contact Enquiries',
+                            notifications: 'Send Push Notifications',
+                            settings: 'System configuration settings'
+                        };
+                        document.getElementById('page-title').textContent = titles[tab] || 'Admin Dashboard';
+
+                        // Show panel
+                        const panels = document.querySelectorAll('.view-panel');
+                        panels.forEach(p => p.classList.remove('active'));
+                        document.getElementById(`${tab}-view`).classList.add('active');
+
+                        loadTabContent(tab);
+                    });
+                });
+            }
+
+            // Load tab information based on dynamic routing
+            function loadTabContent(tab) {
+                switch (tab) {
+                    case 'dashboard':
+                        loadDashboardStats();
+                        break;
+                    case 'users':
+                        loadUsers();
+                        break;
+                    case 'transactions':
+                        loadTransactions();
+                        break;
+                    case 'loans':
+                        loadLoans();
+                        break;
+                    case 'businesses':
+                        loadBusinesses();
+                        break;
+                    case 'invoices':
+                        loadInvoices();
+                        break;
+                    case 'feedback':
+                        loadFeedback();
+                        break;
+                    case 'website':
+                        loadWebsiteContent();
+                        break;
+                    case 'testimonials':
+                        loadTestimonials();
+                        break;
+                    case 'blogs':
+                        loadBlogs();
+                        break;
+                    case 'contacts':
+                        loadContacts();
+                        break;
+                    case 'notifications':
+                        // Standalone view active
+                        break;
+                    case 'settings':
+                        loadSettings();
+                        break;
+                }
+            }
+
+            // Fetch dashboard statistics
+            async function loadDashboardStats() {
+                try {
+                    const res = await fetch(`${API_URL}/admin/dashboard`, {
+                        headers: getHeaders()
+                    });
+                    if (res.status === 401) {
+                        handleLogout();
+                        showToast('Session expired. Please log in again.', 'warning');
+                        return;
+                    }
+                    if (!res.ok) throw new Error();
+                    const data = await res.json();
+
+                    // Populate metrics
+                    document.getElementById('stat-total-users').textContent = data.summary.total_users;
+                    document.getElementById('stat-premium-users').textContent = data.summary.premium_users;
+                    document.getElementById('stat-businesses').textContent = data.summary.total_businesses;
+                    document.getElementById('stat-loans').textContent = `₹${(data.summary.total_loan_volume || 0).toLocaleString()}`;
+
+                    // Populate charts
+                    renderGrowthChart(data.growth);
+
+                    // Populate recent feedback list (limit to 3 items)
+                    loadRecentFeedbackWidget();
+                } catch (err) {
+                    showToast('Failed to retrieve dashboard stats', 'error');
+                }
+            }
+
+            // Mini feedback widget on dashboard
+            async function loadRecentFeedbackWidget() {
+                try {
+                    const res = await fetch(`${API_URL}/admin/feedback?_start=0&_end=3&_sort=id&_order=DESC`, {
+                        headers: getHeaders()
+                    });
+                    if (!res.ok) return;
+                    const items = await res.json();
+
+                    const widgetList = document.getElementById('recent-feedback-list');
+                    if (items.length === 0) {
+                        widgetList.innerHTML = `<p style="color: var(--text-secondary); font-size: 0.9rem;">No recent feedback found</p>`;
+                        return;
+                    }
+
+                    widgetList.innerHTML = items.map(fb => `
                     <div style="background: rgba(255,255,255,0.02); padding: 1rem; border-radius: 12px; border: 1px solid var(--border-color);">
                         <div class="flex justify-between align-center" style="margin-bottom: 0.4rem;">
                             <span style="font-size: 0.8rem; color: var(--text-secondary); font-weight: 500;">User: ${(fb.user_id || '').substring(0, 8)}...</span>
@@ -1493,102 +1819,102 @@
                         <p style="font-size: 0.85rem; line-height: 1.4; color: var(--text-primary);">${fb.message || fb.comment || 'No comments'}</p>
                     </div>
                 `).join('');
-            } catch (e) { }
-        }
-
-        // Render growth line chart
-        function renderGrowthChart(growthData) {
-            const ctx = document.getElementById('growthChart').getContext('2d');
-            const labels = growthData.map(g => g.date);
-            const userCounts = growthData.map(g => g.new_users);
-            const transCounts = growthData.map(g => g.transactions);
-
-            if (growthChartInstance) {
-                growthChartInstance.destroy();
+                } catch (e) { }
             }
 
-            growthChartInstance = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [
-                        {
-                            label: 'New Registrations',
-                            data: userCounts,
-                            borderColor: '#6366f1',
-                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            borderWidth: 2
-                        },
-                        {
-                            label: 'Total Transactions',
-                            data: transCounts,
-                            borderColor: '#10b981',
-                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                            fill: true,
-                            tension: 0.3,
-                            borderWidth: 2
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { labels: { color: '#94a3b8' } }
+            // Render growth line chart
+            function renderGrowthChart(growthData) {
+                const ctx = document.getElementById('growthChart').getContext('2d');
+                const labels = growthData.map(g => g.date);
+                const userCounts = growthData.map(g => g.new_users);
+                const transCounts = growthData.map(g => g.transactions);
+
+                if (growthChartInstance) {
+                    growthChartInstance.destroy();
+                }
+
+                growthChartInstance = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: labels,
+                        datasets: [
+                            {
+                                label: 'New Registrations',
+                                data: userCounts,
+                                borderColor: '#6366f1',
+                                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                borderWidth: 2
+                            },
+                            {
+                                label: 'Total Transactions',
+                                data: transCounts,
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                fill: true,
+                                tension: 0.3,
+                                borderWidth: 2
+                            }
+                        ]
                     },
-                    scales: {
-                        x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
-                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { labels: { color: '#94a3b8' } }
+                        },
+                        scales: {
+                            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                            y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } }
+                        }
                     }
-                }
-            });
-        }
-
-        // Setup dynamic list fetch utility
-        async function fetchPaginatedList(endpoint, tabName, tableBodyId, renderRowFunc) {
-            const state = paginations[tabName];
-            const start = (state.page - 1) * state.limit;
-            const end = start + state.limit;
-
-            try {
-                const res = await fetch(`${API_URL}/admin/${endpoint}?_start=${start}&_end=${end}&_sort=id&_order=DESC`, {
-                    headers: getHeaders()
                 });
-
-                if (res.status === 401) {
-                    handleLogout();
-                    showToast('Session expired. Please log in again.', 'warning');
-                    return;
-                }
-
-                if (!res.ok) throw new Error();
-                const totalCountHeader = res.headers.get('X-Total-Count');
-                state.total = totalCountHeader ? parseInt(totalCountHeader) : state.limit; // fallback
-
-                const items = await res.json();
-                const tableBody = document.getElementById(tableBodyId);
-
-                if (!items || items.length === 0) {
-                    tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No logs found</td></tr>`;
-                } else {
-                    tableBody.innerHTML = items.map(renderRowFunc).join('');
-                }
-
-                updatePaginationControls(tabName);
-                lucide.createIcons();
-            } catch (err) {
-                showToast(`Failed to load ${tabName} data`, 'error');
             }
-        }
 
-        // Users module
-        function loadUsers() {
-            fetchPaginatedList('users', 'users', 'users-table-body', user => {
-                const date = new Date(user.created_at).toLocaleDateString();
-                const premiumBadge = user.is_premium ? `<span class="badge badge-success">Premium</span>` : `<span class="badge badge-danger">Standard</span>`;
-                const activeBadge = user.is_active ? `<span class="badge badge-success">Active</span>` : `<span class="badge badge-danger">Blocked</span>`;
-                return `
+            // Setup dynamic list fetch utility
+            async function fetchPaginatedList(endpoint, tabName, tableBodyId, renderRowFunc) {
+                const state = paginations[tabName];
+                const start = (state.page - 1) * state.limit;
+                const end = start + state.limit;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/${endpoint}?_start=${start}&_end=${end}&_sort=id&_order=DESC`, {
+                        headers: getHeaders()
+                    });
+
+                    if (res.status === 401) {
+                        handleLogout();
+                        showToast('Session expired. Please log in again.', 'warning');
+                        return;
+                    }
+
+                    if (!res.ok) throw new Error();
+                    const totalCountHeader = res.headers.get('X-Total-Count');
+                    state.total = totalCountHeader ? parseInt(totalCountHeader) : state.limit; // fallback
+
+                    const items = await res.json();
+                    const tableBody = document.getElementById(tableBodyId);
+
+                    if (!items || items.length === 0) {
+                        tableBody.innerHTML = `<tr><td colspan="10" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No logs found</td></tr>`;
+                    } else {
+                        tableBody.innerHTML = items.map(renderRowFunc).join('');
+                    }
+
+                    updatePaginationControls(tabName);
+                    lucide.createIcons();
+                } catch (err) {
+                    showToast(`Failed to load ${tabName} data`, 'error');
+                }
+            }
+
+            // Users module
+            function loadUsers() {
+                fetchPaginatedList('users', 'users', 'users-table-body', user => {
+                    const date = new Date(user.created_at).toLocaleDateString();
+                    const premiumBadge = user.is_premium ? `<span class="badge badge-success">Premium</span>` : `<span class="badge badge-danger">Standard</span>`;
+                    const activeBadge = user.is_active ? `<span class="badge badge-success">Active</span>` : `<span class="badge badge-danger">Blocked</span>`;
+                    return `
                     <tr>
                         <td>
                             <div class="flex flex-col">
@@ -1611,102 +1937,102 @@
                         </td>
                     </tr>
                 `;
-            });
-        }
-
-        // User edit action
-        function openUserModal(id, isActive, isPremium, isAdmin) {
-            document.getElementById('edit-user-id').value = id;
-            document.getElementById('edit-user-active').checked = isActive;
-            document.getElementById('edit-user-premium').checked = isPremium;
-            document.getElementById('edit-user-admin').checked = isAdmin;
-            document.getElementById('edit-user-modal').style.display = 'flex';
-        }
-
-        function closeUserModal() {
-            document.getElementById('edit-user-modal').style.display = 'none';
-        }
-
-        async function handleUserEditSubmit(e) {
-            e.preventDefault();
-            const id = document.getElementById('edit-user-id').value;
-            const is_active = document.getElementById('edit-user-active').checked;
-            const is_premium = document.getElementById('edit-user-premium').checked;
-            const is_admin = document.getElementById('edit-user-admin').checked;
-
-            try {
-                const response = await fetch(`${API_URL}/admin/users/${id}`, {
-                    method: 'PUT',
-                    headers: getHeaders(),
-                    body: JSON.stringify({ is_active, is_premium, is_admin })
                 });
+            }
 
-                if (response.ok) {
-                    showToast('User preferences updated successfully');
-                    closeUserModal();
-                    loadUsers();
-                } else {
-                    const err = await response.json();
-                    showToast(err.detail || 'Could not update user', 'error');
+            // User edit action
+            function openUserModal(id, isActive, isPremium, isAdmin) {
+                document.getElementById('edit-user-id').value = id;
+                document.getElementById('edit-user-active').checked = isActive;
+                document.getElementById('edit-user-premium').checked = isPremium;
+                document.getElementById('edit-user-admin').checked = isAdmin;
+                document.getElementById('edit-user-modal').style.display = 'flex';
+            }
+
+            function closeUserModal() {
+                document.getElementById('edit-user-modal').style.display = 'none';
+            }
+
+            async function handleUserEditSubmit(e) {
+                e.preventDefault();
+                const id = document.getElementById('edit-user-id').value;
+                const is_active = document.getElementById('edit-user-active').checked;
+                const is_premium = document.getElementById('edit-user-premium').checked;
+                const is_admin = document.getElementById('edit-user-admin').checked;
+
+                try {
+                    const response = await fetch(`${API_URL}/admin/users/${id}`, {
+                        method: 'PUT',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ is_active, is_premium, is_admin })
+                    });
+
+                    if (response.ok) {
+                        showToast('User preferences updated successfully');
+                        closeUserModal();
+                        loadUsers();
+                    } else {
+                        const err = await response.json();
+                        showToast(err.detail || 'Could not update user', 'error');
+                    }
+                } catch (err) {
+                    showToast('Connection error', 'error');
                 }
-            } catch (err) {
-                showToast('Connection error', 'error');
-            }
-        }
-
-        async function handleUserDelete(id) {
-            if (!confirm(`Are you absolutely sure you want to permanently delete user ${id}? This action will wipe all their splits, categories, businesses and transaction ledgers!`)) {
-                return;
             }
 
-            try {
-                const response = await fetch(`${API_URL}/admin/users/${id}`, {
-                    method: 'DELETE',
-                    headers: getHeaders()
-                });
-
-                if (response.ok) {
-                    showToast('User account successfully deleted');
-                    loadUsers();
-                } else {
-                    showToast('Could not delete user', 'error');
+            async function handleUserDelete(id) {
+                if (!confirm(`Are you absolutely sure you want to permanently delete user ${id}? This action will wipe all their splits, categories, businesses and transaction ledgers!`)) {
+                    return;
                 }
-            } catch (e) {
-                showToast('Connection error', 'error');
-            }
-        }
 
-        // Generic item delete handler
-        async function handleItemDelete(resource, id) {
-            const singularName = resource.endsWith('es') ? resource.slice(0, -2) : resource.slice(0, -1);
-            if (!confirm(`Are you sure you want to permanently delete this ${singularName} entry?`)) {
-                return;
-            }
+                try {
+                    const response = await fetch(`${API_URL}/admin/users/${id}`, {
+                        method: 'DELETE',
+                        headers: getHeaders()
+                    });
 
-            try {
-                const response = await fetch(`${API_URL}/admin/${resource}/${id}`, {
-                    method: 'DELETE',
-                    headers: getHeaders()
-                });
-
-                if (response.ok) {
-                    showToast(`${singularName} deleted successfully`);
-                    loadTabContent(resource);
-                } else {
-                    const err = await response.json().catch(() => ({}));
-                    showToast(err.detail || `Could not delete ${singularName}`, 'error');
+                    if (response.ok) {
+                        showToast('User account successfully deleted');
+                        loadUsers();
+                    } else {
+                        showToast('Could not delete user', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
                 }
-            } catch (e) {
-                showToast('Connection error', 'error');
             }
-        }
 
-        // Transactions module
-        function loadTransactions() {
-            fetchPaginatedList('transactions', 'transactions', 'transactions-table-body', tx => {
-                const date = tx.date ? new Date(tx.date).toLocaleDateString() : (tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'N/A');
-                const typeBadge = tx.type === 'income' ? `<span class="badge badge-success">Income</span>` : `<span class="badge badge-danger">Expense</span>`;
-                return `
+            // Generic item delete handler
+            async function handleItemDelete(resource, id) {
+                const singularName = resource.endsWith('es') ? resource.slice(0, -2) : resource.slice(0, -1);
+                if (!confirm(`Are you sure you want to permanently delete this ${singularName} entry?`)) {
+                    return;
+                }
+
+                try {
+                    const response = await fetch(`${API_URL}/admin/${resource}/${id}`, {
+                        method: 'DELETE',
+                        headers: getHeaders()
+                    });
+
+                    if (response.ok) {
+                        showToast(`${singularName} deleted successfully`);
+                        loadTabContent(resource);
+                    } else {
+                        const err = await response.json().catch(() => ({}));
+                        showToast(err.detail || `Could not delete ${singularName}`, 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            // Transactions module
+            function loadTransactions() {
+                fetchPaginatedList('transactions', 'transactions', 'transactions-table-body', tx => {
+                    const date = tx.date ? new Date(tx.date).toLocaleDateString() : (tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'N/A');
+                    const typeBadge = tx.type === 'income' ? `<span class="badge badge-success">Income</span>` : `<span class="badge badge-danger">Expense</span>`;
+                    return `
                     <tr>
                         <td style="font-family:monospace; font-size:0.8rem;">${(tx.id || '').substring(0, 8)}...</td>
                         <td>${(tx.user_id || '').substring(0, 8)}...</td>
@@ -1721,16 +2047,16 @@
                         </td>
                     </tr>
                 `;
-            });
-        }
+                });
+            }
 
-        // Loans module
-        function loadLoans() {
-            fetchPaginatedList('loans', 'loans', 'loans-table-body', ln => {
-                const returnDate = ln.expected_return_date ? new Date(ln.expected_return_date).toLocaleDateString() : 'N/A';
-                const isLend = ln.type === 'lend' || ln.type === 'lent';
-                const amt = (ln.amount || 0).toLocaleString();
-                return `
+            // Loans module
+            function loadLoans() {
+                fetchPaginatedList('loans', 'loans', 'loans-table-body', ln => {
+                    const returnDate = ln.expected_return_date ? new Date(ln.expected_return_date).toLocaleDateString() : 'N/A';
+                    const isLend = ln.type === 'lend' || ln.type === 'lent';
+                    const amt = (ln.amount || 0).toLocaleString();
+                    return `
                     <tr>
                         <td>
                             <div class="flex flex-col">
@@ -1755,17 +2081,17 @@
                         </td>
                     </tr>
                 `;
-            });
-        }
+                });
+            }
 
-        // Businesses module
-        function loadBusinesses() {
-            fetchPaginatedList('businesses', 'businesses', 'businesses-table-body', biz => {
-                const name = biz.name || biz.business_name || 'Unnamed';
-                const email = biz.email || biz.business_email || 'N/A';
-                const phone = biz.phone || biz.business_phone || 'N/A';
-                const address = biz.address || biz.business_address || 'N/A';
-                return `
+            // Businesses module
+            function loadBusinesses() {
+                fetchPaginatedList('businesses', 'businesses', 'businesses-table-body', biz => {
+                    const name = biz.name || biz.business_name || 'Unnamed';
+                    const email = biz.email || biz.business_email || 'N/A';
+                    const phone = biz.phone || biz.business_phone || 'N/A';
+                    const address = biz.address || biz.business_address || 'N/A';
+                    return `
                     <tr>
                         <td style="font-weight:600;">${name}</td>
                         <td>${(biz.user_id || '').substring(0, 8)}...</td>
@@ -1779,21 +2105,21 @@
                         </td>
                     </tr>
                 `;
-            });
-        }
+                });
+            }
 
-        // Invoices module
-        function loadInvoices() {
-            fetchPaginatedList('invoices', 'invoices', 'invoices-table-body', inv => {
-                const date = inv.date ? new Date(inv.date).toLocaleDateString() : 'N/A';
-                const statusBadge = inv.status === 'paid' ? `<span class="badge badge-success">Paid</span>` : `<span class="badge badge-warning">Unpaid</span>`;
-                const pdfButton = inv.pdf_url ? `
+            // Invoices module
+            function loadInvoices() {
+                fetchPaginatedList('invoices', 'invoices', 'invoices-table-body', inv => {
+                    const date = inv.date ? new Date(inv.date).toLocaleDateString() : 'N/A';
+                    const statusBadge = inv.status === 'paid' ? `<span class="badge badge-success">Paid</span>` : `<span class="badge badge-warning">Unpaid</span>`;
+                    const pdfButton = inv.pdf_url ? `
                     <a href="${inv.pdf_url}" target="_blank" class="action-icon-btn" style="text-decoration:none;" title="Download PDF">
                         <i data-lucide="download" style="width:14px; height:14px; margin-top:9px;"></i>
                     </a>` : '';
-                const totalAmt = (inv.total !== undefined ? inv.total : (inv.total_amount || 0)).toLocaleString();
-                const paidAmt = (inv.paid_amount || 0).toLocaleString();
-                return `
+                    const totalAmt = (inv.total !== undefined ? inv.total : (inv.total_amount || 0)).toLocaleString();
+                    const paidAmt = (inv.paid_amount || 0).toLocaleString();
+                    return `
                     <tr>
                         <td style="font-weight:600;">${inv.invoice_number || 'N/A'}</td>
                         <td>${inv.business_id || 'N/A'}</td>
@@ -1809,14 +2135,14 @@
                         </td>
                     </tr>
                 `;
-            });
-        }
+                });
+            }
 
-        // Feedback module
-        function loadFeedback() {
-            fetchPaginatedList('feedback', 'feedback', 'feedback-table-body', fb => {
-                const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : 'N/A';
-                return `
+            // Feedback module
+            function loadFeedback() {
+                fetchPaginatedList('feedback', 'feedback', 'feedback-table-body', fb => {
+                    const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : 'N/A';
+                    return `
                     <tr>
                         <td>${fb.user_id || 'N/A'}</td>
                         <td style="color:var(--warning); font-weight:700;">⭐ ${fb.rating || 0}/5</td>
@@ -1829,148 +2155,512 @@
                         </td>
                     </tr>
                 `;
-            });
-        }
-
-        // Global Push Notifications Modals
-        function openNotificationModal() {
-            document.getElementById('notification-modal').style.display = 'flex';
-        }
-
-        function closeNotificationModal() {
-            document.getElementById('notification-modal').style.display = 'none';
-        }
-
-        async function handleNotificationSubmit(e) {
-            e.preventDefault();
-            const title = document.getElementById('notify-title').value;
-            const body = document.getElementById('notify-body').value;
-
-            try {
-                const res = await fetch(`${API_URL}/admin/notifications/send`, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify({ title, body })
                 });
-
-                if (res.ok) {
-                    showToast('Push notification broadcast queued!');
-                    closeNotificationModal();
-                } else {
-                    showToast('Failed to queue push alerts', 'error');
-                }
-            } catch (e) {
-                showToast('Connection error', 'error');
             }
-        }
 
-        // System Settings module
-        async function loadSettings() {
-            try {
-                // Load App update settings
-                const resUpdate = await fetch(`${API_URL}/admin/settings/app-config`, {
-                    headers: getHeaders()
-                });
-                const resPremium = await fetch(`${API_URL}/admin/settings/premium-amount`, {
-                    headers: getHeaders()
-                });
-
-                if (resUpdate.status === 401 || resPremium.status === 401) {
-                    handleLogout();
-                    showToast('Session expired. Please log in again.', 'warning');
-                    return;
-                }
-
-                if (resUpdate.ok) {
-                    const updateConfig = await resUpdate.json();
-                    document.getElementById('setting-min-version').value = updateConfig.min_version;
-                    document.getElementById('setting-store-url').value = updateConfig.store_url;
-                    document.getElementById('setting-force-update').checked = updateConfig.force_update;
-                }
-
-                if (resPremium.ok) {
-                    const premConfig = await resPremium.json();
-                    document.getElementById('setting-premium-amount').value = premConfig.amount;
-                }
-            } catch (err) {
-                showToast('Failed to fetch system configurations', 'error');
+            // Global Push Notifications Modals
+            function openNotificationModal() {
+                document.getElementById('notification-modal').style.display = 'flex';
             }
-        }
 
-        async function handleAppConfigSubmit(e) {
-            e.preventDefault();
-            const min_version = document.getElementById('setting-min-version').value;
-            const store_url = document.getElementById('setting-store-url').value;
-            const force_update = document.getElementById('setting-force-update').checked;
-
-            try {
-                const res = await fetch(`${API_URL}/admin/settings/app-config`, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify({ min_version, store_url, force_update })
-                });
-
-                if (res.ok) {
-                    showToast('App update specifications saved');
-                } else {
-                    showToast('Error saving configurations', 'error');
-                }
-            } catch (e) {
-                showToast('Connection error', 'error');
+            function closeNotificationModal() {
+                document.getElementById('notification-modal').style.display = 'none';
             }
-        }
 
-        async function handlePremiumAmountSubmit(e) {
-            e.preventDefault();
-            const amount = parseInt(document.getElementById('setting-premium-amount').value);
+            async function handleNotificationSubmit(e) {
+                e.preventDefault();
+                const title = document.getElementById('notify-title').value;
+                const body = document.getElementById('notify-body').value;
 
-            try {
-                const res = await fetch(`${API_URL}/admin/settings/premium-amount`, {
-                    method: 'POST',
-                    headers: getHeaders(),
-                    body: JSON.stringify({ amount })
-                });
+                try {
+                    const res = await fetch(`${API_URL}/admin/notifications/send`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ title, body })
+                    });
 
-                if (res.ok) {
-                    showToast('Premium pricing updated');
-                } else {
-                    showToast('Error updating price', 'error');
-                }
-            } catch (e) {
-                showToast('Connection error', 'error');
-            }
-        }
-
-        // Pagination buttons configurations
-        function setupPaginationButtons() {
-            const tabs = ['users', 'transactions', 'loans', 'businesses', 'invoices', 'feedback'];
-            tabs.forEach(tab => {
-                document.getElementById(`${tab}-prev-btn`).addEventListener('click', () => {
-                    if (paginations[tab].page > 1) {
-                        paginations[tab].page--;
-                        loadTabContent(tab);
+                    if (res.ok) {
+                        showToast('Push notification broadcast queued!');
+                        closeNotificationModal();
+                    } else {
+                        showToast('Failed to queue push alerts', 'error');
                     }
-                });
-                document.getElementById(`${tab}-next-btn`).addEventListener('click', () => {
-                    const maxPage = Math.ceil(paginations[tab].total / paginations[tab].limit);
-                    if (paginations[tab].page < maxPage) {
-                        paginations[tab].page++;
-                        loadTabContent(tab);
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            // System Settings module
+            async function loadSettings() {
+                try {
+                    // Load App update settings
+                    const resUpdate = await fetch(`${API_URL}/admin/settings/app-config`, {
+                        headers: getHeaders()
+                    });
+                    const resPremium = await fetch(`${API_URL}/admin/settings/premium-amount`, {
+                        headers: getHeaders()
+                    });
+
+                    if (resUpdate.status === 401 || resPremium.status === 401) {
+                        handleLogout();
+                        showToast('Session expired. Please log in again.', 'warning');
+                        return;
                     }
+
+                    if (resUpdate.ok) {
+                        const updateConfig = await resUpdate.json();
+                        document.getElementById('setting-min-version').value = updateConfig.min_version;
+                        document.getElementById('setting-store-url').value = updateConfig.store_url;
+                        document.getElementById('setting-force-update').checked = updateConfig.force_update;
+                    }
+
+                    if (resPremium.ok) {
+                        const premConfig = await resPremium.json();
+                        document.getElementById('setting-premium-amount').value = premConfig.amount;
+                    }
+                } catch (err) {
+                    showToast('Failed to fetch system configurations', 'error');
+                }
+            }
+
+            async function handleAppConfigSubmit(e) {
+                e.preventDefault();
+                const min_version = document.getElementById('setting-min-version').value;
+                const store_url = document.getElementById('setting-store-url').value;
+                const force_update = document.getElementById('setting-force-update').checked;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/settings/app-config`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ min_version, store_url, force_update })
+                    });
+
+                    if (res.ok) {
+                        showToast('App update specifications saved');
+                    } else {
+                        showToast('Error saving configurations', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            async function handlePremiumAmountSubmit(e) {
+                e.preventDefault();
+                const amount = parseInt(document.getElementById('setting-premium-amount').value);
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/settings/premium-amount`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ amount })
+                    });
+
+                    if (res.ok) {
+                        showToast('Premium pricing updated');
+                    } else {
+                        showToast('Error updating price', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            // Pagination buttons configurations
+            function setupPaginationButtons() {
+                const tabs = ['users', 'transactions', 'loans', 'businesses', 'invoices', 'feedback'];
+                tabs.forEach(tab => {
+                    document.getElementById(`${tab}-prev-btn`).addEventListener('click', () => {
+                        if (paginations[tab].page > 1) {
+                            paginations[tab].page--;
+                            loadTabContent(tab);
+                        }
+                    });
+                    document.getElementById(`${tab}-next-btn`).addEventListener('click', () => {
+                        const maxPage = Math.ceil(paginations[tab].total / paginations[tab].limit);
+                        if (paginations[tab].page < maxPage) {
+                            paginations[tab].page++;
+                            loadTabContent(tab);
+                        }
+                    });
                 });
-            });
-        }
+            }
 
-        function updatePaginationControls(tab) {
-            const state = paginations[tab];
-            const maxPage = Math.ceil(state.total / state.limit) || 1;
+            function updatePaginationControls(tab) {
+                const state = paginations[tab];
+                const maxPage = Math.ceil(state.total / state.limit) || 1;
 
-            document.getElementById(`${tab}-page-info`).textContent = `Page ${state.page} of ${maxPage}`;
-            document.getElementById(`${tab}-prev-btn`).disabled = state.page <= 1;
-            document.getElementById(`${tab}-next-btn`).disabled = state.page >= maxPage;
-        }
+                document.getElementById(`${tab}-page-info`).textContent = `Page ${state.page} of ${maxPage}`;
+                document.getElementById(`${tab}-prev-btn`).disabled = state.page <= 1;
+                document.getElementById(`${tab}-next-btn`).disabled = state.page >= maxPage;
+            }
 
-    </script>
+            // --- Website Content & Contacts Admin Logic ---
+            let websiteContentCache = {};
+
+            async function loadWebsiteContent() {
+                try {
+                    const res = await fetch(`${API_URL}/website/content`);
+                    if (res.ok) {
+                        websiteContentCache = await res.json();
+                        onWebsiteSectionChange();
+                    } else {
+                        showToast('Failed to fetch website contents', 'error');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showToast('Error loading website dynamic content', 'error');
+                }
+            }
+
+            function onWebsiteSectionChange() {
+                const key = document.getElementById('web-section-key').value;
+                const item = websiteContentCache[key] || {};
+                document.getElementById('web-section-title').value = item.title || '';
+                document.getElementById('web-section-subtitle').value = item.subtitle || '';
+
+                const contactContainer = document.getElementById('contact-fields-container');
+                if (key === 'contact_info') {
+                    contactContainer.style.display = 'block';
+                    if (item.content_json) {
+                        try {
+                            const parsed = JSON.parse(item.content_json);
+                            document.getElementById('contact-email').value = parsed.email || '';
+                            document.getElementById('contact-phone').value = parsed.phone || '';
+                            document.getElementById('contact-address').value = parsed.address || '';
+                            document.getElementById('contact-hours').value = parsed.workingHours || '';
+                            document.getElementById('contact-facebook').value = parsed.facebook || '';
+                            document.getElementById('contact-instagram').value = parsed.instagram || '';
+                            document.getElementById('contact-linkedin').value = parsed.linkedin || '';
+                        } catch (e) { }
+                    }
+                } else {
+                    contactContainer.style.display = 'none';
+                }
+            }
+
+            async function handleWebsiteContentSubmit(e) {
+                e.preventDefault();
+                const section_key = document.getElementById('web-section-key').value;
+                const title = document.getElementById('web-section-title').value;
+                const subtitle = document.getElementById('web-section-subtitle').value;
+
+                let content_json = null;
+                if (section_key === 'contact_info') {
+                    content_json = JSON.stringify({
+                        email: document.getElementById('contact-email').value,
+                        phone: document.getElementById('contact-phone').value,
+                        address: document.getElementById('contact-address').value,
+                        workingHours: document.getElementById('contact-hours').value,
+                        facebook: document.getElementById('contact-facebook').value,
+                        instagram: document.getElementById('contact-instagram').value,
+                        linkedin: document.getElementById('contact-linkedin').value
+                    });
+                }
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/content`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ section_key, title, subtitle, content_json })
+                    });
+
+                    if (res.ok) {
+                        showToast('Website content section updated successfully!');
+                        websiteContentCache[section_key] = await res.json();
+                    } else {
+                        showToast('Error updating website content', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            // --- Testimonials Admin Logic ---
+            async function loadTestimonials() {
+                const tbody = document.getElementById('testimonials-table-body');
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Loading testimonials...</td></tr>`;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/testimonials`, { headers: getHeaders() });
+                    if (res.ok) {
+                        const list = await res.json();
+                        if (!list || list.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No testimonials published yet.</td></tr>`;
+                            return;
+                        }
+
+                        tbody.innerHTML = list.map(t => `
+                        <tr>
+                            <td>#${t.id}</td>
+                            <td><strong>${t.author_name}</strong></td>
+                            <td>${t.author_role || 'N/A'}</td>
+                            <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">"${t.quote}"</td>
+                            <td>⭐ ${t.rating}/5</td>
+                            <td>
+                                <button class="action-icon-btn delete" title="Delete Testimonial" onclick="deleteTestimonial(${t.id})"><i data-lucide="trash-2"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                        lucide.createIcons();
+                    }
+                } catch (e) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Error loading testimonials.</td></tr>`;
+                }
+            }
+
+            async function handleTestimonialSubmit(e) {
+                e.preventDefault();
+                const author_name = document.getElementById('testi-author-name').value;
+                const author_role = document.getElementById('testi-author-role').value;
+                const rating = parseInt(document.getElementById('testi-rating').value);
+                const quote = document.getElementById('testi-quote').value;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/testimonials`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ author_name, author_role, rating, quote, is_active: 1 })
+                    });
+
+                    if (res.ok) {
+                        showToast('Testimonial created successfully');
+                        document.getElementById('testimonial-form').reset();
+                        loadTestimonials();
+                    } else {
+                        showToast('Failed to create testimonial', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            async function deleteTestimonial(id) {
+                if (!confirm('Delete this testimonial?')) return;
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/testimonials/${id}`, {
+                        method: 'DELETE',
+                        headers: getHeaders()
+                    });
+                    if (res.ok) {
+                        showToast('Testimonial deleted');
+                        loadTestimonials();
+                    }
+                } catch (e) {
+                    showToast('Error deleting testimonial', 'error');
+                }
+            }
+
+            // --- Blogs Admin Logic ---
+            function autoGenerateBlogSlug() {
+                const title = document.getElementById('blog-title').value;
+                document.getElementById('blog-slug').value = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
+            }
+
+            async function loadBlogs() {
+                const tbody = document.getElementById('blogs-table-body');
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">Loading blog articles...</td></tr>`;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/blogs`, { headers: getHeaders() });
+                    if (res.ok) {
+                        const list = await res.json();
+                        if (!list || list.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--text-secondary);">No blog articles published yet.</td></tr>`;
+                            return;
+                        }
+
+                        tbody.innerHTML = list.map(b => `
+                        <tr>
+                            <td>#${b.id}</td>
+                            <td><strong>${b.title}</strong><br><small style="color: var(--text-secondary);">${b.slug}</small></td>
+                            <td><span class="badge badge-info">${b.category}</span></td>
+                            <td>${b.author_name}</td>
+                            <td><small>${new Date(b.created_at).toLocaleDateString()}</small></td>
+                            <td>
+                                <button class="action-icon-btn delete" title="Delete Blog Post" onclick="deleteBlog(${b.id})"><i data-lucide="trash-2"></i></button>
+                            </td>
+                        </tr>
+                    `).join('');
+                        lucide.createIcons();
+                    }
+                } catch (e) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--danger);">Error loading blogs.</td></tr>`;
+                }
+            }
+
+            async function handleBlogSubmit(e) {
+                e.preventDefault();
+                const title = document.getElementById('blog-title').value;
+                const slug = document.getElementById('blog-slug').value;
+                const category = document.getElementById('blog-category').value;
+                const read_time = document.getElementById('blog-read-time').value;
+                const author_name = document.getElementById('blog-author-name').value;
+                const author_role = document.getElementById('blog-author-role').value;
+                const excerpt = document.getElementById('blog-excerpt').value;
+                const content = document.getElementById('blog-content').value;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/blogs`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({
+                            title, slug, category, read_time,
+                            author_name, author_role, excerpt, content,
+                            is_published: 1,
+                            published_date: new Date().toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })
+                        })
+                    });
+
+                    if (res.ok) {
+                        showToast('Blog post published successfully');
+                        document.getElementById('blog-form').reset();
+                        loadBlogs();
+                    } else {
+                        const err = await res.json();
+                        showToast(err.detail || 'Failed to publish blog post', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            async function deleteBlog(id) {
+                if (!confirm('Delete this blog article?')) return;
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/blogs/${id}`, {
+                        method: 'DELETE',
+                        headers: getHeaders()
+                    });
+                    if (res.ok) {
+                        showToast('Blog article deleted');
+                        loadBlogs();
+                    }
+                } catch (e) {
+                    showToast('Error deleting blog', 'error');
+                }
+            }
+
+            async function loadContacts() {
+                const tbody = document.getElementById('contacts-table-body');
+                tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">Loading messages...</td></tr>`;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/contacts`, {
+                        headers: getHeaders()
+                    });
+
+                    if (res.ok) {
+                        const contacts = await res.json();
+                        if (!contacts || contacts.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--text-secondary);">No contact form inquiries submitted yet.</td></tr>`;
+                            return;
+                        }
+
+                        tbody.innerHTML = contacts.map(c => {
+                            const dateStr = new Date(c.created_at).toLocaleDateString() + ' ' + new Date(c.created_at).toLocaleTimeString();
+                            let badgeClass = 'badge-warning';
+                            if (c.status === 'resolved' || c.status === 'replied') badgeClass = 'badge-success';
+                            else if (c.status === 'read') badgeClass = 'badge-info';
+
+                            return `
+                            <tr>
+                                <td>#${c.id}</td>
+                                <td><strong>${c.name}</strong></td>
+                                <td>
+                                    <div>${c.email}</div>
+                                    <small style="color: var(--text-secondary);">${c.phone || ''}</small>
+                                </td>
+                                <td>${c.subject || 'N/A'}</td>
+                                <td style="max-width: 250px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${c.message}">${c.message}</td>
+                                <td><span class="badge ${badgeClass}">${c.status}</span></td>
+                                <td><small>${dateStr}</small></td>
+                                <td>
+                                    <button class="action-icon-btn" title="Mark Resolved" onclick="updateContactStatus(${c.id}, 'resolved')"><i data-lucide="check"></i></button>
+                                    <button class="action-icon-btn delete" title="Delete Inquiry" onclick="deleteContact(${c.id})"><i data-lucide="trash-2"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                        }).join('');
+
+                        lucide.createIcons();
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger);">Failed to load contacts.</td></tr>`;
+                    }
+                } catch (e) {
+                    console.error(e);
+                    tbody.innerHTML = `<tr><td colspan="8" style="text-align: center; color: var(--danger);">Error loading contact enquiries.</td></tr>`;
+                }
+            }
+
+            async function updateContactStatus(id, status) {
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/contacts/${id}`, {
+                        method: 'PUT',
+                        headers: getHeaders(),
+                        body: JSON.stringify({ status })
+                    });
+
+                    if (res.ok) {
+                        showToast('Inquiry status updated!');
+                        loadContacts();
+                    } else {
+                        showToast('Failed to update status', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+            }
+
+            async function deleteContact(id) {
+                if (!confirm('Are you sure you want to delete this contact submission?')) return;
+
+                try {
+                    const res = await fetch(`${API_URL}/admin/website/contacts/${id}`, {
+                        method: 'DELETE',
+                        headers: getHeaders()
+                    });
+
+                    if (res.ok) {
+                        showToast('Inquiry deleted');
+                        loadContacts();
+                    } else {
+                        showToast('Failed to delete inquiry', 'error');
+                    }
+                } catch (e) {
+                    showToast('Connection error', 'error');
+                }
+                async function handleCustomNotificationSubmit(e) {
+                    e.preventDefault();
+                    const title = document.getElementById('custom-notify-title').value;
+                    const user_id = document.getElementById('custom-notify-user-id').value;
+                    const message = document.getElementById('custom-notify-body').value;
+
+                    try {
+                        const res = await fetch(`${API_URL}/admin/send-notification`, {
+                            method: 'POST',
+                            headers: getHeaders(),
+                            body: JSON.stringify({
+                                title: title,
+                                message: message,
+                                user_id: user_id ? user_id : null
+                            })
+                        });
+
+                        if (res.ok) {
+                            showToast('Notification sent successfully!');
+                            document.getElementById('standalone-notification-form').reset();
+                        } else {
+                            const err = await res.json();
+                            showToast(err.detail || 'Failed to send notification', 'error');
+                        }
+                    } catch (e) {
+                        showToast('Connection error', 'error');
+                    }
+                }
+
+        </script>
 </body>
 
 </html>
