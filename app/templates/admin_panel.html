@@ -2680,34 +2680,36 @@
                 } catch (e) {
                     showToast('Connection error', 'error');
                 }
-                async function handleCustomNotificationSubmit(e) {
-                    e.preventDefault();
-                    const title = document.getElementById('custom-notify-title').value;
-                    const user_id = document.getElementById('custom-notify-user-id').value;
-                    const message = document.getElementById('custom-notify-body').value;
+            }
 
-                    try {
-                        const res = await fetch(`${API_URL}/admin/send-notification`, {
-                            method: 'POST',
-                            headers: getHeaders(),
-                            body: JSON.stringify({
-                                title: title,
-                                message: message,
-                                user_id: user_id ? user_id : null
-                            })
-                        });
+            async function handleCustomNotificationSubmit(e) {
+                e.preventDefault();
+                const title = document.getElementById('custom-notify-title').value;
+                const user_id = document.getElementById('custom-notify-user-id').value;
+                const message = document.getElementById('custom-notify-body').value;
 
-                        if (res.ok) {
-                            showToast('Notification sent successfully!');
-                            document.getElementById('standalone-notification-form').reset();
-                        } else {
-                            const err = await res.json();
-                            showToast(err.detail || 'Failed to send notification', 'error');
-                        }
-                    } catch (e) {
-                        showToast('Connection error', 'error');
+                try {
+                    const res = await fetch(`${API_URL}/admin/send-notification`, {
+                        method: 'POST',
+                        headers: getHeaders(),
+                        body: JSON.stringify({
+                            title: title,
+                            message: message,
+                            user_id: user_id ? user_id : null
+                        })
+                    });
+
+                    if (res.ok) {
+                        showToast('Notification sent successfully!');
+                        document.getElementById('standalone-notification-form').reset();
+                    } else {
+                        const err = await res.json();
+                        showToast(err.detail || 'Failed to send notification', 'error');
                     }
+                } catch (e) {
+                    showToast('Connection error', 'error');
                 }
+            }
 
         </script>
 </body>
