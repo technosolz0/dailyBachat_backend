@@ -1640,7 +1640,7 @@
                 if (AUTH_TOKEN) {
                     document.getElementById('login-screen').style.display = 'none';
                     document.getElementById('app-layout').style.display = 'flex';
-                    loadTabContent('dashboard');
+                    switchTab('dashboard');
                 } else {
                     document.getElementById('login-screen').style.display = 'flex';
                     document.getElementById('app-layout').style.display = 'none';
@@ -1696,42 +1696,56 @@
                 checkAuth();
             }
 
+            // Switch view tab
+            function switchTab(tab) {
+                activeTab = tab;
+                const menuItems = document.querySelectorAll('.menu-item[data-tab]');
+                menuItems.forEach(i => {
+                    if (i.getAttribute('data-tab') === tab) {
+                        i.classList.add('active');
+                    } else {
+                        i.classList.remove('active');
+                    }
+                });
+
+                const titles = {
+                    dashboard: 'Dashboard Overview',
+                    users: 'Users Management',
+                    transactions: 'Transactions logs',
+                    loans: 'Loans ledger logs',
+                    businesses: 'Business profiles',
+                    invoices: 'Invoice history',
+                    feedback: 'User reviews and rating',
+                    website: 'Dynamic Website Content & Social Links',
+                    testimonials: 'Website User Testimonials',
+                    blogs: 'Website Blog Posts & Articles',
+                    contacts: 'Website Contact Enquiries',
+                    notifications: 'Send Push Notifications',
+                    settings: 'System configuration settings'
+                };
+                const pageTitle = document.getElementById('page-title');
+                if (pageTitle) {
+                    pageTitle.textContent = titles[tab] || 'Admin Dashboard';
+                }
+
+                const panels = document.querySelectorAll('.view-panel');
+                panels.forEach(p => p.classList.remove('active'));
+                const targetView = document.getElementById(`${tab}-view`);
+                if (targetView) {
+                    targetView.classList.add('active');
+                }
+
+                loadTabContent(tab);
+            }
+
             // Setup Sidebar menu navigation
             function setupMenuNavigation() {
                 const menuItems = document.querySelectorAll('.menu-item[data-tab]');
                 menuItems.forEach(item => {
                     item.addEventListener('click', (e) => {
                         e.preventDefault();
-                        menuItems.forEach(i => i.classList.remove('active'));
-                        item.classList.add('active');
-
                         const tab = item.getAttribute('data-tab');
-                        activeTab = tab;
-
-                        // Update header title
-                        const titles = {
-                            dashboard: 'Dashboard Overview',
-                            users: 'Users Management',
-                            transactions: 'Transactions logs',
-                            loans: 'Loans ledger logs',
-                            businesses: 'Business profiles',
-                            invoices: 'Invoice history',
-                            feedback: 'User reviews and rating',
-                            website: 'Dynamic Website Content & Social Links',
-                            testimonials: 'Website User Testimonials',
-                            blogs: 'Website Blog Posts & Articles',
-                            contacts: 'Website Contact Enquiries',
-                            notifications: 'Send Push Notifications',
-                            settings: 'System configuration settings'
-                        };
-                        document.getElementById('page-title').textContent = titles[tab] || 'Admin Dashboard';
-
-                        // Show panel
-                        const panels = document.querySelectorAll('.view-panel');
-                        panels.forEach(p => p.classList.remove('active'));
-                        document.getElementById(`${tab}-view`).classList.add('active');
-
-                        loadTabContent(tab);
+                        switchTab(tab);
                     });
                 });
             }
