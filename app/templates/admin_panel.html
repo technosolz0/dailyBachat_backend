@@ -950,9 +950,10 @@
                 <!-- USERS VIEW -->
                 <div id="users-view" class="view-panel">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
                             <span class="card-title">All Registered Users</span>
-                            <div class="flex gap-2">
+                            <div class="flex gap-2 align-center" style="flex-wrap: wrap;">
+                                <input type="text" id="users-search" class="input-field" style="padding-left: 1rem; width: 220px;" placeholder="Search users..." oninput="onSearchInput('users')">
                                 <button class="btn" style="padding: 0.5rem 1rem; font-size: 0.85rem;"
                                     onclick="openNotificationModal()">
                                     <i data-lucide="bell"
@@ -965,7 +966,7 @@
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>Name</th>
+                                        <th>User Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
                                         <th>Premium</th>
@@ -990,15 +991,23 @@
                 <!-- TRANSACTIONS VIEW -->
                 <div id="transactions-view" class="view-panel">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
                             <span class="card-title">Transaction Ledger Logs</span>
+                            <div class="flex gap-2 align-center" style="flex-wrap: wrap;">
+                                <input type="text" id="transactions-search" class="input-field" style="padding-left: 1rem; width: 200px;" placeholder="Search transactions..." oninput="onSearchInput('transactions')">
+                                <select id="transactions-filter-type" class="input-field" style="padding-left: 1rem; width: 130px;" onchange="loadTransactions()">
+                                    <option value="All">All Types</option>
+                                    <option value="income">Income</option>
+                                    <option value="expense">Expense</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>ID</th>
-                                        <th>User ID</th>
+                                        <th>User Name</th>
                                         <th>Type</th>
                                         <th>Category</th>
                                         <th>Amount</th>
@@ -1022,15 +1031,28 @@
                 <!-- LOANS VIEW -->
                 <div id="loans-view" class="view-panel">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
                             <span class="card-title">Loans & Splits Logs</span>
+                            <div class="flex gap-2 align-center" style="flex-wrap: wrap;">
+                                <input type="text" id="loans-search" class="input-field" style="padding-left: 1rem; width: 200px;" placeholder="Search loans..." oninput="onSearchInput('loans')">
+                                <select id="loans-filter-status" class="input-field" style="padding-left: 1rem; width: 130px;" onchange="loadLoans()">
+                                    <option value="All">All Status</option>
+                                    <option value="unpaid">Unpaid</option>
+                                    <option value="paid">Paid</option>
+                                </select>
+                                <select id="loans-filter-type" class="input-field" style="padding-left: 1rem; width: 130px;" onchange="loadLoans()">
+                                    <option value="All">All Types</option>
+                                    <option value="lent">Lent</option>
+                                    <option value="borrowed">Borrowed</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Borrower</th>
-                                        <th>User ID</th>
+                                        <th>User Name</th>
                                         <th>Amount</th>
                                         <th>Expected Date</th>
                                         <th>Reminder Status</th>
@@ -1053,15 +1075,18 @@
                 <!-- BUSINESSES VIEW -->
                 <div id="businesses-view" class="view-panel">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
                             <span class="card-title">Registered Business Profiles</span>
+                            <div class="flex gap-2 align-center">
+                                <input type="text" id="businesses-search" class="input-field" style="padding-left: 1rem; width: 220px;" placeholder="Search business / user..." oninput="onSearchInput('businesses')">
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Business Name</th>
-                                        <th>User ID</th>
+                                        <th>Owner Name</th>
                                         <th>Email</th>
                                         <th>Phone</th>
                                         <th>Address</th>
@@ -1084,15 +1109,23 @@
                 <!-- INVOICES VIEW -->
                 <div id="invoices-view" class="view-panel">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
                             <span class="card-title">Generated Invoices</span>
+                            <div class="flex gap-2 align-center" style="flex-wrap: wrap;">
+                                <input type="text" id="invoices-search" class="input-field" style="padding-left: 1rem; width: 200px;" placeholder="Search invoices..." oninput="onSearchInput('invoices')">
+                                <select id="invoices-filter-status" class="input-field" style="padding-left: 1rem; width: 130px;" onchange="loadInvoices()">
+                                    <option value="All">All Status</option>
+                                    <option value="paid">Paid</option>
+                                    <option value="pending">Pending</option>
+                                </select>
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
                                     <tr>
                                         <th>Invoice #</th>
-                                        <th>Business ID</th>
+                                        <th>Business Name</th>
                                         <th>Creator</th>
                                         <th>Total</th>
                                         <th>Paid</th>
@@ -1116,14 +1149,17 @@
                 <!-- FEEDBACK VIEW -->
                 <div id="feedback-view" class="view-panel">
                     <div class="card">
-                        <div class="card-header">
+                        <div class="card-header" style="flex-wrap: wrap; gap: 1rem;">
                             <span class="card-title">User Feedback</span>
+                            <div class="flex gap-2 align-center">
+                                <input type="text" id="feedback-search" class="input-field" style="padding-left: 1rem; width: 220px;" placeholder="Search feedback / user..." oninput="onSearchInput('feedback')">
+                            </div>
                         </div>
                         <div class="table-responsive">
                             <table>
                                 <thead>
                                     <tr>
-                                        <th>User ID</th>
+                                        <th>User Name</th>
                                         <th>Rating</th>
                                         <th>Comment</th>
                                         <th>Created At</th>
@@ -1452,40 +1488,133 @@
                             </tbody>
                         </table>
                     </div>
-                    <!-- 11. CUSTOM NOTIFICATIONS PANEL -->
-                    <div id="notifications-view" class="view-panel">
-                        <div class="table-card">
-                            <div class="table-header">
-                                <h3 class="card-title">Send Custom Push Notification</h3>
+                </div>
+
+                <!-- 11. CUSTOM NOTIFICATIONS PANEL -->
+                <div id="notifications-view" class="view-panel">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Send Custom Push Notification</h3>
+                        </div>
+                        <form id="standalone-notification-form" style="padding: 1.5rem;"
+                            onsubmit="handleCustomNotificationSubmit(event)">
+                            <div class="form-grid">
+                                <div class="input-group">
+                                    <label class="input-label">Notification Title</label>
+                                    <input type="text" id="custom-notify-title" class="input-field"
+                                        style="padding-left: 1rem;"
+                                        placeholder="e.g. Special Offer or Ledger Reminder" required>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Target User ID (Optional)</label>
+                                    <input type="text" id="custom-notify-user-id" class="input-field"
+                                        style="padding-left: 1rem;"
+                                        placeholder="Leave empty for ALL users (Broadcast)">
+                                </div>
                             </div>
-                            <form id="standalone-notification-form" style="padding: 1.5rem;"
-                                onsubmit="handleCustomNotificationSubmit(event)">
-                                <div class="form-grid">
-                                    <div class="input-group">
-                                        <label class="input-label">Notification Title</label>
-                                        <input type="text" id="custom-notify-title" class="input-field"
-                                            style="padding-left: 1rem;"
-                                            placeholder="e.g. Special Offer or Ledger Reminder" required>
-                                    </div>
-                                    <div class="input-group">
-                                        <label class="input-label">Target User ID (Optional)</label>
-                                        <input type="text" id="custom-notify-user-id" class="input-field"
-                                            style="padding-left: 1rem;"
-                                            placeholder="Leave empty for ALL users (Broadcast)">
-                                    </div>
+                            <div class="input-group" style="margin-top: 1rem;">
+                                <label class="input-label">Message Body</label>
+                                <textarea id="custom-notify-body" class="input-field"
+                                    style="padding-left: 1rem; height: 110px; resize: vertical;"
+                                    placeholder="Type your notification message content..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-full" style="margin-top: 1rem;">Send
+                                Notification</button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 12. VISITOR ANALYTICS PANEL -->
+                <div id="analytics-view" class="view-panel">
+                    <!-- Filters section -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Visitor Analytics & Demographic Filters</h3>
+                        </div>
+                        <div style="padding: 1rem 0;">
+                            <div class="form-grid" style="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem;">
+                                <div class="input-group">
+                                    <label class="input-label">Search</label>
+                                    <input type="text" id="analytics-search" class="input-field" style="padding-left: 1rem;" placeholder="Search IP / ID / City..." oninput="loadAnalytics()">
                                 </div>
-                                <div class="input-group" style="margin-top: 1rem;">
-                                    <label class="input-label">Message Body</label>
-                                    <textarea id="custom-notify-body" class="input-field"
-                                        style="padding-left: 1rem; height: 110px; resize: vertical;"
-                                        placeholder="Type your notification message content..." required></textarea>
+                                <div class="input-group">
+                                    <label class="input-label">Country</label>
+                                    <select id="analytics-country" class="input-field" style="padding-left: 1rem;" onchange="loadAnalytics()">
+                                        <option value="All">All Countries</option>
+                                    </select>
                                 </div>
-                                <button type="submit" class="btn btn-full" style="margin-top: 1rem;">Send
-                                    Notification</button>
-                            </form>
+                                <div class="input-group">
+                                    <label class="input-label">State</label>
+                                    <select id="analytics-state" class="input-field" style="padding-left: 1rem;" onchange="loadAnalytics()">
+                                        <option value="All">All States</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">City</label>
+                                    <select id="analytics-city" class="input-field" style="padding-left: 1rem;" onchange="loadAnalytics()">
+                                        <option value="All">All Cities</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Age Group</label>
+                                    <select id="analytics-age" class="input-field" style="padding-left: 1rem;" onchange="loadAnalytics()">
+                                        <option value="All">All Ages</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label class="input-label">Device</label>
+                                    <select id="analytics-device" class="input-field" style="padding-left: 1rem;" onchange="loadAnalytics()">
+                                        <option value="All">All Devices</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
+                    <!-- Metrics cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background-color: var(--primary);"><i data-lucide="users"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Unique Visitors</span>
+                                <span class="stat-value" id="analytics-total-visitors">0</span>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background-color: var(--success);"><i data-lucide="eye"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Visits</span>
+                                <span class="stat-value" id="analytics-total-visits">0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Visitor Table -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">Live Visitor Logs</h3>
+                        </div>
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Visitor ID</th>
+                                        <th>IP Address</th>
+                                        <th>Location</th>
+                                        <th>Demographics</th>
+                                        <th>Device / OS</th>
+                                        <th>Visits</th>
+                                        <th>Last Seen</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="analytics-table-body">
+                                    <tr>
+                                        <td colspan="7" style="text-align: center; color: var(--text-secondary);">Loading analytics...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1730,6 +1859,7 @@
                     testimonials: 'Website User Testimonials',
                     blogs: 'Website Blog Posts & Articles',
                     contacts: 'Website Contact Enquiries',
+                    analytics: 'Visitor Analytics & Demographic Overview',
                     notifications: 'Send Push Notifications',
                     settings: 'System configuration settings'
                 };
@@ -1795,6 +1925,9 @@
                         break;
                     case 'contacts':
                         loadContacts();
+                        break;
+                    case 'analytics':
+                        loadAnalytics();
                         break;
                     case 'notifications':
                         // Standalone view active
@@ -1920,14 +2053,38 @@
                 });
             }
 
+            // Debounce helper for search input
+            let searchDebounceTimers = {};
+            function onSearchInput(tabName) {
+                if (searchDebounceTimers[tabName]) clearTimeout(searchDebounceTimers[tabName]);
+                searchDebounceTimers[tabName] = setTimeout(() => {
+                    paginations[tabName].page = 1;
+                    loadTabContent(tabName);
+                }, 300);
+            }
+
             // Setup dynamic list fetch utility
-            async function fetchPaginatedList(endpoint, tabName, tableBodyId, renderRowFunc) {
+            async function fetchPaginatedList(endpoint, tabName, tableBodyId, renderRowFunc, extraParams = {}) {
                 const state = paginations[tabName];
                 const start = (state.page - 1) * state.limit;
                 const end = start + state.limit;
 
+                // Check for search input
+                const searchEl = document.getElementById(`${tabName}-search`);
+                if (searchEl && searchEl.value.trim()) {
+                    extraParams['q'] = searchEl.value.trim();
+                }
+
+                const queryStr = new URLSearchParams({
+                    _start: start,
+                    _end: end,
+                    _sort: 'id',
+                    _order: 'DESC',
+                    ...extraParams
+                }).toString();
+
                 try {
-                    const res = await fetch(`${API_URL}/admin/${endpoint}?_start=${start}&_end=${end}&_sort=id&_order=DESC`, {
+                    const res = await fetch(`${API_URL}/admin/${endpoint}?${queryStr}`, {
                         headers: getHeaders()
                     });
 
@@ -1939,7 +2096,7 @@
 
                     if (!res.ok) throw new Error();
                     const totalCountHeader = res.headers.get('X-Total-Count');
-                    state.total = totalCountHeader ? parseInt(totalCountHeader) : state.limit; // fallback
+                    state.total = totalCountHeader ? parseInt(totalCountHeader) : state.limit;
 
                     const items = await res.json();
                     const tableBody = document.getElementById(tableBodyId);
@@ -1960,7 +2117,7 @@
             // Users module
             function loadUsers() {
                 fetchPaginatedList('users', 'users', 'users-table-body', user => {
-                    const date = new Date(user.created_at).toLocaleDateString();
+                    const date = user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A';
                     const premiumBadge = user.is_premium ? `<span class="badge badge-success">Premium</span>` : `<span class="badge badge-danger">Standard</span>`;
                     const activeBadge = user.is_active ? `<span class="badge badge-success">Active</span>` : `<span class="badge badge-danger">Blocked</span>`;
                     return `
@@ -1971,7 +2128,7 @@
                                 <span style="font-size:0.75rem; color:var(--text-secondary);">${user.id}</span>
                             </div>
                         </td>
-                        <td>${user.email}</td>
+                        <td>${user.email || 'N/A'}</td>
                         <td>${user.phone_number || 'N/A'}</td>
                         <td>${premiumBadge}</td>
                         <td>${activeBadge}</td>
@@ -1989,102 +2146,24 @@
                 });
             }
 
-            // User edit action
-            function openUserModal(id, isActive, isPremium, isAdmin) {
-                document.getElementById('edit-user-id').value = id;
-                document.getElementById('edit-user-active').checked = isActive;
-                document.getElementById('edit-user-premium').checked = isPremium;
-                document.getElementById('edit-user-admin').checked = isAdmin;
-                document.getElementById('edit-user-modal').style.display = 'flex';
-            }
-
-            function closeUserModal() {
-                document.getElementById('edit-user-modal').style.display = 'none';
-            }
-
-            async function handleUserEditSubmit(e) {
-                e.preventDefault();
-                const id = document.getElementById('edit-user-id').value;
-                const is_active = document.getElementById('edit-user-active').checked;
-                const is_premium = document.getElementById('edit-user-premium').checked;
-                const is_admin = document.getElementById('edit-user-admin').checked;
-
-                try {
-                    const response = await fetch(`${API_URL}/admin/users/${id}`, {
-                        method: 'PUT',
-                        headers: getHeaders(),
-                        body: JSON.stringify({ is_active, is_premium, is_admin })
-                    });
-
-                    if (response.ok) {
-                        showToast('User preferences updated successfully');
-                        closeUserModal();
-                        loadUsers();
-                    } else {
-                        const err = await response.json();
-                        showToast(err.detail || 'Could not update user', 'error');
-                    }
-                } catch (err) {
-                    showToast('Connection error', 'error');
-                }
-            }
-
-            async function handleUserDelete(id) {
-                if (!confirm(`Are you absolutely sure you want to permanently delete user ${id}? This action will wipe all their splits, categories, businesses and transaction ledgers!`)) {
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`${API_URL}/admin/users/${id}`, {
-                        method: 'DELETE',
-                        headers: getHeaders()
-                    });
-
-                    if (response.ok) {
-                        showToast('User account successfully deleted');
-                        loadUsers();
-                    } else {
-                        showToast('Could not delete user', 'error');
-                    }
-                } catch (e) {
-                    showToast('Connection error', 'error');
-                }
-            }
-
-            // Generic item delete handler
-            async function handleItemDelete(resource, id) {
-                const singularName = resource.endsWith('es') ? resource.slice(0, -2) : resource.slice(0, -1);
-                if (!confirm(`Are you sure you want to permanently delete this ${singularName} entry?`)) {
-                    return;
-                }
-
-                try {
-                    const response = await fetch(`${API_URL}/admin/${resource}/${id}`, {
-                        method: 'DELETE',
-                        headers: getHeaders()
-                    });
-
-                    if (response.ok) {
-                        showToast(`${singularName} deleted successfully`);
-                        loadTabContent(resource);
-                    } else {
-                        const err = await response.json().catch(() => ({}));
-                        showToast(err.detail || `Could not delete ${singularName}`, 'error');
-                    }
-                } catch (e) {
-                    showToast('Connection error', 'error');
-                }
-            }
-
             // Transactions module
             function loadTransactions() {
+                const typeFilter = document.getElementById('transactions-filter-type')?.value;
+                const extra = {};
+                if (typeFilter && typeFilter !== 'All') extra['type'] = typeFilter;
+
                 fetchPaginatedList('transactions', 'transactions', 'transactions-table-body', tx => {
                     const date = tx.date ? new Date(tx.date).toLocaleDateString() : (tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'N/A');
                     const typeBadge = tx.type === 'income' ? `<span class="badge badge-success">Income</span>` : `<span class="badge badge-danger">Expense</span>`;
                     return `
                     <tr>
                         <td style="font-family:monospace; font-size:0.8rem;">${(tx.id || '').substring(0, 8)}...</td>
-                        <td>${(tx.user_id || '').substring(0, 8)}...</td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span style="font-weight:600;">${tx.user_name || 'User'}</span>
+                                <span style="font-size:0.75rem; color:var(--text-secondary);">${(tx.user_id || '').substring(0, 8)}...</span>
+                            </div>
+                        </td>
                         <td>${typeBadge}</td>
                         <td>${tx.category || tx.category_id || 'Global'}</td>
                         <td style="font-weight:700;">₹${(tx.amount || 0).toLocaleString()}</td>
@@ -2096,11 +2175,17 @@
                         </td>
                     </tr>
                 `;
-                });
+                }, extra);
             }
 
             // Loans module
             function loadLoans() {
+                const statusFilter = document.getElementById('loans-filter-status')?.value;
+                const typeFilter = document.getElementById('loans-filter-type')?.value;
+                const extra = {};
+                if (statusFilter && statusFilter !== 'All') extra['status'] = statusFilter;
+                if (typeFilter && typeFilter !== 'All') extra['type'] = typeFilter;
+
                 fetchPaginatedList('loans', 'loans', 'loans-table-body', ln => {
                     const returnDate = ln.expected_return_date ? new Date(ln.expected_return_date).toLocaleDateString() : 'N/A';
                     const isLend = ln.type === 'lend' || ln.type === 'lent';
@@ -2113,7 +2198,12 @@
                                 <span style="font-size:0.75rem; color:var(--text-secondary);">${ln.person_phone || 'No phone'}</span>
                             </div>
                         </td>
-                        <td>${(ln.user_id || '').substring(0, 8)}...</td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span style="font-weight:600;">${ln.user_name || 'User'}</span>
+                                <span style="font-size:0.75rem; color:var(--text-secondary);">${(ln.user_id || '').substring(0, 8)}...</span>
+                            </div>
+                        </td>
                         <td style="font-weight:700; color:${isLend ? 'var(--success)' : 'var(--danger)'}">
                             ${isLend ? '+' : '-'} ₹${amt}
                         </td>
@@ -2130,7 +2220,7 @@
                         </td>
                     </tr>
                 `;
-                });
+                }, extra);
             }
 
             // Businesses module
@@ -2143,7 +2233,12 @@
                     return `
                     <tr>
                         <td style="font-weight:600;">${name}</td>
-                        <td>${(biz.user_id || '').substring(0, 8)}...</td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span style="font-weight:600;">${biz.user_name || 'User'}</span>
+                                <span style="font-size:0.75rem; color:var(--text-secondary);">${(biz.user_id || '').substring(0, 8)}...</span>
+                            </div>
+                        </td>
                         <td>${email}</td>
                         <td>${phone}</td>
                         <td style="font-size:0.8rem; color:var(--text-secondary);">${address}</td>
@@ -2159,8 +2254,11 @@
 
             // Invoices module
             function loadInvoices() {
+                const statusFilter = document.getElementById('invoices-filter-status')?.value;
+                const extra = {};
+                if (statusFilter && statusFilter !== 'All') extra['status'] = statusFilter;
+
                 fetchPaginatedList('invoices', 'invoices', 'invoices-table-body', inv => {
-                    const date = inv.date ? new Date(inv.date).toLocaleDateString() : 'N/A';
                     const statusBadge = inv.status === 'paid' ? `<span class="badge badge-success">Paid</span>` : `<span class="badge badge-warning">Unpaid</span>`;
                     const pdfButton = inv.pdf_url ? `
                     <a href="${inv.pdf_url}" target="_blank" class="action-icon-btn" style="text-decoration:none;" title="Download PDF">
@@ -2171,8 +2269,8 @@
                     return `
                     <tr>
                         <td style="font-weight:600;">${inv.invoice_number || 'N/A'}</td>
-                        <td>${inv.business_id || 'N/A'}</td>
-                        <td>${inv.creator_name || 'System'}</td>
+                        <td style="font-weight:600; color: var(--primary);">${inv.business_name || inv.business_id || 'N/A'}</td>
+                        <td>${inv.user_name || inv.creator_name || 'System'}</td>
                         <td style="font-weight:700;">₹${totalAmt}</td>
                         <td>₹${paidAmt}</td>
                         <td>${statusBadge}</td>
@@ -2184,7 +2282,7 @@
                         </td>
                     </tr>
                 `;
-                });
+                }, extra);
             }
 
             // Feedback module
@@ -2193,7 +2291,12 @@
                     const date = fb.created_at ? new Date(fb.created_at).toLocaleDateString() : 'N/A';
                     return `
                     <tr>
-                        <td>${fb.user_id || 'N/A'}</td>
+                        <td>
+                            <div class="flex flex-col">
+                                <span style="font-weight:600;">${fb.user_name || 'User'}</span>
+                                <span style="font-size:0.75rem; color:var(--text-secondary);">${fb.user_id || 'N/A'}</span>
+                            </div>
+                        </td>
                         <td style="color:var(--warning); font-weight:700;">⭐ ${fb.rating || 0}/5</td>
                         <td>${fb.message || fb.comment || 'N/A'}</td>
                         <td>${date}</td>
@@ -2709,6 +2812,92 @@
                 } catch (e) {
                     showToast('Connection error', 'error');
                 }
+            }
+
+            // --- Visitor Analytics Admin Logic ---
+            async function loadAnalytics() {
+                const tbody = document.getElementById('analytics-table-body');
+                const search = document.getElementById('analytics-search')?.value || '';
+                const country = document.getElementById('analytics-country')?.value || 'All';
+                const state = document.getElementById('analytics-state')?.value || 'All';
+                const city = document.getElementById('analytics-city')?.value || 'All';
+                const age = document.getElementById('analytics-age')?.value || 'All';
+                const device = document.getElementById('analytics-device')?.value || 'All';
+
+                const queryStr = new URLSearchParams({
+                    ...(search && { search }),
+                    ...(country !== 'All' && { country }),
+                    ...(state !== 'All' && { state }),
+                    ...(city !== 'All' && { city }),
+                    ...(age !== 'All' && { age }),
+                    ...(device !== 'All' && { device })
+                }).toString();
+
+                try {
+                    const res = await fetch(`${API_URL}/website/admin/analytics?${queryStr}`, {
+                        headers: getHeaders()
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        const summary = data.summary || {};
+                        const visitors = data.visitors || [];
+                        const options = data.filterOptions || {};
+
+                        if (document.getElementById('analytics-total-visitors')) {
+                            document.getElementById('analytics-total-visitors').textContent = summary.totalVisitors || 0;
+                        }
+                        if (document.getElementById('analytics-total-visits')) {
+                            document.getElementById('analytics-total-visits').textContent = summary.totalVisits || 0;
+                        }
+
+                        // Populate dropdown filter options dynamically if not already set
+                        populateDropdown('analytics-country', options.countries, country);
+                        populateDropdown('analytics-state', options.states, state);
+                        populateDropdown('analytics-city', options.cities, city);
+                        populateDropdown('analytics-age', options.ageGroups, age);
+                        populateDropdown('analytics-device', options.devices, device);
+
+                        if (visitors.length === 0) {
+                            tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--text-secondary); padding: 2rem;">No visitor analytics recorded yet</td></tr>`;
+                            return;
+                        }
+
+                        tbody.innerHTML = visitors.map(v => {
+                            const lastSeen = v.lastSeen ? new Date(v.lastSeen).toLocaleString() : 'N/A';
+                            return `
+                            <tr>
+                                <td style="font-family:monospace; font-size:0.8rem;">${(v.visitorId || '').substring(0, 12)}...</td>
+                                <td>${v.ip || '127.0.0.1'}</td>
+                                <td><strong>${v.city || ''}</strong>, ${v.state || ''}, ${v.country || ''}</td>
+                                <td><span class="badge badge-info">${v.ageGroup || 'N/A'}</span> <small style="color:var(--text-secondary);">${v.gender || ''}</small></td>
+                                <td><span class="badge badge-warning">${v.device || 'Desktop'}</span> <small style="color:var(--text-secondary);">${v.browser || ''} / ${v.os || ''}</small></td>
+                                <td style="font-weight:700; text-align:center;">${v.visitCount || 1}</td>
+                                <td><small>${lastSeen}</small></td>
+                            </tr>
+                        `;
+                        }).join('');
+                        lucide.createIcons();
+                    } else {
+                        tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger);">Failed to load visitor analytics</td></tr>`;
+                    }
+                } catch (e) {
+                    console.error('loadAnalytics error:', e);
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align: center; color: var(--danger);">Error connecting to analytics endpoint</td></tr>`;
+                }
+            }
+
+            function populateDropdown(selectId, items, selectedVal) {
+                const select = document.getElementById(selectId);
+                if (!select || !items || select.children.length > 1) return;
+                items.forEach(item => {
+                    if (!item) return;
+                    const opt = document.createElement('option');
+                    opt.value = item;
+                    opt.textContent = item;
+                    if (item === selectedVal) opt.selected = true;
+                    select.appendChild(opt);
+                });
             }
 
         </script>

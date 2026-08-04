@@ -38,6 +38,8 @@ class InvoiceCreate(InvoiceBase):
 class Invoice(InvoiceBase):
     id: str
     business_id: str
+    business_name: Optional[str] = None
+    user_name: Optional[str] = None
     date: Optional[datetime] = None
     paid_amount: float = 0.0
     status: str = "pending"

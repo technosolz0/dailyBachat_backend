@@ -13,6 +13,9 @@ class FeedbackCreate(FeedbackBase):
 class Feedback(FeedbackBase):
     id: int
     user_id: str
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
+    user_phone: Optional[str] = None
     created_at: Optional[datetime] = None
 
     class Config:

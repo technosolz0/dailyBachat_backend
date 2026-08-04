@@ -36,6 +36,9 @@ class LoanUpdate(BaseModel):
 
 class LoanInDB(LoanBase):
     id: str # Required in DB
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
+    user_phone: Optional[str] = None
 
     class Config:
         from_attributes = True

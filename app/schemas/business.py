@@ -32,6 +32,9 @@ class BusinessProfileCreate(BusinessProfileBase):
 class BusinessProfile(BusinessProfileBase):
     id: str
     user_id: str
+    user_name: Optional[str] = None
+    user_email: Optional[str] = None
+    user_phone: Optional[str] = None
     payment_details: List[PaymentDetail] = []
 
     class Config:

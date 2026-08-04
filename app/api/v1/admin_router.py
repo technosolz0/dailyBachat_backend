@@ -177,13 +177,17 @@ async def get_all_users(
     _end: int = 10,
     _sort: str = "id",
     _order: str = "ASC",
+    q: Optional[str] = None,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Fetch all registered users with pagination and sorting.
+    Fetch all registered users with pagination, sorting, and search query.
     """
     query = db.query(User)
+    if q and q.strip():
+        s = f"%{q.strip().lower()}%"
+        query = query.filter((User.name.ilike(s)) | (User.email.ilike(s)) | (User.id.ilike(s)))
     items, total_count = apply_pagination_sorting(query, User, _start, _end, _sort, _order)
     
     result = [_format_user(u) for u in items]
@@ -248,56 +252,46 @@ async def delete_user(
 
     try:
         from app.models.business import BusinessProfile, PaymentDetail
-        from app.models.category import Category
         from app.models.customer import Customer
-        from app.models.feedback import Feedback
         from app.models.invoice import Invoice, InvoiceItem, Payment, ShareToken, Quotation, QuotationItem
-        from app.models.loan import Loan
         from app.models.product import Product
-        from app.models.transaction import Transaction
 
-        # 1. Delete standalone related models
+        # Delete user's businesses & cascades
+        user_businesses = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).all()
+        for biz in user_businesses:
+            b_id = biz.id
+            invoices = db.query(Invoice).filter(Invoice.business_id == b_id).all()
+            inv_ids = [i.id for i in invoices]
+            if inv_ids:
+                db.query(InvoiceItem).filter(InvoiceItem.invoice_id.in_(inv_ids)).delete(synchronize_session=False)
+                db.query(Payment).filter(Payment.invoice_id.in_(inv_ids)).delete(synchronize_session=False)
+                db.query(ShareToken).filter(ShareToken.invoice_id.in_(inv_ids)).delete(synchronize_session=False)
+                db.query(Invoice).filter(Invoice.id.in_(inv_ids)).delete(synchronize_session=False)
+
+            quotations = db.query(Quotation).filter(Quotation.business_id == b_id).all()
+            q_ids = [q.id for q in quotations]
+            if q_ids:
+                db.query(ShareToken).filter(ShareToken.quotation_id.in_(q_ids)).delete(synchronize_session=False)
+                db.query(QuotationItem).filter(QuotationItem.quotation_id.in_(q_ids)).delete(synchronize_session=False)
+                db.query(Quotation).filter(Quotation.id.in_(q_ids)).delete(synchronize_session=False)
+
+            db.query(Product).filter(Product.business_id == b_id).delete(synchronize_session=False)
+            db.query(Customer).filter(Customer.business_id == b_id).delete(synchronize_session=False)
+            db.query(PaymentDetail).filter(PaymentDetail.business_id == b_id).delete(synchronize_session=False)
+            db.delete(biz)
+
+        # Delete remaining direct user records
         db.query(Transaction).filter(Transaction.user_id == user_id).delete(synchronize_session=False)
-        db.query(Category).filter(Category.user_id == user_id).delete(synchronize_session=False)
-        db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)
         db.query(Loan).filter(Loan.user_id == user_id).delete(synchronize_session=False)
-
-        # 2. Delete business and its cascade
-        businesses = db.query(BusinessProfile).filter(BusinessProfile.user_id == user_id).all()
-        business_ids = [b.id for b in businesses]
-
-        if business_ids:
-            # Handle Invoices
-            invoices = db.query(Invoice).filter(Invoice.business_id.in_(business_ids)).all()
-            invoice_ids = [i.id for i in invoices]
-            if invoice_ids:
-                db.query(InvoiceItem).filter(InvoiceItem.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
-                db.query(Payment).filter(Payment.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
-                db.query(ShareToken).filter(ShareToken.invoice_id.in_(invoice_ids)).delete(synchronize_session=False)
-                db.query(Invoice).filter(Invoice.id.in_(invoice_ids)).delete(synchronize_session=False)
-
-            # Handle Quotations
-            quotations = db.query(Quotation).filter(Quotation.business_id.in_(business_ids)).all()
-            quotation_ids = [q.id for q in quotations]
-            if quotation_ids:
-                db.query(ShareToken).filter(ShareToken.quotation_id.in_(quotation_ids)).delete(synchronize_session=False)
-                db.query(QuotationItem).filter(QuotationItem.quotation_id.in_(quotation_ids)).delete(synchronize_session=False)
-                db.query(Quotation).filter(Quotation.id.in_(quotation_ids)).delete(synchronize_session=False)
-
-            # Delete remaining business-related data
-            db.query(Product).filter(Product.business_id.in_(business_ids)).delete(synchronize_session=False)
-            db.query(Customer).filter(Customer.business_id.in_(business_ids)).delete(synchronize_session=False)
-            db.query(PaymentDetail).filter(PaymentDetail.business_id.in_(business_ids)).delete(synchronize_session=False)
-            db.query(BusinessProfile).filter(BusinessProfile.id.in_(business_ids)).delete(synchronize_session=False)
+        db.query(Feedback).filter(Feedback.user_id == user_id).delete(synchronize_session=False)
 
         user_email = db_user.email
-        user_phone = db_user.phone_number
+        user_phone = _format_user(db_user).get("phone_number")
 
-        # 3. Delete user record
         db.delete(db_user)
         db.commit()
 
-        # 4. Permanently delete from Firebase Auth (by UID, Email, or Phone)
+        # Delete from Firebase Auth
         try:
             delete_firebase_user_account(user_id=user_id, email=user_email, phone_number=user_phone)
         except Exception as fe:
@@ -326,12 +320,10 @@ async def create_user_admin(
     from app.core.security import get_password_hash
     import uuid
 
-    # Check if user already exists
     existing_user = db.query(User).filter(User.email == user_data.email).first()
     if existing_user:
         raise HTTPException(status_code=400, detail="Email already registered")
     
-    # Generate a unique ID if not provided (though Firebase UID is usually provided)
     user_id = user_data.id if user_data.id else str(uuid.uuid4())
     
     db_user = User(
@@ -355,17 +347,46 @@ async def get_all_feedback(
     _end: int = 10,
     _sort: str = "id",
     _order: str = "ASC",
+    q: Optional[str] = None,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all user feedback with pagination.
+    Get all user feedback with pagination and user details.
     """
     query = db.query(Feedback)
+    if q and q.strip():
+        s = f"%{q.strip().lower()}%"
+        query = query.join(User, Feedback.user_id == User.id, isouter=True).filter(
+            (Feedback.message.ilike(s)) | (Feedback.category.ilike(s)) | (Feedback.user_id.ilike(s)) | (User.name.ilike(s)) | (User.email.ilike(s))
+        )
     items, total_count = apply_pagination_sorting(query, Feedback, _start, _end, _sort, _order)
+    
+    user_ids = list(set([fb.user_id for fb in items if fb.user_id]))
+    users_map = {}
+    if user_ids:
+        users = db.query(User).filter(User.id.in_(user_ids)).all()
+        for u in users:
+            users_map[u.id] = _format_user(u)
+
+    result = []
+    for fb in items:
+        u_info = users_map.get(fb.user_id) or {}
+        result.append({
+            "id": fb.id,
+            "user_id": fb.user_id,
+            "user_name": u_info.get("name") or "User",
+            "user_email": u_info.get("email"),
+            "user_phone": u_info.get("phone_number"),
+            "rating": fb.rating,
+            "category": fb.category,
+            "message": fb.message,
+            "created_at": fb.created_at
+        })
+
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
-    return items
+    return result
 
 @router.delete("/feedback/{feedback_id}")
 async def delete_feedback(
@@ -388,17 +409,56 @@ async def get_all_transactions(
     _end: int = 10,
     _sort: str = "id",
     _order: str = "ASC",
+    q: Optional[str] = None,
+    type: Optional[str] = None,
+    category: Optional[str] = None,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all transactions across the platform with pagination.
+    Get all transactions across the platform with pagination and user details.
     """
     query = db.query(Transaction)
+    if type and type != "All":
+        query = query.filter(Transaction.type == type)
+    if category and category != "All":
+        query = query.filter(Transaction.category == category)
+    if q and q.strip():
+        s = f"%{q.strip().lower()}%"
+        query = query.join(User, Transaction.user_id == User.id, isouter=True).filter(
+            (Transaction.description.ilike(s)) | (Transaction.category.ilike(s)) | (Transaction.user_id.ilike(s)) | (User.name.ilike(s)) | (User.email.ilike(s))
+        )
+
     items, total_count = apply_pagination_sorting(query, Transaction, _start, _end, _sort, _order)
+
+    user_ids = list(set([tx.user_id for tx in items if tx.user_id]))
+    users_map = {}
+    if user_ids:
+        users = db.query(User).filter(User.id.in_(user_ids)).all()
+        for u in users:
+            users_map[u.id] = _format_user(u)
+
+    result = []
+    for tx in items:
+        u_info = users_map.get(tx.user_id) or {}
+        result.append({
+            "id": tx.id,
+            "user_id": tx.user_id,
+            "user_name": u_info.get("name") or "User",
+            "user_email": u_info.get("email"),
+            "user_phone": u_info.get("phone_number"),
+            "amount": tx.amount,
+            "description": tx.description,
+            "category": tx.category,
+            "type": tx.type,
+            "payment_mode": tx.payment_mode,
+            "date": tx.date,
+            "created_at": tx.created_at
+        })
+
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
-    return items
+    return result
 
 @router.delete("/transactions/{transaction_id}")
 async def delete_transaction(
@@ -421,17 +481,61 @@ async def get_all_loans(
     _end: int = 10,
     _sort: str = "id",
     _order: str = "ASC",
+    q: Optional[str] = None,
+    status: Optional[str] = None,
+    type: Optional[str] = None,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all loan applications and records with pagination.
+    Get all loan applications and records with pagination and user details.
     """
     query = db.query(Loan)
+    if status and status != "All":
+        query = query.filter(Loan.status == status)
+    if type and type != "All":
+        query = query.filter(Loan.type == type)
+    if q and q.strip():
+        s = f"%{q.strip().lower()}%"
+        query = query.join(User, Loan.user_id == User.id, isouter=True).filter(
+            (Loan.person_name.ilike(s)) | (Loan.person_phone.ilike(s)) | (Loan.reason.ilike(s)) | (Loan.user_id.ilike(s)) | (User.name.ilike(s)) | (User.email.ilike(s))
+        )
+
     items, total_count = apply_pagination_sorting(query, Loan, _start, _end, _sort, _order)
+
+    user_ids = list(set([ln.user_id for ln in items if ln.user_id]))
+    users_map = {}
+    if user_ids:
+        users = db.query(User).filter(User.id.in_(user_ids)).all()
+        for u in users:
+            users_map[u.id] = _format_user(u)
+
+    result = []
+    for ln in items:
+        u_info = users_map.get(ln.user_id) or {}
+        result.append({
+            "id": ln.id,
+            "user_id": ln.user_id,
+            "user_name": u_info.get("name") or "User",
+            "user_email": u_info.get("email"),
+            "user_phone": u_info.get("phone_number"),
+            "person_name": ln.person_name,
+            "person_phone": ln.person_phone,
+            "amount": ln.amount,
+            "paid_amount": ln.paid_amount,
+            "status": ln.status,
+            "type": ln.type,
+            "payment_mode": ln.payment_mode,
+            "creator_name": ln.creator_name,
+            "reason": ln.reason,
+            "date": ln.date,
+            "expected_return_date": ln.expected_return_date,
+            "payment_history": ln.payment_history or []
+        })
+
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
-    return items
+    return result
 
 @router.delete("/loans/{loan_id}")
 async def delete_loan(
@@ -454,17 +558,59 @@ async def get_all_businesses(
     _end: int = 10,
     _sort: str = "id",
     _order: str = "ASC",
+    q: Optional[str] = None,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all business profiles with pagination.
+    Get all business profiles with pagination and user details.
     """
     query = db.query(BusinessProfile)
+    if q and q.strip():
+        s = f"%{q.strip().lower()}%"
+        query = query.join(User, BusinessProfile.user_id == User.id, isouter=True).filter(
+            (BusinessProfile.name.ilike(s)) | (BusinessProfile.email.ilike(s)) | (BusinessProfile.phone.ilike(s)) | (BusinessProfile.user_id.ilike(s)) | (User.name.ilike(s))
+        )
     items, total_count = apply_pagination_sorting(query, BusinessProfile, _start, _end, _sort, _order)
+
+    user_ids = list(set([biz.user_id for biz in items if biz.user_id]))
+    users_map = {}
+    if user_ids:
+        users = db.query(User).filter(User.id.in_(user_ids)).all()
+        for u in users:
+            users_map[u.id] = _format_user(u)
+
+    result = []
+    for biz in items:
+        u_info = users_map.get(biz.user_id) or {}
+        result.append({
+            "id": biz.id,
+            "user_id": biz.user_id,
+            "user_name": u_info.get("name") or "User",
+            "user_email": u_info.get("email"),
+            "user_phone": u_info.get("phone_number"),
+            "name": biz.name,
+            "address": biz.address,
+            "phone": biz.phone,
+            "email": biz.email,
+            "gst_number": biz.gst_number,
+            "logo_url": biz.logo_url,
+            "payment_details": [
+                {
+                    "id": p.id,
+                    "business_id": p.business_id,
+                    "bank_name": p.bank_name,
+                    "account_number": p.account_number,
+                    "ifsc": p.ifsc,
+                    "upi_id": p.upi_id,
+                    "qr_code_url": p.qr_code_url
+                } for p in (biz.payment_details or [])
+            ]
+        })
+
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
-    return items
+    return result
 
 @router.delete("/businesses/{business_id}")
 async def delete_business(
@@ -516,17 +662,69 @@ async def get_all_invoices(
     _end: int = 10,
     _sort: str = "id",
     _order: str = "ASC",
+    q: Optional[str] = None,
+    status: Optional[str] = None,
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin)
 ):
     """
-    Get all invoices with pagination.
+    Get all invoices with pagination, business details, and search/status filters.
     """
     query = db.query(Invoice)
+    if status and status != "All":
+        query = query.filter(Invoice.status == status)
+    if q and q.strip():
+        s = f"%{q.strip().lower()}%"
+        query = query.join(BusinessProfile, Invoice.business_id == BusinessProfile.id, isouter=True).filter(
+            (Invoice.invoice_number.ilike(s)) | (Invoice.creator_name.ilike(s)) | (Invoice.business_id.ilike(s)) | (BusinessProfile.name.ilike(s))
+        )
     items, total_count = apply_pagination_sorting(query, Invoice, _start, _end, _sort, _order)
+
+    biz_ids = list(set([inv.business_id for inv in items if inv.business_id]))
+    biz_map = {}
+    if biz_ids:
+        b_records = db.query(BusinessProfile).filter(BusinessProfile.id.in_(biz_ids)).all()
+        for b in b_records:
+            biz_map[b.id] = b
+
+    result = []
+    for inv in items:
+        biz_obj = biz_map.get(inv.business_id)
+        biz_name = biz_obj.name if biz_obj else "Unnamed Business"
+        result.append({
+            "id": inv.id,
+            "business_id": inv.business_id,
+            "business_name": biz_name,
+            "user_name": inv.creator_name or (biz_obj.name if biz_obj else "N/A"),
+            "customer_id": inv.customer_id,
+            "invoice_number": inv.invoice_number,
+            "due_date": inv.due_date,
+            "subtotal": inv.subtotal,
+            "tax": inv.tax,
+            "tax_percent": inv.tax_percent,
+            "total": inv.total,
+            "payment_mode": inv.payment_mode,
+            "creator_name": inv.creator_name,
+            "date": inv.date,
+            "paid_amount": inv.paid_amount,
+            "status": inv.status,
+            "pdf_url": inv.pdf_url,
+            "items": [
+                {
+                    "id": item.id,
+                    "invoice_id": item.invoice_id,
+                    "description": item.description,
+                    "quantity": item.quantity,
+                    "unit_price": item.unit_price,
+                    "amount": item.amount
+                } for item in (inv.items or [])
+            ],
+            "customer": inv.customer
+        })
+
     response.headers["X-Total-Count"] = str(total_count)
     response.headers["Access-Control-Expose-Headers"] = "X-Total-Count"
-    return items
+    return result
 
 @router.delete("/invoices/{invoice_id}")
 async def delete_invoice(
