@@ -50,3 +50,23 @@ class ContactSubmission(Base):
     message = Column(Text, nullable=False)
     status = Column(String, default="pending", index=True) # "pending", "read", "replied", "resolved"
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class VisitorAnalytics(Base):
+    __tablename__ = "visitor_analytics"
+
+    id = Column(Integer, primary_key=True, index=True)
+    visitor_id = Column(String, unique=True, index=True, nullable=False)
+    ip_address = Column(String, nullable=True)
+    country = Column(String, default="India", index=True)
+    state = Column(String, default="Maharashtra", index=True)
+    city = Column(String, default="Mumbai", index=True)
+    age_group = Column(String, default="25-34", index=True)
+    gender = Column(String, default="Not Specified")
+    device = Column(String, default="Desktop", index=True)
+    browser = Column(String, default="Chrome")
+    os = Column(String, default="Unknown")
+    visit_count = Column(Integer, default=1)
+    pages_visited = Column(Text, default="[]") # Stored as JSON string
+    first_seen = Column(DateTime(timezone=True), server_default=func.now())
+    last_seen = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+

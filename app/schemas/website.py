@@ -100,3 +100,17 @@ class ContactSubmissionResponse(ContactSubmissionCreate):
 
     class Config:
         from_attributes = True
+
+class VisitorTrackCreate(BaseModel):
+    visitorId: str
+    ip: Optional[str] = None
+    country: Optional[str] = "India"
+    state: Optional[str] = "Maharashtra"
+    city: Optional[str] = "Mumbai"
+    ageGroup: Optional[str] = "25-34"
+    gender: Optional[str] = "Not Specified"
+    device: Optional[str] = "Desktop"
+    browser: Optional[str] = "Chrome"
+    os: Optional[str] = "Unknown"
+    path: Optional[str] = "/"
+
