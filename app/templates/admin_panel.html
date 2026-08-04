@@ -1806,22 +1806,31 @@
                         showToast('Session expired. Please log in again.', 'warning');
                         return;
                     }
-                    if (!res.ok) throw new Error();
+                    if (!res.ok) throw new Error(`HTTP error ${res.status}`);
                     const data = await res.json();
 
                     // Populate metrics
-                    document.getElementById('stat-total-users').textContent = data.summary.total_users;
-                    document.getElementById('stat-premium-users').textContent = data.summary.premium_users;
-                    document.getElementById('stat-businesses').textContent = data.summary.total_businesses;
-                    document.getElementById('stat-loans').textContent = `₹${(data.summary.total_loan_volume || 0).toLocaleString()}`;
+                    if (data && data.summary) {
+                        if (document.getElementById('stat-total-users')) document.getElementById('stat-total-users').textContent = data.summary.total_users ?? 0;
+                        if (document.getElementById('stat-premium-users')) document.getElementById('stat-premium-users').textContent = data.summary.premium_users ?? 0;
+                        if (document.getElementById('stat-businesses')) document.getElementById('stat-businesses').textContent = data.summary.total_businesses ?? 0;
+                        if (document.getElementById('stat-loans')) document.getElementById('stat-loans').textContent = `₹${(data.summary.total_loan_volume || 0).toLocaleString()}`;
+                    }
 
                     // Populate charts
-                    renderGrowthChart(data.growth);
+                    if (data && data.growth) {
+                        try {
+                            renderGrowthChart(data.growth);
+                        } catch (chartErr) {
+                            console.error('Growth chart render error:', chartErr);
+                        }
+                    }
 
                     // Populate recent feedback list (limit to 3 items)
                     loadRecentFeedbackWidget();
                 } catch (err) {
-                    showToast('Failed to retrieve dashboard stats', 'error');
+                    console.error('loadDashboardStats error:', err);
+                    showToast('Failed to retrieve dashboard stats: ' + err.message, 'error');
                 }
             }
 
