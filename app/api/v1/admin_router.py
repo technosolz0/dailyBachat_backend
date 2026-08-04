@@ -33,7 +33,7 @@ from app.schemas.transaction import TransactionInDB
 from app.schemas.notification import NotificationSend, NotificationResponse
 from app.schemas.system_settings import PremiumAmountUpdate, PremiumFeaturesUpdate, AppConfigUpdate
 from app.core.firebase_config import send_push_notification, send_multicast_notification, delete_firebase_user_account
-from typing import List
+from typing import List, Optional
 from sqlalchemy import func
 import os
 import json
