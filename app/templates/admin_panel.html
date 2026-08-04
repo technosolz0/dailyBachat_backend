@@ -1652,6 +1652,13 @@
                 e.preventDefault();
                 const email = document.getElementById('email').value;
                 const password = document.getElementById('password').value;
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const originalBtnText = submitBtn ? submitBtn.innerHTML : '';
+
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.innerHTML = '<span class="btn-text">Authenticating...</span>';
+                }
 
                 try {
                     const response = await fetch(`${API_URL}/admin/login`, {
@@ -1667,11 +1674,17 @@
                         showToast('Successfully authenticated!');
                         checkAuth();
                     } else {
-                        const err = await response.json();
-                        showToast(err.detail || 'Authentication failed', 'error');
+                        const err = await response.json().catch(() => ({}));
+                        showToast(err.detail || `Authentication failed (Status ${response.status})`, 'error');
                     }
-                } catch (e) {
-                    showToast('Unable to connect to FastAPI backend server', 'error');
+                } catch (err) {
+                    console.error('Login error:', err);
+                    showToast('Unable to connect to FastAPI backend server: ' + err.message, 'error');
+                } finally {
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.innerHTML = originalBtnText;
+                    }
                 }
             }
 
