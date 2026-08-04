@@ -1637,13 +1637,23 @@
 
             // Check authentication token
             function checkAuth() {
+                const loginScreen = document.getElementById('login-screen');
+                const appLayout = document.getElementById('app-layout');
                 if (AUTH_TOKEN) {
-                    document.getElementById('login-screen').style.display = 'none';
-                    document.getElementById('app-layout').style.display = 'flex';
+                    if (loginScreen) {
+                        loginScreen.style.setProperty('display', 'none', 'important');
+                    }
+                    if (appLayout) {
+                        appLayout.style.setProperty('display', 'flex', 'important');
+                    }
                     switchTab('dashboard');
                 } else {
-                    document.getElementById('login-screen').style.display = 'flex';
-                    document.getElementById('app-layout').style.display = 'none';
+                    if (loginScreen) {
+                        loginScreen.style.setProperty('display', 'flex', 'important');
+                    }
+                    if (appLayout) {
+                        appLayout.style.setProperty('display', 'none', 'important');
+                    }
                 }
             }
 
